@@ -18,27 +18,27 @@ export function Sidebar({ className }: SidebarProps) {
     <aside
       data-expanded={expanded}
       className={cn(
-        "group/sidebar sticky top-0 hidden h-dvh shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
+        "group/sidebar sticky top-0 z-40 hidden h-dvh shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
         expanded ? "w-64" : "w-[72px]",
         className,
       )}
     >
-      <SidebarBrand />
-      <div className="no-scrollbar flex-1 overflow-y-auto">
-        <SidebarNav />
-      </div>
-      <div className="border-t border-sidebar-border p-2">
+      <div className="relative">
+        <SidebarBrand />
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="icon"
           onClick={toggleSidebar}
           aria-label={expanded ? t("collapseSidebar") : t("expandSidebar")}
           title={expanded ? t("collapseSidebar") : t("expandSidebar")}
-          className="min-h-11 min-w-11 text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-white"
+          className="absolute top-1/2 start-full z-40 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-sidebar-border bg-sidebar text-sidebar-foreground shadow-elevation-sm hover:bg-sidebar-accent/60 hover:text-white"
         >
-          <ChevronsRight className={cn("size-5 transition-transform duration-200", expanded && "rotate-180")} />
+          <ChevronsRight className={cn("size-3.5 transition-transform duration-200", expanded && "rotate-180")} />
         </Button>
+      </div>
+      <div className="no-scrollbar flex-1 overflow-y-auto">
+        <SidebarNav />
       </div>
     </aside>
   );
