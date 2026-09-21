@@ -86,6 +86,23 @@
     }
   },
   "sales": {
+    "list": {
+      "title": "فواتير البيع",
+      "searchPlaceholder": "ابحث برقم الفاتورة أو اسم العميل...",
+      "customerFilterPlaceholder": "كل العملاء",
+      "paymentStatusFilterLabel": "حالة الدفع",
+      "allStatuses": "كل الحالات",
+      "newInvoice": "فاتورة جديدة",
+      "emptyTitle": "لا توجد فواتير بعد",
+      "emptyDescription": "ابدأ بإنشاء أول فاتورة بيع",
+      "columnNumber": "الرقم",
+      "columnParty": "العميل",
+      "columnDate": "التاريخ",
+      "columnCashbox": "الخزينة",
+      "columnUser": "المستخدم",
+      "columnTotal": "الإجمالي",
+      "columnPaymentStatus": "حالة الدفع"
+    },
     "new": {
       "title": "فاتورة بيع جديدة",
       "productSearchPlaceholder": "ابحث بالاسم أو الباركود...",

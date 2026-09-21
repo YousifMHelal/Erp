@@ -282,3 +282,34 @@ export type InvoiceFormProps = {
   customerOptions: EntityComboboxOption[];
   cashboxOptions: EntityComboboxOption[];
 };
+
+// --- Sales list (P2-7) ---
+
+export type InvoiceListRow = {
+  id: string;
+  number: number;
+  partyName: string;
+  cashboxName: string;
+  userName: string;
+  total: string;
+  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
+  status: "CONFIRMED" | "CANCELLED";
+  issuedAt: string;
+};
+
+export type InvoiceListProps = {
+  invoices: InvoiceListRow[];
+  customerOptions: EntityComboboxOption[];
+};
+
+export type InvoiceFiltersProps = {
+  search: string;
+  onSearchChange: (value: string) => void;
+  dateRange: DateRange;
+  onDateRangeChange: (range: DateRange) => void;
+  customerId: string | undefined;
+  onCustomerChange: (id: string | undefined) => void;
+  customerOptions: EntityComboboxOption[];
+  paymentStatus: string | undefined;
+  onPaymentStatusChange: (value: string | undefined) => void;
+};
