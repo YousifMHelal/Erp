@@ -165,3 +165,36 @@ export type PasswordStepProps = {
   user: LoginUserTile;
   onBack: () => void;
 };
+
+// --- Dashboard (P2-5) ---
+
+export type SalesTrendPoint = { date: string; total: number };
+export type SalesTrendChartProps = { data: SalesTrendPoint[] };
+
+export type QuickActionItem = { labelKey: string; href: string; icon: LucideIcon };
+export type QuickActionsProps = { items: QuickActionItem[] };
+
+export type LowStockItem = { id: string; name: string; stockQty: number; minStockQty: number; unitName: string };
+export type LowStockPanelProps = { items: LowStockItem[] };
+
+export type TopDebtorItem = { id: string; name: string; balance: string };
+export type TopDebtorsPanelProps = { items: TopDebtorItem[] };
+
+export type RecentInvoiceItem = {
+  id: string;
+  number: number;
+  partyName: string;
+  total: string;
+  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
+  issuedAt: string;
+};
+export type RecentInvoicesProps = { items: RecentInvoiceItem[] };
+
+export type KpiRowProps = {
+  todaySales: string;
+  todaySalesDelta: { value: string; tone: "success" | "danger" };
+  invoiceCount: number;
+  invoiceCountDelta: { value: string; tone: "success" | "danger" };
+  lowStockCount: number;
+  totalReceivables: string;
+};

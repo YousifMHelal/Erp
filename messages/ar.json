@@ -61,6 +61,37 @@
     "auditLog": "سجل التدقيق",
     "settings": "الإعدادات"
   },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "نظرة سريعة على أداء المتجر اليوم",
+    "todaySales": "مبيعات اليوم",
+    "invoiceCount": "عدد الفواتير",
+    "lowStockCount": "أصناف منخفضة المخزون",
+    "totalReceivables": "إجمالي المستحقات",
+    "salesTrendTitle": "اتجاه المبيعات",
+    "salesTrendSummary": "اتجاه المبيعات لآخر {count} أيام، آخر قيمة {total}",
+    "lowStockTitle": "المخزون المنخفض",
+    "lowStockEmpty": "لا توجد أصناف منخفضة المخزون",
+    "lowStock": "منخفض",
+    "outOfStock": "نفد",
+    "topDebtorsTitle": "أعلى العملاء ديناً",
+    "topDebtorsEmpty": "لا يوجد عملاء عليهم مستحقات",
+    "recentInvoicesTitle": "أحدث الفواتير",
+    "recentInvoicesEmpty": "لا توجد فواتير بعد",
+    "quickActions": {
+      "newSale": "فاتورة بيع جديدة",
+      "newPurchase": "فاتورة شراء جديدة",
+      "collectPayment": "تحصيل دفعة",
+      "stocktake": "جرد جديد"
+    }
+  },
+  "invoices": {
+    "paymentStatus": {
+      "PAID": "مدفوعة",
+      "PARTIAL": "مدفوعة جزئياً",
+      "UNPAID": "غير مدفوعة"
+    }
+  },
   "auth": {
     "brandHeadline": "إدارة متجرك بثقة وسرعة",
     "brandSubline": "فواتير، مخزون، عملاء، وتقارير — كل شيء في مكان واحد.",
