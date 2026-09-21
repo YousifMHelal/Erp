@@ -302,6 +302,64 @@ export type InvoiceListProps = {
   customerOptions: EntityComboboxOption[];
 };
 
+// --- Invoice detail (P2-8) ---
+
+export type InvoiceDetailLine = {
+  id: string;
+  productName: string;
+  unitName: string;
+  qty: number;
+  unitPrice: string;
+  lineTotal: string;
+};
+
+export type InvoiceDetail = {
+  id: string;
+  number: number;
+  type: "SALE" | "PURCHASE" | "SALE_RETURN" | "PURCHASE_RETURN";
+  status: "CONFIRMED" | "CANCELLED";
+  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
+  partyName: string;
+  partyPhone?: string;
+  partyBalance?: string;
+  cashboxName: string;
+  userName: string;
+  issuedAt: string;
+  subtotal: string;
+  discountAmount: string;
+  total: string;
+  paidAmount: string;
+  remainingAmount: string;
+  notes?: string;
+  lines: InvoiceDetailLine[];
+  cancelledAt?: string;
+  cancelledByName?: string;
+  cancelReason?: string;
+};
+
+export type InvoiceHeaderCardProps = { invoice: InvoiceDetail };
+export type InvoicePartyCardProps = { invoice: InvoiceDetail };
+export type InvoiceLinesTableProps = { lines: InvoiceDetailLine[] };
+export type InvoiceTotalsCardProps = { invoice: InvoiceDetail };
+export type InvoiceDetailViewProps = { invoice: InvoiceDetail };
+
+export type InvoiceActionsBarProps = {
+  invoice: InvoiceDetail;
+  onPrint: () => void;
+  onCancel: () => void;
+};
+export type PrintSizeDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (size: "A4" | "A5" | "80mm") => void;
+};
+export type CancelInvoiceDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  invoiceNumber: string;
+  onConfirm: (reason: string) => void;
+};
+
 export type InvoiceFiltersProps = {
   search: string;
   onSearchChange: (value: string) => void;
