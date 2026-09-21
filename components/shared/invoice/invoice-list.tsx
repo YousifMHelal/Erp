@@ -16,7 +16,7 @@ import type { DateRange, InvoiceListProps } from "@/types";
 
 const PAGE_SIZE = 10;
 
-export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHref }: InvoiceListProps) {
+export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHref, detailBasePath }: InvoiceListProps) {
   const t = useTranslations("invoices.list");
   const tStatus = useTranslations("invoices.paymentStatus");
   const [search, setSearch] = useState("");
@@ -25,7 +25,8 @@ export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHr
   const [paymentStatus, setPaymentStatus] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
 
-  const columns = useInvoiceColumns(documentType, t, tStatus);
+  const resolvedBasePath = detailBasePath ?? (documentType === "SALE" ? "/sales" : "/purchases");
+  const columns = useInvoiceColumns(documentType, resolvedBasePath, t, tStatus);
 
   const filtered = useMemo(() => {
     return invoices.filter((invoice) => {
@@ -49,7 +50,9 @@ export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHr
       columns={columns}
       data={paged}
       getRowId={(row) => row.id}
-      renderMobileCard={(row) => <InvoiceMobileCard invoice={row} documentType={documentType} />}
+      renderMobileCard={(row) => (
+        <InvoiceMobileCard invoice={row} documentType={documentType} detailBasePath={resolvedBasePath} />
+      )}
       page={page}
       pageCount={pageCount}
       onPageChange={setPage}
@@ -60,11 +63,13 @@ export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHr
           title={emptyTitle}
           description={emptyDescription}
           action={
-            <Button asChild variant="primary">
-              <Link href={newInvoiceHref}>
-                <FilePlus2 /> {newInvoiceLabel}
-              </Link>
-            </Button>
+            newInvoiceHref ? (
+              <Button asChild variant="primary">
+                <Link href={newInvoiceHref}>
+                  <FilePlus2 /> {newInvoiceLabel}
+                </Link>
+              </Button>
+            ) : undefined
           }
         />
       }
@@ -91,11 +96,13 @@ export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHr
           actions={
             <>
               <DataTableDensityToggle />
-              <Button asChild variant="primary">
-                <Link href={newInvoiceHref}>
-                  <FilePlus2 /> {newInvoiceLabel}
-                </Link>
-              </Button>
+              {newInvoiceHref && (
+                <Button asChild variant="primary">
+                  <Link href={newInvoiceHref}>
+                    <FilePlus2 /> {newInvoiceLabel}
+                  </Link>
+                </Button>
+              )}
             </>
           }
         />

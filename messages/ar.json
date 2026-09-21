@@ -196,6 +196,34 @@
       "hotkeySaveAndNew": "حفظ وجديد"
     }
   },
+  "returns": {
+    "listSaleTitle": "مرتجعات البيع",
+    "listPurchaseTitle": "مرتجعات الشراء",
+    "newSaleTitle": "مرتجع بيع جديد",
+    "newPurchaseTitle": "مرتجع شراء جديد",
+    "form": {
+      "originalInvoiceTitle": "الفاتورة الأصلية",
+      "originalInvoiceLabel": "اختر الفاتورة",
+      "originalInvoicePlaceholder": "ابحث برقم الفاتورة أو اسم الطرف...",
+      "originalInvoiceSearchPlaceholder": "ابحث...",
+      "originalInvoiceEmpty": "لا توجد فواتير مطابقة",
+      "selectInvoiceHint": "اختر فاتورة أصلية لعرض أصنافها",
+      "columnProduct": "الصنف",
+      "columnUnit": "الوحدة",
+      "columnQtyInvoiced": "الكمية المفوترة",
+      "columnQtyReturn": "كمية المرتجع",
+      "columnPrice": "السعر",
+      "columnTotal": "الإجمالي",
+      "totalLabel": "إجمالي المرتجع",
+      "settlementTitle": "التسوية",
+      "cashboxLabel": "الخزينة",
+      "refundHintSale": "سيتم رد المبلغ من الخزينة المختارة أو خصمه من رصيد العميل.",
+      "refundHintPurchase": "سيتم استرداد المبلغ إلى الخزينة المختارة أو خصمه من رصيد المورد.",
+      "saveReturn": "حفظ المرتجع",
+      "errorNoLines": "اختر فاتورة وحدد كمية مرتجع لصنف واحد على الأقل",
+      "saveSuccess": "تم حفظ المرتجع"
+    }
+  },
   "auth": {
     "brandHeadline": "إدارة متجرك بثقة وسرعة",
     "brandSubline": "فواتير، مخزون، عملاء، وتقارير — كل شيء في مكان واحد.",

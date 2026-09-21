@@ -287,6 +287,57 @@ export type InvoiceFormProps = {
   cashboxOptions: EntityComboboxOption[];
 };
 
+// --- Returns (P2-10) ---
+
+export type ReturnDocumentType = "SALE_RETURN" | "PURCHASE_RETURN";
+
+export type OriginalInvoiceOption = {
+  id: string;
+  number: number;
+  partyName: string;
+  issuedAt: string;
+  total: string;
+};
+
+export type OriginalInvoiceLine = {
+  id: string;
+  productId: string;
+  productName: string;
+  unitName: string;
+  qtyInvoiced: number;
+  qtyAlreadyReturned: number;
+  unitPrice: string;
+};
+
+export type ReturnLineDraft = {
+  lineId: string;
+  productId: string;
+  productName: string;
+  unitName: string;
+  maxReturnableQty: number;
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+};
+
+export type OriginalInvoicePickerProps = {
+  options: OriginalInvoiceOption[];
+  selectedId: string | undefined;
+  onSelect: (id: string | undefined) => void;
+};
+
+export type ReturnLinesTableProps = {
+  lines: ReturnLineDraft[];
+  onUpdateQty: (lineId: string, qty: number) => void;
+};
+
+export type ReturnFormProps = {
+  documentType: ReturnDocumentType;
+  originalInvoices: OriginalInvoiceOption[];
+  originalInvoiceLines: Record<string, OriginalInvoiceLine[]>;
+  cashboxOptions: EntityComboboxOption[];
+};
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {
@@ -305,7 +356,10 @@ export type InvoiceListProps = {
   documentType: InvoiceDocumentType;
   invoices: InvoiceListRow[];
   partyOptions: EntityComboboxOption[];
-  newInvoiceHref: string;
+  /** Route to create a new document. Omit to hide the "new" action (e.g. returns, which are created from an original invoice picker instead). */
+  newInvoiceHref?: string;
+  /** Base path for row/detail links, e.g. "/sales" or "/sales-returns". Defaults by documentType when omitted. */
+  detailBasePath?: string;
 };
 
 // --- Invoice detail (P2-8) ---

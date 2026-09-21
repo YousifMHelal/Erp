@@ -12,10 +12,10 @@ const PAYMENT_STATUS_TONE = { PAID: "success", PARTIAL: "warning", UNPAID: "dang
 
 export function useInvoiceColumns(
   documentType: InvoiceDocumentType,
+  detailBasePath: string,
   t: (key: string) => string,
   tStatus: (key: string) => string,
 ): ColumnDef<InvoiceListRow, unknown>[] {
-  const detailBasePath = documentType === "SALE" ? "/sales" : "/purchases";
   const partyColumnHeader = documentType === "SALE" ? t("columnPartySale") : t("columnPartyPurchase");
 
   return [

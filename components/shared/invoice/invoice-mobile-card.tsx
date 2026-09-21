@@ -11,16 +11,18 @@ const PAYMENT_STATUS_TONE = { PAID: "success", PARTIAL: "warning", UNPAID: "dang
 export function InvoiceMobileCard({
   invoice,
   documentType = "SALE",
+  detailBasePath,
 }: {
   invoice: InvoiceListRow;
   documentType?: InvoiceDocumentType;
+  detailBasePath?: string;
 }) {
   const t = useTranslations("invoices.paymentStatus");
   const tCommon = useTranslations("common");
-  const detailBasePath = documentType === "SALE" ? "/sales" : "/purchases";
+  const resolvedBasePath = detailBasePath ?? (documentType === "SALE" ? "/sales" : "/purchases");
 
   return (
-    <Link href={`${detailBasePath}/${invoice.id}`}>
+    <Link href={`${resolvedBasePath}/${invoice.id}`}>
       <Card className={invoice.status === "CANCELLED" ? "opacity-60" : undefined}>
         <CardContent className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
