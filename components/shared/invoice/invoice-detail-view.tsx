@@ -35,7 +35,10 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
   function handlePrintSelect(size: "A4" | "A5" | "80mm") {
     setPrintOpen(false);
     toast.success(t("printStarted", { size }));
-    // P4-12 wires real print/PDF generation.
+    // Opens the shared print-preview route — document-type-agnostic (PrintInvoiceData carries
+    // documentTypeLabel), so this already works for both sales and purchases. Real PDF/stream
+    // generation lands with P4-12.
+    window.open(`/print/${invoice.id}?size=${size}`, "_blank", "noopener,noreferrer");
   }
 
   function handlePrintClick() {
