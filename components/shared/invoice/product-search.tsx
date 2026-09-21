@@ -1,19 +1,24 @@
 "use client";
 
-import { useState, type Ref } from "react";
+import { useRef, useState, type Ref } from "react";
 import { PackageSearch, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Card } from "@/components/ui/card";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Money } from "@/components/shared/money";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useMergedRef } from "@/hooks/use-merged-ref";
 import type { ProductSearchProps, SearchableProduct } from "@/types";
 
 export function ProductSearch({ products, onAddLine, ref }: ProductSearchProps & { ref?: Ref<HTMLInputElement> }) {
   const t = useTranslations("invoices.form");
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const mergedRef = useMergedRef(ref, inputRef);
 
   const filtered = query.trim()
     ? products.filter(
@@ -30,37 +35,53 @@ export function ProductSearch({ products, onAddLine, ref }: ProductSearchProps &
     if (exactBarcode) {
       onAddLine(exactBarcode);
       setQuery("");
+      setOpen(false);
     }
   }
 
-  return (
-    <div className="flex h-full flex-col gap-3">
-      <InputGroup>
-        <InputGroupInput
-          ref={ref}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={t("productSearchPlaceholder")}
-          aria-label={t("productSearchPlaceholder")}
-        />
-        <InputGroupAddon>
-          <Search className="size-4 text-muted-foreground" aria-hidden="true" />
-        </InputGroupAddon>
-      </InputGroup>
+  function handleSelect(product: SearchableProduct) {
+    onAddLine(product);
+    setQuery("");
+    inputRef.current?.focus();
+  }
 
-      <div className="flex-1 overflow-y-auto">
+  return (
+    <Popover open={open && query.trim().length > 0} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>
+        <InputGroup>
+          <InputGroupInput
+            ref={mergedRef}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={handleKeyDown}
+            placeholder={t("productSearchPlaceholder")}
+            aria-label={t("productSearchPlaceholder")}
+          />
+          <InputGroupAddon>
+            <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+          </InputGroupAddon>
+        </InputGroup>
+      </PopoverAnchor>
+      <PopoverContent
+        className="w-(--radix-popover-trigger-width) max-h-80 overflow-y-auto p-2"
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         {filtered.length === 0 ? (
           <EmptyState icon={<PackageSearch className="size-6" />} title={t("noProductsFound")} />
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             {filtered.map((product) => (
-              <ProductSearchResult key={product.id} product={product} onSelect={() => onAddLine(product)} />
+              <ProductSearchResult key={product.id} product={product} onSelect={() => handleSelect(product)} />
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

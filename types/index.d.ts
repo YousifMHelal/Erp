@@ -272,12 +272,14 @@ export type PaymentPanelProps = {
 
 export type HotkeyBarProps = { className?: string };
 
-export type SaveInvoiceDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  invoiceNumber: string;
-  onPrint: (size: "A4" | "A5" | "80mm") => void;
-  onSkip: () => void;
+/** Pre-fill data for editing an existing sale/purchase (static-props only — Phase 2 has no real update action). */
+export type InvoiceFormInitialData = {
+  number: string;
+  partyId?: string;
+  cashboxId?: string;
+  discountAmount: number;
+  paidAmount: number;
+  lines: InvoiceLineDraft[];
 };
 
 export type InvoiceFormProps = {
@@ -285,6 +287,8 @@ export type InvoiceFormProps = {
   products: SearchableProduct[];
   partyOptions: EntityComboboxOption[];
   cashboxOptions: EntityComboboxOption[];
+  /** When set, the form opens pre-filled for editing that invoice instead of starting blank. */
+  initialInvoice?: InvoiceFormInitialData;
 };
 
 // --- Returns (P2-10) ---
@@ -394,6 +398,7 @@ export type ProductFormDialogProps = {
   onOpenChange: (open: boolean) => void;
   categoryOptions: EntityComboboxOption[];
   product?: InventoryProductRow;
+  onSave: (product: InventoryProductRow) => void;
 };
 
 export type ProductDetail = InventoryProductRow & {
@@ -427,6 +432,19 @@ export type ProductPriceHistoryProps = { entries: PriceHistoryEntry[] };
 
 export type InventoryGridProps = {
   products: InventoryProductRow[];
+  categoryOptions: EntityComboboxOption[];
+};
+
+export type InventoryMobileCardProps = {
+  product: InventoryProductRow;
+  onEdit: (product: InventoryProductRow) => void;
+  onDelete: (product: InventoryProductRow) => void;
+};
+
+export type ProductDetailViewProps = {
+  product: ProductDetail;
+  movements: StockMovementRow[];
+  priceHistory: PriceHistoryEntry[];
   categoryOptions: EntityComboboxOption[];
 };
 
@@ -790,6 +808,8 @@ export type PrintShopInfo = {
   address: string;
   taxNote?: string;
   invoiceFooter?: string;
+  /** Data URL (base64) held in local state — no real upload/storage in Phase 2. */
+  logoDataUrl?: string;
 };
 
 export type PrintInvoiceLine = {
@@ -841,7 +861,11 @@ export type InvoiceListProps = {
   newInvoiceHref?: string;
   /** Base path for row/detail links, e.g. "/sales" or "/sales-returns". Defaults by documentType when omitted. */
   detailBasePath?: string;
+  /** Overrides the default documentType-based "new" button label, e.g. "مرتجع جديد" for returns lists. */
+  newInvoiceLabel?: string;
 };
+
+export type QuickDateRangePreset = "TODAY" | "THIS_WEEK" | "THIS_MONTH";
 
 // --- Invoice detail (P2-8) ---
 
@@ -888,6 +912,8 @@ export type InvoiceActionsBarProps = {
   invoice: InvoiceDetail;
   onPrint: () => void;
   onCancel: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 export type PrintSizeDialogProps = {
   open: boolean;
@@ -910,4 +936,65 @@ export type InvoiceFiltersProps = {
   partyOptions: EntityComboboxOption[];
   paymentStatus: string | undefined;
   onPaymentStatusChange: (value: string | undefined) => void;
+};
+
+export type DateRangePresetPickerProps = {
+  value: DateRange;
+  onChange: (range: DateRange) => void;
+  className?: string;
+};
+
+// --- Settings: users/categories/cashboxes dialogs (added by print-template + CRUD task) ---
+
+export type SettingsUserFormDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  roleOptions: EntityComboboxOption[];
+  user?: SettingsUserRow;
+  onSave: (user: SettingsUserRow) => void;
+};
+
+export type CategoryFormDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  category?: CategoryRow;
+  onSave: (category: CategoryRow) => void;
+};
+
+export type SettingsCashboxFormDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  cashbox?: SettingsCashboxRow;
+  onSave: (cashbox: SettingsCashboxRow) => void;
+};
+
+// --- Print template customizer (settings, P2-21) ---
+
+export type PrintLineColumnKey = "unitName" | "sku" | "discount";
+
+export type PrintLineColumnConfig = {
+  key: PrintLineColumnKey;
+  labelKey: string;
+  visible: boolean;
+};
+
+export type PrintTemplateSettings = {
+  templateName: string;
+  shop: PrintShopInfo;
+  lineColumns: PrintLineColumnConfig[];
+};
+
+export type PrintTemplateFormProps = {
+  template: PrintTemplateSettings;
+};
+
+export type PrintTemplatePreviewProps = {
+  template: PrintTemplateSettings;
+  size: "A4" | "A5" | "80mm";
+};
+
+export type PrintLineColumnListProps = {
+  columns: PrintLineColumnConfig[];
+  onToggle: (key: PrintLineColumnKey) => void;
+  onMove: (key: PrintLineColumnKey, direction: "up" | "down") => void;
 };

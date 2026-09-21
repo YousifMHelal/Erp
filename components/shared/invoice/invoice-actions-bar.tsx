@@ -1,9 +1,9 @@
-import { Ban, MessageCircle, Printer } from "lucide-react";
+import { Ban, MessageCircle, Pencil, Printer, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import type { InvoiceActionsBarProps } from "@/types";
 
-export function InvoiceActionsBar({ invoice, onPrint, onCancel }: InvoiceActionsBarProps) {
+export function InvoiceActionsBar({ invoice, onPrint, onCancel, onEdit, onDelete }: InvoiceActionsBarProps) {
   const t = useTranslations("invoices.detail");
   const isCancelled = invoice.status === "CANCELLED";
   const whatsappText = encodeURIComponent(
@@ -21,9 +21,21 @@ export function InvoiceActionsBar({ invoice, onPrint, onCancel }: InvoiceActions
         </a>
       </Button>
       {!isCancelled && (
-        <Button type="button" variant="destructive" onClick={onCancel} className="ms-auto">
-          <Ban /> {t("cancelAction")}
-        </Button>
+        <div className="ms-auto flex items-center gap-2">
+          {onEdit && (
+            <Button type="button" variant="outline" onClick={onEdit}>
+              <Pencil /> {t("editAction")}
+            </Button>
+          )}
+          {onDelete && (
+            <Button type="button" variant="destructive" onClick={onDelete}>
+              <Trash2 /> {t("deleteAction")}
+            </Button>
+          )}
+          <Button type="button" variant="destructive" onClick={onCancel}>
+            <Ban /> {t("cancelAction")}
+          </Button>
+        </div>
       )}
     </div>
   );

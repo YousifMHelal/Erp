@@ -9,12 +9,14 @@ import { LineItemsTable } from "@/components/shared/invoice/line-items-table";
 import { TotalsPanel } from "@/components/shared/invoice/totals-panel";
 import { PaymentPanel } from "@/components/shared/invoice/payment-panel";
 import { HotkeyBar } from "@/components/shared/invoice/hotkey-bar";
-import { SaveInvoiceDialog } from "@/components/shared/invoice/save-invoice-dialog";
 import { Money } from "@/components/shared/money";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import type { InvoiceFormProps, InvoiceLineDraft, SearchableProduct } from "@/types";
 
 let lineIdCounter = 0;
+
+// Hardcoded until Settings > PrintPreferences.defaultPrintSize is read from the backend (P4-7+).
+const DEFAULT_PRINT_SIZE: "A4" | "A5" | "80mm" = "A4";
 
 function draftFromProduct(product: SearchableProduct): InvoiceLineDraft {
   lineIdCounter += 1;
@@ -32,14 +34,14 @@ function draftFromProduct(product: SearchableProduct): InvoiceLineDraft {
   };
 }
 
-export function InvoiceForm({ documentType, products, partyOptions, cashboxOptions }: InvoiceFormProps) {
+export function InvoiceForm({ documentType, products, partyOptions, cashboxOptions, initialInvoice }: InvoiceFormProps) {
   const t = useTranslations("invoices.form");
-  const [lines, setLines] = useState<InvoiceLineDraft[]>([]);
-  const [discountAmount, setDiscountAmount] = useState(0);
-  const [paidAmount, setPaidAmount] = useState(0);
-  const [partyId, setPartyId] = useState<string | undefined>(undefined);
-  const [cashboxId, setCashboxId] = useState<string | undefined>(cashboxOptions[0]?.value);
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const isEditMode = Boolean(initialInvoice);
+  const [lines, setLines] = useState<InvoiceLineDraft[]>(initialInvoice?.lines ?? []);
+  const [discountAmount, setDiscountAmount] = useState(initialInvoice?.discountAmount ?? 0);
+  const [paidAmount, setPaidAmount] = useState(initialInvoice?.paidAmount ?? 0);
+  const [partyId, setPartyId] = useState<string | undefined>(initialInvoice?.partyId);
+  const [cashboxId, setCashboxId] = useState<string | undefined>(initialInvoice?.cashboxId ?? cashboxOptions[0]?.value);
   const productSearchRef = useRef<HTMLInputElement>(null);
 
   const subtotal = useMemo(() => lines.reduce((sum, line) => sum + line.lineTotal, 0), [lines]);
@@ -68,8 +70,21 @@ export function InvoiceForm({ documentType, products, partyOptions, cashboxOptio
       toast.error(t("errorEmptyLines"));
       return;
     }
+    const invoiceNumber = initialInvoice?.number ?? "000123";
+
+    if (isEditMode) {
+      // Phase 2 is UI-only: no real updateSale/updatePurchase Server Action exists yet
+      // (that lands with P4-9/P5-5), so this just confirms the edit locally.
+      toast.success(t("updatedTitle", { number: invoiceNumber }));
+      return;
+    }
+
     // P4-9/P5-5 wires this to the real createSale/createPurchase server action.
-    setSaveDialogOpen(true);
+    toast.success(t("savedTitle", { number: invoiceNumber }));
+    // Real "shop default print size" comes from PrintPreferences once settings are backed by
+    // a Server Action (P4-7+); hardcoded here since InvoiceForm only receives static props in Phase 2.
+    window.open(`/print/${invoiceNumber}?size=${DEFAULT_PRINT_SIZE}`, "_blank", "noopener,noreferrer");
+    resetForm();
   }
 
   function resetForm() {
@@ -77,7 +92,6 @@ export function InvoiceForm({ documentType, products, partyOptions, cashboxOptio
     setDiscountAmount(0);
     setPaidAmount(0);
     setPartyId(undefined);
-    setSaveDialogOpen(false);
   }
 
   useHotkeys({
@@ -90,15 +104,9 @@ export function InvoiceForm({ documentType, products, partyOptions, cashboxOptio
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-[320px_1fr_340px]">
-        <div className="hidden overflow-hidden rounded-md border border-border bg-card p-3 lg:flex lg:flex-col">
-          <ProductSearch ref={productSearchRef} products={products} onAddLine={addLine} />
-        </div>
-
+      <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-[1fr_340px]">
         <div className="flex flex-col gap-4 overflow-y-auto lg:overflow-hidden">
-          <div className="lg:hidden">
-            <ProductSearch products={products} onAddLine={addLine} />
-          </div>
+          <ProductSearch ref={productSearchRef} products={products} onAddLine={addLine} />
           <div className="min-h-0 flex-1">
             <LineItemsTable lines={lines} onUpdateLine={updateLine} onRemoveLine={removeLine} />
           </div>
@@ -124,7 +132,7 @@ export function InvoiceForm({ documentType, products, partyOptions, cashboxOptio
             total={total}
           />
           <Button type="button" variant="accent" size="lg" onClick={handleSave} className="hidden w-full lg:flex">
-            {t("saveInvoice")}
+            {isEditMode ? t("updateInvoice") : t("saveInvoice")}
           </Button>
         </div>
       </div>
@@ -137,17 +145,9 @@ export function InvoiceForm({ documentType, products, partyOptions, cashboxOptio
           <Money value={String(total)} className="text-h3 font-semibold" />
         </div>
         <Button type="button" variant="accent" size="lg" onClick={handleSave} className="flex-1">
-          {t("saveInvoice")}
+          {isEditMode ? t("updateInvoice") : t("saveInvoice")}
         </Button>
       </div>
-
-      <SaveInvoiceDialog
-        open={saveDialogOpen}
-        onOpenChange={setSaveDialogOpen}
-        invoiceNumber="000123"
-        onPrint={() => resetForm()}
-        onSkip={resetForm}
-      />
     </div>
   );
 }
