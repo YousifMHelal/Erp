@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { CancelInvoiceDialogProps } from "@/types";
 
 export function CancelInvoiceDialog({ open, onOpenChange, invoiceNumber, onConfirm }: CancelInvoiceDialogProps) {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
   const [reason, setReason] = useState("");
 
   function handleConfirm() {

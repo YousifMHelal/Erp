@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { InvoiceHeaderCard } from "@/components/sales/invoice-header-card";
-import { InvoicePartyCard } from "@/components/sales/invoice-party-card";
-import { InvoiceLinesTable } from "@/components/sales/invoice-lines-table";
-import { InvoiceTotalsCard } from "@/components/sales/invoice-totals-card";
-import { InvoiceActionsBar } from "@/components/sales/invoice-actions-bar";
-import { PrintSizeDialog } from "@/components/sales/print-size-dialog";
-import { CancelInvoiceDialog } from "@/components/sales/cancel-invoice-dialog";
+import { InvoiceHeaderCard } from "@/components/shared/invoice/invoice-header-card";
+import { InvoicePartyCard } from "@/components/shared/invoice/invoice-party-card";
+import { InvoiceLinesTable } from "@/components/shared/invoice/invoice-lines-table";
+import { InvoiceTotalsCard } from "@/components/shared/invoice/invoice-totals-card";
+import { InvoiceActionsBar } from "@/components/shared/invoice/invoice-actions-bar";
+import { PrintSizeDialog } from "@/components/shared/invoice/print-size-dialog";
+import { CancelInvoiceDialog } from "@/components/shared/invoice/cancel-invoice-dialog";
 import type { InvoiceDetailViewProps } from "@/types";
 
 export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
   const [printOpen, setPrintOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 

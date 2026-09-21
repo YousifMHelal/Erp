@@ -8,7 +8,7 @@ import type { InvoiceHeaderCardProps } from "@/types";
 const PAYMENT_STATUS_TONE = { PAID: "success", PARTIAL: "warning", UNPAID: "danger" } as const;
 
 export function InvoiceHeaderCard({ invoice }: InvoiceHeaderCardProps) {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
   const tStatus = useTranslations("invoices.paymentStatus");
   const isCancelled = invoice.status === "CANCELLED";
 

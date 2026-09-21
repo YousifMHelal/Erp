@@ -4,12 +4,12 @@ import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ProductSearch } from "@/components/sales/product-search";
-import { LineItemsTable } from "@/components/sales/line-items-table";
-import { TotalsPanel } from "@/components/sales/totals-panel";
-import { PaymentPanel } from "@/components/sales/payment-panel";
-import { HotkeyBar } from "@/components/sales/hotkey-bar";
-import { SaveInvoiceDialog } from "@/components/sales/save-invoice-dialog";
+import { ProductSearch } from "@/components/shared/invoice/product-search";
+import { LineItemsTable } from "@/components/shared/invoice/line-items-table";
+import { TotalsPanel } from "@/components/shared/invoice/totals-panel";
+import { PaymentPanel } from "@/components/shared/invoice/payment-panel";
+import { HotkeyBar } from "@/components/shared/invoice/hotkey-bar";
+import { SaveInvoiceDialog } from "@/components/shared/invoice/save-invoice-dialog";
 import { Money } from "@/components/shared/money";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import type { InvoiceFormProps, InvoiceLineDraft, SearchableProduct } from "@/types";
@@ -27,17 +27,17 @@ function draftFromProduct(product: SearchableProduct): InvoiceLineDraft {
     subUnitName: product.subUnitName,
     unitsPerBase: product.unitsPerBase,
     qty: 1,
-    unitPrice: Number(product.sellPricePerSub),
-    lineTotal: Number(product.sellPricePerSub),
+    unitPrice: Number(product.pricePerSub),
+    lineTotal: Number(product.pricePerSub),
   };
 }
 
-export function InvoiceForm({ products, customerOptions, cashboxOptions }: InvoiceFormProps) {
-  const t = useTranslations("sales.new");
+export function InvoiceForm({ documentType, products, partyOptions, cashboxOptions }: InvoiceFormProps) {
+  const t = useTranslations("invoices.form");
   const [lines, setLines] = useState<InvoiceLineDraft[]>([]);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [paidAmount, setPaidAmount] = useState(0);
-  const [customerId, setCustomerId] = useState<string | undefined>(undefined);
+  const [partyId, setPartyId] = useState<string | undefined>(undefined);
   const [cashboxId, setCashboxId] = useState<string | undefined>(cashboxOptions[0]?.value);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const productSearchRef = useRef<HTMLInputElement>(null);
@@ -68,7 +68,7 @@ export function InvoiceForm({ products, customerOptions, cashboxOptions }: Invoi
       toast.error(t("errorEmptyLines"));
       return;
     }
-    // P4-9 wires this to the real createSale server action.
+    // P4-9/P5-5 wires this to the real createSale/createPurchase server action.
     setSaveDialogOpen(true);
   }
 
@@ -76,7 +76,7 @@ export function InvoiceForm({ products, customerOptions, cashboxOptions }: Invoi
     setLines([]);
     setDiscountAmount(0);
     setPaidAmount(0);
-    setCustomerId(undefined);
+    setPartyId(undefined);
     setSaveDialogOpen(false);
   }
 
@@ -112,12 +112,13 @@ export function InvoiceForm({ products, customerOptions, cashboxOptions }: Invoi
             total={total}
           />
           <PaymentPanel
+            documentType={documentType}
             cashboxOptions={cashboxOptions}
             cashboxId={cashboxId}
             onCashboxChange={setCashboxId}
-            customerOptions={customerOptions}
-            customerId={customerId}
-            onCustomerChange={setCustomerId}
+            partyOptions={partyOptions}
+            partyId={partyId}
+            onPartyChange={setPartyId}
             paidAmount={paidAmount}
             onPaidAmountChange={setPaidAmount}
             total={total}

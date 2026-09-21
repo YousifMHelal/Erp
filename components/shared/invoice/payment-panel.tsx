@@ -8,21 +8,26 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import type { PaymentPanelProps } from "@/types";
 
 export function PaymentPanel({
+  documentType,
   cashboxOptions,
   cashboxId,
   onCashboxChange,
-  customerOptions,
-  customerId,
-  onCustomerChange,
+  partyOptions,
+  partyId,
+  onPartyChange,
   paidAmount,
   onPaidAmountChange,
   total,
 }: PaymentPanelProps) {
-  const t = useTranslations("sales.new");
+  const t = useTranslations("invoices.form");
   const remaining = total - paidAmount;
   const status = remaining <= 0 ? "PAID" : paidAmount <= 0 ? "UNPAID" : "PARTIAL";
   const statusTone = status === "PAID" ? "success" : status === "PARTIAL" ? "warning" : "danger";
   const tStatus = useTranslations("invoices.paymentStatus");
+  const partyLabel = documentType === "SALE" ? t("partyLabelSale") : t("partyLabelPurchase");
+  const cashPartyPlaceholder = documentType === "SALE" ? t("cashPartyPlaceholderSale") : t("cashPartyPlaceholderPurchase");
+  const partySearchPlaceholder =
+    documentType === "SALE" ? t("partySearchPlaceholderSale") : t("partySearchPlaceholderPurchase");
 
   return (
     <Card>
@@ -31,13 +36,13 @@ export function PaymentPanel({
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label>{t("customerLabel")}</Label>
+          <Label>{partyLabel}</Label>
           <EntityCombobox
-            options={customerOptions}
-            value={customerId}
-            onChange={onCustomerChange}
-            placeholder={t("cashCustomerPlaceholder")}
-            searchPlaceholder={t("customerSearchPlaceholder")}
+            options={partyOptions}
+            value={partyId}
+            onChange={onPartyChange}
+            placeholder={cashPartyPlaceholder}
+            searchPlaceholder={partySearchPlaceholder}
           />
         </div>
         <div className="flex flex-col gap-1.5">

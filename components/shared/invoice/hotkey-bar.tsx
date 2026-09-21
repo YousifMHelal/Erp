@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 import type { HotkeyBarProps } from "@/types";
 
 const HINTS = [
-  { key: "F2", labelKey: "sales.new.hotkeyProductSearch" },
-  { key: "F8", labelKey: "sales.new.hotkeyDeleteLine" },
-  { key: "F9", labelKey: "sales.new.hotkeySave" },
-  { key: "F10", labelKey: "sales.new.hotkeyNew" },
-  { key: "F12", labelKey: "sales.new.hotkeySaveAndNew" },
+  { key: "F2", labelKey: "invoices.form.hotkeyProductSearch" },
+  { key: "F8", labelKey: "invoices.form.hotkeyDeleteLine" },
+  { key: "F9", labelKey: "invoices.form.hotkeySave" },
+  { key: "F10", labelKey: "invoices.form.hotkeyNew" },
+  { key: "F12", labelKey: "invoices.form.hotkeySaveAndNew" },
 ] as const;
 
 export function HotkeyBar({ className }: HotkeyBarProps) {

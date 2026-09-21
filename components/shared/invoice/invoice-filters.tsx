@@ -7,25 +7,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { InvoiceFiltersProps } from "@/types";
 
 export function InvoiceFilters({
+  documentType,
   dateRange,
   onDateRangeChange,
-  customerId,
-  onCustomerChange,
-  customerOptions,
+  partyId,
+  onPartyChange,
+  partyOptions,
   paymentStatus,
   onPaymentStatusChange,
 }: InvoiceFiltersProps) {
-  const t = useTranslations("sales.list");
+  const t = useTranslations("invoices.list");
   const tStatus = useTranslations("invoices.paymentStatus");
+  const partyFilterPlaceholder =
+    documentType === "SALE" ? t("customerFilterPlaceholderSale") : t("customerFilterPlaceholderPurchase");
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <DateRangePicker value={dateRange} onChange={onDateRangeChange} className="sm:w-56" />
       <EntityCombobox
-        options={customerOptions}
-        value={customerId}
-        onChange={onCustomerChange}
-        placeholder={t("customerFilterPlaceholder")}
+        options={partyOptions}
+        value={partyId}
+        onChange={onPartyChange}
+        placeholder={partyFilterPlaceholder}
         className="w-full sm:w-48"
       />
       <Select

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import type { PrintSizeDialogProps } from "@/types";
 
 export function PrintSizeDialog({ open, onOpenChange, onSelect }: PrintSizeDialogProps) {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

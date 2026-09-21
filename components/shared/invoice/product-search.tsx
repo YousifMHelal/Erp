@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import type { ProductSearchProps, SearchableProduct } from "@/types";
 
 export function ProductSearch({ products, onAddLine, ref }: ProductSearchProps & { ref?: Ref<HTMLInputElement> }) {
-  const t = useTranslations("sales.new");
+  const t = useTranslations("invoices.form");
   const [query, setQuery] = useState("");
 
   const filtered = query.trim()
@@ -65,7 +65,7 @@ export function ProductSearch({ products, onAddLine, ref }: ProductSearchProps &
 }
 
 function ProductSearchResult({ product, onSelect }: { product: SearchableProduct; onSelect: () => void }) {
-  const t = useTranslations("sales.new");
+  const t = useTranslations("invoices.form");
   const outOfStock = product.stockQty <= 0;
 
   return (
@@ -87,7 +87,7 @@ function ProductSearchResult({ product, onSelect }: { product: SearchableProduct
               {outOfStock && ` · ${t("outOfStock")}`}
             </span>
           </div>
-          <Money value={product.sellPricePerSub} className="shrink-0 text-body-sm font-medium" />
+          <Money value={product.pricePerSub} className="shrink-0 text-body-sm font-medium" />
         </div>
       </Card>
     </button>

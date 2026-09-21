@@ -12,8 +12,8 @@ const PRODUCTS: SearchableProduct[] = [
     baseUnitName: "كرتونة",
     subUnitName: "كيس",
     unitsPerBase: 10,
-    pricePerBase: "1200.00",
-    pricePerSub: "120.00",
+    pricePerBase: "1000.00",
+    pricePerSub: "100.00",
     stockQty: 42,
   },
   {
@@ -24,8 +24,8 @@ const PRODUCTS: SearchableProduct[] = [
     baseUnitName: "كرتونة",
     subUnitName: "زجاجة",
     unitsPerBase: 12,
-    pricePerBase: "960.00",
-    pricePerSub: "80.00",
+    pricePerBase: "780.00",
+    pricePerSub: "65.00",
     stockQty: 0,
   },
   {
@@ -36,28 +36,15 @@ const PRODUCTS: SearchableProduct[] = [
     baseUnitName: "كرتونة",
     subUnitName: "كيس",
     unitsPerBase: 8,
-    pricePerBase: "480.00",
-    pricePerSub: "60.00",
+    pricePerBase: "400.00",
+    pricePerSub: "50.00",
     stockQty: 16,
-  },
-  {
-    id: "4",
-    name: "شاي العروسة ٥٠ فتلة",
-    sku: "TEA-003",
-    barcode: "6221031001046",
-    baseUnitName: "كرتونة",
-    subUnitName: "علبة",
-    unitsPerBase: 24,
-    pricePerBase: "720.00",
-    pricePerSub: "30.00",
-    stockQty: 58,
   },
 ];
 
-const CUSTOMERS: EntityComboboxOption[] = [
-  { value: "1", label: "بقالة النور", description: "رصيد حالي: 4,250.00 ج.م" },
-  { value: "2", label: "سوبر ماركت الأمانة", description: "رصيد حالي: 3,100.50 ج.م" },
-  { value: "3", label: "محمد عبد الرحمن" },
+const SUPPLIERS: EntityComboboxOption[] = [
+  { value: "1", label: "شركة الدلتا للمواد الغذائية", description: "رصيد حالي: 8,400.00 ج.م" },
+  { value: "2", label: "مؤسسة النيل للتوزيع" },
 ];
 
 const CASHBOXES: EntityComboboxOption[] = [
@@ -66,16 +53,16 @@ const CASHBOXES: EntityComboboxOption[] = [
   { value: "3", label: "إنستاباي" },
 ];
 
-export default function NewSalePage() {
+export default function NewPurchasePage() {
   const t = useTranslations("invoices.form");
 
   return (
     <div className="flex min-h-[calc(100dvh-9.5rem)] flex-col">
       <PageHeader
-        title={t("titleSale")}
-        breadcrumbs={[{ labelKey: "nav.sales", href: "/sales" }, { labelKey: "invoices.form.titleSale" }]}
+        title={t("titlePurchase")}
+        breadcrumbs={[{ labelKey: "nav.purchases", href: "/purchases" }, { labelKey: "invoices.form.titlePurchase" }]}
       />
-      <InvoiceForm documentType="SALE" products={PRODUCTS} partyOptions={CUSTOMERS} cashboxOptions={CASHBOXES} />
+      <InvoiceForm documentType="PURCHASE" products={PRODUCTS} partyOptions={SUPPLIERS} cashboxOptions={CASHBOXES} />
     </div>
   );
 }

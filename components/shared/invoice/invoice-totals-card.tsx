@@ -4,7 +4,7 @@ import { Money } from "@/components/shared/money";
 import type { InvoiceTotalsCardProps } from "@/types";
 
 export function InvoiceTotalsCard({ invoice }: InvoiceTotalsCardProps) {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
 
   return (
     <Card>

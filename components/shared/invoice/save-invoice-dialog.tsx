@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { SaveInvoiceDialogProps } from "@/types";
 
 export function SaveInvoiceDialog({ open, onOpenChange, invoiceNumber, onPrint, onSkip }: SaveInvoiceDialogProps) {
-  const t = useTranslations("sales.new");
+  const t = useTranslations("invoices.form");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

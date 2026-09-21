@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { InvoiceActionsBarProps } from "@/types";
 
 export function InvoiceActionsBar({ invoice, onPrint, onCancel }: InvoiceActionsBarProps) {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
   const isCancelled = invoice.status === "CANCELLED";
   const whatsappText = encodeURIComponent(
     t("whatsappMessage", { number: String(invoice.number).padStart(6, "0"), total: invoice.total }),

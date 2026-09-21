@@ -11,7 +11,7 @@ import { convertUnitPrice } from "@/lib/units";
 import type { LineRowProps, UnitType } from "@/types";
 
 export function LineItemMobileCard({ line, onUpdate, onRemove }: LineRowProps) {
-  const t = useTranslations("sales.new");
+  const t = useTranslations("invoices.form");
 
   function handleUnitChange(unitType: UnitType) {
     onUpdate({ unitType, unitPrice: convertUnitPrice(line.unitPrice, line.unitType, unitType, line.unitsPerBase) });

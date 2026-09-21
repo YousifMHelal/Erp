@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
-import { InvoiceDetailView } from "@/components/sales/invoice-detail-view";
+import { InvoiceDetailView } from "@/components/shared/invoice/invoice-detail-view";
 import type { InvoiceDetail } from "@/types";
 
 const INVOICE: InvoiceDetail = {
@@ -28,13 +28,13 @@ const INVOICE: InvoiceDetail = {
 };
 
 export default function InvoiceDetailPage() {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
 
   return (
     <>
       <PageHeader
         title={t("title", { number: String(INVOICE.number).padStart(6, "0") })}
-        breadcrumbs={[{ labelKey: "nav.sales", href: "/sales" }, { labelKey: "sales.detail.breadcrumb" }]}
+        breadcrumbs={[{ labelKey: "nav.sales", href: "/sales" }, { labelKey: "invoices.detail.breadcrumbSale" }]}
       />
       <InvoiceDetailView invoice={INVOICE} />
     </>

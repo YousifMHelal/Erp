@@ -4,16 +4,23 @@ import { Money } from "@/components/shared/money";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { formatDate } from "@/lib/format";
 import { useTranslations } from "next-intl";
-import type { InvoiceListRow } from "@/types";
+import type { InvoiceDocumentType, InvoiceListRow } from "@/types";
 
 const PAYMENT_STATUS_TONE = { PAID: "success", PARTIAL: "warning", UNPAID: "danger" } as const;
 
-export function InvoiceMobileCard({ invoice }: { invoice: InvoiceListRow }) {
+export function InvoiceMobileCard({
+  invoice,
+  documentType = "SALE",
+}: {
+  invoice: InvoiceListRow;
+  documentType?: InvoiceDocumentType;
+}) {
   const t = useTranslations("invoices.paymentStatus");
   const tCommon = useTranslations("common");
+  const detailBasePath = documentType === "SALE" ? "/sales" : "/purchases";
 
   return (
-    <Link href={`/sales/${invoice.id}`}>
+    <Link href={`${detailBasePath}/${invoice.id}`}>
       <Card className={invoice.status === "CANCELLED" ? "opacity-60" : undefined}>
         <CardContent className="flex flex-col gap-2">
           <div className="flex items-center justify-between">

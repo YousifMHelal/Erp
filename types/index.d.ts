@@ -199,7 +199,9 @@ export type KpiRowProps = {
   totalReceivables: string;
 };
 
-// --- New sale (P2-6) ---
+// --- Invoice (shared sales/purchases, P2-6/9) ---
+
+export type InvoiceDocumentType = "SALE" | "PURCHASE";
 
 export type UnitType = "BASE" | "SUB";
 
@@ -211,8 +213,8 @@ export type SearchableProduct = {
   baseUnitName: string;
   subUnitName: string;
   unitsPerBase: number;
-  sellPricePerBase: string;
-  sellPricePerSub: string;
+  pricePerBase: string;
+  pricePerSub: string;
   stockQty: number;
 };
 
@@ -256,12 +258,13 @@ export type TotalsPanelProps = {
 };
 
 export type PaymentPanelProps = {
+  documentType: InvoiceDocumentType;
   cashboxOptions: EntityComboboxOption[];
   cashboxId: string | undefined;
   onCashboxChange: (id: string | undefined) => void;
-  customerOptions: EntityComboboxOption[];
-  customerId: string | undefined;
-  onCustomerChange: (id: string | undefined) => void;
+  partyOptions: EntityComboboxOption[];
+  partyId: string | undefined;
+  onPartyChange: (id: string | undefined) => void;
   paidAmount: number;
   onPaidAmountChange: (value: number) => void;
   total: number;
@@ -278,12 +281,13 @@ export type SaveInvoiceDialogProps = {
 };
 
 export type InvoiceFormProps = {
+  documentType: InvoiceDocumentType;
   products: SearchableProduct[];
-  customerOptions: EntityComboboxOption[];
+  partyOptions: EntityComboboxOption[];
   cashboxOptions: EntityComboboxOption[];
 };
 
-// --- Sales list (P2-7) ---
+// --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {
   id: string;
@@ -298,8 +302,10 @@ export type InvoiceListRow = {
 };
 
 export type InvoiceListProps = {
+  documentType: InvoiceDocumentType;
   invoices: InvoiceListRow[];
-  customerOptions: EntityComboboxOption[];
+  partyOptions: EntityComboboxOption[];
+  newInvoiceHref: string;
 };
 
 // --- Invoice detail (P2-8) ---
@@ -361,13 +367,12 @@ export type CancelInvoiceDialogProps = {
 };
 
 export type InvoiceFiltersProps = {
-  search: string;
-  onSearchChange: (value: string) => void;
+  documentType: InvoiceDocumentType;
   dateRange: DateRange;
   onDateRangeChange: (range: DateRange) => void;
-  customerId: string | undefined;
-  onCustomerChange: (id: string | undefined) => void;
-  customerOptions: EntityComboboxOption[];
+  partyId: string | undefined;
+  onPartyChange: (id: string | undefined) => void;
+  partyOptions: EntityComboboxOption[];
   paymentStatus: string | undefined;
   onPaymentStatusChange: (value: string | undefined) => void;
 };

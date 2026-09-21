@@ -6,21 +6,25 @@ import { Money } from "@/components/shared/money";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { InvoiceListRow } from "@/types";
+import type { InvoiceDocumentType, InvoiceListRow } from "@/types";
 
 const PAYMENT_STATUS_TONE = { PAID: "success", PARTIAL: "warning", UNPAID: "danger" } as const;
 
 export function useInvoiceColumns(
+  documentType: InvoiceDocumentType,
   t: (key: string) => string,
   tStatus: (key: string) => string,
 ): ColumnDef<InvoiceListRow, unknown>[] {
+  const detailBasePath = documentType === "SALE" ? "/sales" : "/purchases";
+  const partyColumnHeader = documentType === "SALE" ? t("columnPartySale") : t("columnPartyPurchase");
+
   return [
     {
       accessorKey: "number",
       header: t("columnNumber"),
       cell: ({ row }) => (
         <Link
-          href={`/sales/${row.original.id}`}
+          href={`${detailBasePath}/${row.original.id}`}
           className={cn(
             "font-medium text-primary hover:underline",
             row.original.status === "CANCELLED" && "text-muted-foreground line-through",
@@ -30,7 +34,7 @@ export function useInvoiceColumns(
         </Link>
       ),
     },
-    { accessorKey: "partyName", header: t("columnParty") },
+    { accessorKey: "partyName", header: partyColumnHeader },
     {
       accessorKey: "issuedAt",
       header: t("columnDate"),

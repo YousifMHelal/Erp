@@ -6,7 +6,7 @@ import { formatNumber } from "@/lib/format";
 import type { InvoiceLinesTableProps } from "@/types";
 
 export function InvoiceLinesTable({ lines }: InvoiceLinesTableProps) {
-  const t = useTranslations("sales.detail");
+  const t = useTranslations("invoices.detail");
 
   return (
     <Card className="overflow-hidden p-0">

@@ -6,7 +6,7 @@ import { Money } from "@/components/shared/money";
 import type { TotalsPanelProps } from "@/types";
 
 export function TotalsPanel({ subtotal, discountAmount, onDiscountChange, total }: TotalsPanelProps) {
-  const t = useTranslations("sales.new");
+  const t = useTranslations("invoices.form");
 
   return (
     <Card>

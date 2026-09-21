@@ -2,13 +2,13 @@ import { ShoppingCart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Table, TableBody, TableFooter, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/empty-state";
-import { LineRow } from "@/components/sales/line-row";
-import { LineItemMobileCard } from "@/components/sales/line-item-mobile-card";
+import { LineRow } from "@/components/shared/invoice/line-row";
+import { LineItemMobileCard } from "@/components/shared/invoice/line-item-mobile-card";
 import { formatMoney } from "@/lib/format";
 import type { LineItemsTableProps } from "@/types";
 
 export function LineItemsTable({ lines, onUpdateLine, onRemoveLine, activeLineId }: LineItemsTableProps) {
-  const t = useTranslations("sales.new");
+  const t = useTranslations("invoices.form");
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
 
   if (lines.length === 0) {

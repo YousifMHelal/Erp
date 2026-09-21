@@ -85,18 +85,34 @@
       "stocktake": "جرد جديد"
     }
   },
-  "sales": {
+  "invoices": {
+    "paymentStatus": {
+      "PAID": "مدفوعة",
+      "PARTIAL": "مدفوعة جزئياً",
+      "UNPAID": "غير مدفوعة"
+    },
+    "party": {
+      "SALE": "العميل",
+      "PURCHASE": "المورد"
+    },
     "list": {
-      "title": "فواتير البيع",
-      "searchPlaceholder": "ابحث برقم الفاتورة أو اسم العميل...",
-      "customerFilterPlaceholder": "كل العملاء",
+      "titleSale": "فواتير البيع",
+      "titlePurchase": "فواتير الشراء",
+      "searchPlaceholderSale": "ابحث برقم الفاتورة أو اسم العميل...",
+      "searchPlaceholderPurchase": "ابحث برقم الفاتورة أو اسم المورد...",
+      "customerFilterPlaceholderSale": "كل العملاء",
+      "customerFilterPlaceholderPurchase": "كل الموردين",
       "paymentStatusFilterLabel": "حالة الدفع",
       "allStatuses": "كل الحالات",
-      "newInvoice": "فاتورة جديدة",
-      "emptyTitle": "لا توجد فواتير بعد",
-      "emptyDescription": "ابدأ بإنشاء أول فاتورة بيع",
+      "newInvoiceSale": "فاتورة جديدة",
+      "newInvoicePurchase": "فاتورة شراء جديدة",
+      "emptyTitleSale": "لا توجد فواتير بعد",
+      "emptyTitlePurchase": "لا توجد فواتير شراء بعد",
+      "emptyDescriptionSale": "ابدأ بإنشاء أول فاتورة بيع",
+      "emptyDescriptionPurchase": "ابدأ بإنشاء أول فاتورة شراء",
       "columnNumber": "الرقم",
-      "columnParty": "العميل",
+      "columnPartySale": "العميل",
+      "columnPartyPurchase": "المورد",
       "columnDate": "التاريخ",
       "columnCashbox": "الخزينة",
       "columnUser": "المستخدم",
@@ -105,9 +121,9 @@
     },
     "detail": {
       "title": "فاتورة #{number}",
-      "breadcrumb": "تفاصيل الفاتورة",
+      "breadcrumbSale": "تفاصيل فاتورة البيع",
+      "breadcrumbPurchase": "تفاصيل فاتورة الشراء",
       "cancelledLabel": "ملغاة",
-      "partyTitle": "العميل",
       "partyBalanceLabel": "الرصيد الحالي",
       "columnProduct": "الصنف",
       "columnUnit": "الوحدة",
@@ -135,8 +151,9 @@
       "cancelDialogConfirm": "تأكيد الإلغاء",
       "cancelSuccess": "تم إلغاء الفاتورة"
     },
-    "new": {
-      "title": "فاتورة بيع جديدة",
+    "form": {
+      "titleSale": "فاتورة بيع جديدة",
+      "titlePurchase": "فاتورة شراء جديدة",
       "productSearchPlaceholder": "ابحث بالاسم أو الباركود...",
       "noProductsFound": "لا توجد منتجات مطابقة",
       "outOfStock": "نفد المخزون",
@@ -157,9 +174,12 @@
       "discountLabel": "الخصم",
       "totalLabel": "الإجمالي الكلي",
       "paymentTitle": "الدفع",
-      "customerLabel": "العميل",
-      "cashCustomerPlaceholder": "عميل نقدي",
-      "customerSearchPlaceholder": "ابحث عن عميل...",
+      "partyLabelSale": "العميل",
+      "partyLabelPurchase": "المورد",
+      "cashPartyPlaceholderSale": "عميل نقدي",
+      "cashPartyPlaceholderPurchase": "مورد نقدي",
+      "partySearchPlaceholderSale": "ابحث عن عميل...",
+      "partySearchPlaceholderPurchase": "ابحث عن مورد...",
       "cashboxLabel": "الخزينة",
       "cashboxPlaceholder": "اختر خزينة",
       "paidAmountLabel": "المبلغ المدفوع",
@@ -174,13 +194,6 @@
       "hotkeySave": "حفظ",
       "hotkeyNew": "فاتورة جديدة",
       "hotkeySaveAndNew": "حفظ وجديد"
-    }
-  },
-  "invoices": {
-    "paymentStatus": {
-      "PAID": "مدفوعة",
-      "PARTIAL": "مدفوعة جزئياً",
-      "UNPAID": "غير مدفوعة"
     }
   },
   "auth": {

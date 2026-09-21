@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
-import { InvoiceList } from "@/components/sales/invoice-list";
+import { InvoiceList } from "@/components/shared/invoice/invoice-list";
 import type { EntityComboboxOption, InvoiceListRow } from "@/types";
 
 const INVOICES: InvoiceListRow[] = [
@@ -18,12 +18,12 @@ const CUSTOMERS: EntityComboboxOption[] = [
 ];
 
 export default function SalesListPage() {
-  const t = useTranslations("sales.list");
+  const t = useTranslations("invoices.list");
 
   return (
     <>
-      <PageHeader title={t("title")} breadcrumbs={[{ labelKey: "nav.sales" }]} />
-      <InvoiceList invoices={INVOICES} customerOptions={CUSTOMERS} />
+      <PageHeader title={t("titleSale")} breadcrumbs={[{ labelKey: "nav.sales" }]} />
+      <InvoiceList documentType="SALE" invoices={INVOICES} partyOptions={CUSTOMERS} newInvoiceHref="/sales/new" />
     </>
   );
 }
