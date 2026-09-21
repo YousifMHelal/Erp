@@ -309,6 +309,25 @@
       "updateSuccess": "تم تحديث الصنف"
     }
   },
+  "reports": {
+    "hubTitle": "التقارير",
+    "hubDescription": "اختر تقريراً لعرضه بالتفصيل",
+    "dateRangePlaceholder": "اختر فترة زمنية",
+    "exportCsv": "تصدير CSV",
+    "exportPdf": "تصدير PDF",
+    "chartSummary": "{title}: {count} فترة",
+    "types": {
+      "sales": { "title": "تقرير المبيعات", "description": "إجمالي المبيعات وعدد الفواتير حسب الفترة" },
+      "purchases": { "title": "تقرير المشتريات", "description": "إجمالي المشتريات حسب المورد والفترة" },
+      "inventory": { "title": "تقرير المخزون", "description": "كميات وقيم المخزون الحالية" },
+      "customers": { "title": "تقرير العملاء", "description": "أرصدة العملاء وعدد فواتيرهم" },
+      "suppliers": { "title": "تقرير الموردين", "description": "أرصدة الموردين وعدد فواتيرهم" },
+      "cashboxes": { "title": "تقرير الخزائن", "description": "أرصدة الخزائن وعدد حركاتها" },
+      "collections": { "title": "تقرير التحصيلات", "description": "التحصيلات من العملاء حسب الفترة" },
+      "payments": { "title": "تقرير المدفوعات", "description": "المدفوعات للموردين حسب الفترة" },
+      "profit-loss": { "title": "الأرباح والخسائر", "description": "الإيرادات والتكلفة وصافي الربح" }
+    }
+  },
   "moneyDocuments": {
     "list": {
       "collectionsTitle": "التحصيلات",

@@ -628,6 +628,44 @@ export type MoneyDocumentFormProps = {
   cashboxOptions: EntityComboboxOption[];
 };
 
+// --- Reports (P2-18) ---
+
+export type ReportKey =
+  | "sales"
+  | "purchases"
+  | "inventory"
+  | "customers"
+  | "suppliers"
+  | "cashboxes"
+  | "collections"
+  | "payments"
+  | "profit-loss";
+
+export type ReportPickerItem = {
+  key: ReportKey;
+  icon: LucideIcon;
+};
+
+export type ReportShellProps = {
+  reportKey: ReportKey;
+  children: ReactNode;
+};
+
+export type ReportFiltersBarProps = {
+  dateRange: DateRange;
+  onDateRangeChange: (range: DateRange) => void;
+};
+
+export type ReportTableColumn = { key: string; label: string; align?: "start" | "end" };
+export type ReportTableProps = {
+  columns: ReportTableColumn[];
+  rows: Record<string, ReactNode>[];
+  footerRow?: Record<string, ReactNode>;
+};
+
+export type ReportChartPoint = { label: string; value: number };
+export type ReportChartProps = { title: string; data: ReportChartPoint[] };
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {
