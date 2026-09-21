@@ -74,7 +74,7 @@ Goal: every screen exists and looks finished, driven by static props. No databas
 - [x] **P2-18** — Reports `/reports` hub + `/reports/[report]` shell with filters, table, and chart slots. All 9 report types laid out.
 - [x] **P2-19** — Notifications, audit log (with before/after diff dialog).
 - [x] **P2-20** — Settings: shop profile, print prefs, users, **roles permission matrix**, categories, cashboxes.
-- [ ] **P2-21** — Print templates: A4, A5, 80 mm + print stylesheet. Verify in a real browser print preview at all three sizes.
+- [x] **P2-21** — Print templates: A4, A5, 80 mm + print stylesheet. Verify in a real browser print preview at all three sizes.
 - [ ] **P2-22** — Responsive + theme audit pass across **every** screen at 375 / 768 / 1024 / 1440 px. Fix what breaks. No screen exits this phase failing an audit.
 
 **Exit:** every route in [ARCHITECTURE.md §3](./ARCHITECTURE.md) renders a finished-looking screen from static props, passes the four-width/two-theme audit, and contains no hardcoded strings or colours.

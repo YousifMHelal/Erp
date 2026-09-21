@@ -782,6 +782,43 @@ export type PermissionMatrixProps = {
 export type CategoryRow = { id: string; name: string; description?: string; productCount: number };
 export type SettingsCashboxRow = { id: string; name: string; description?: string; isActive: boolean; sortOrder: number };
 
+// --- Print templates (P2-21) ---
+
+export type PrintShopInfo = {
+  name: string;
+  phone: string;
+  address: string;
+  taxNote?: string;
+  invoiceFooter?: string;
+};
+
+export type PrintInvoiceLine = {
+  productName: string;
+  unitName: string;
+  qty: number;
+  unitPrice: string;
+  lineTotal: string;
+};
+
+export type PrintInvoiceData = {
+  shop: PrintShopInfo;
+  documentTypeLabel: string;
+  number: number;
+  issuedAt: string;
+  cashierName: string;
+  partyLabel: string;
+  partyName: string;
+  partyPhone?: string;
+  lines: PrintInvoiceLine[];
+  subtotal: string;
+  discountAmount: string;
+  total: string;
+  paidAmount: string;
+  remainingAmount: string;
+};
+
+export type PrintLayoutProps = { data: PrintInvoiceData };
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {

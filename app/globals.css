@@ -335,3 +335,26 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+@media print {
+  body > *:not(#print-root) {
+    display: none !important;
+  }
+
+  #print-root {
+    display: block !important;
+    position: static !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  #print-root * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  @page {
+    margin: 0;
+  }
+}

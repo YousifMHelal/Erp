@@ -309,6 +309,22 @@
       "updateSuccess": "تم تحديث الصنف"
     }
   },
+  "print": {
+    "number": "رقم",
+    "date": "التاريخ",
+    "cashier": "الكاشير",
+    "taxNote": "الرقم الضريبي",
+    "columnProduct": "الصنف",
+    "columnUnit": "الوحدة",
+    "columnQty": "الكمية",
+    "columnPrice": "السعر",
+    "columnTotal": "الإجمالي",
+    "subtotal": "الإجمالي الفرعي",
+    "discount": "الخصم",
+    "total": "الإجمالي الكلي",
+    "paid": "المدفوع",
+    "remaining": "المتبقي"
+  },
   "settings": {
     "title": "الإعدادات",
     "nav": {
