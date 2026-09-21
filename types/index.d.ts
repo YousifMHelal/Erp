@@ -594,6 +594,40 @@ export type CashboxesViewProps = {
   movements: CashMovementRow[];
 };
 
+// --- Collections/payments (P2-17) ---
+
+export type MoneyDocumentType = "COLLECTION" | "PAYMENT";
+
+export type MoneyDocumentRow = {
+  id: string;
+  number: number;
+  partyName: string;
+  cashboxName: string;
+  amount: string;
+  status: "CONFIRMED" | "CANCELLED";
+  occurredAt: string;
+};
+
+export type MoneyDocumentListProps = {
+  documentType: MoneyDocumentType;
+  documents: MoneyDocumentRow[];
+};
+
+export type PartyBalancePreviewProps = {
+  documentType: MoneyDocumentType;
+  partyName: string;
+  currentBalance: string;
+  amount: number;
+};
+
+export type PartyWithBalanceOption = EntityComboboxOption & { balance: string };
+
+export type MoneyDocumentFormProps = {
+  documentType: MoneyDocumentType;
+  partyOptions: PartyWithBalanceOption[];
+  cashboxOptions: EntityComboboxOption[];
+};
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {

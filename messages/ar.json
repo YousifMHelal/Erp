@@ -309,6 +309,45 @@
       "updateSuccess": "تم تحديث الصنف"
     }
   },
+  "moneyDocuments": {
+    "list": {
+      "collectionsTitle": "التحصيلات",
+      "paymentsTitle": "المدفوعات",
+      "newCollection": "تحصيل جديد",
+      "newPayment": "دفعة جديدة",
+      "emptyCollectionTitle": "لا توجد تحصيلات بعد",
+      "emptyPaymentTitle": "لا توجد مدفوعات بعد",
+      "searchCollectionPlaceholder": "ابحث برقم التحصيل أو اسم العميل...",
+      "searchPaymentPlaceholder": "ابحث برقم الدفعة أو اسم المورد...",
+      "columnNumber": "الرقم",
+      "columnParty": "الطرف",
+      "columnDate": "التاريخ",
+      "columnCashbox": "الخزينة",
+      "columnAmount": "المبلغ"
+    },
+    "form": {
+      "newCollectionTitle": "تحصيل دفعة جديدة",
+      "newPaymentTitle": "دفعة جديدة لمورد",
+      "customerLabel": "العميل",
+      "supplierLabel": "المورد",
+      "customerPlaceholder": "اختر عميلاً",
+      "supplierPlaceholder": "اختر مورداً",
+      "cashboxLabel": "الخزينة",
+      "amountLabel": "المبلغ",
+      "noteLabel": "ملاحظات",
+      "notePlaceholder": "ملاحظات إضافية...",
+      "partyLabel": "الطرف",
+      "currentBalance": "الرصيد الحالي",
+      "amountCollected": "المبلغ المحصل",
+      "amountPaid": "المبلغ المدفوع",
+      "balanceAfter": "الرصيد بعد العملية",
+      "saveCollection": "حفظ التحصيل",
+      "savePayment": "حفظ الدفعة",
+      "errorRequired": "اختر طرفاً وأدخل مبلغاً أكبر من صفر",
+      "collectionSaved": "تم حفظ التحصيل",
+      "paymentSaved": "تم حفظ الدفعة"
+    }
+  },
   "cashboxes": {
     "title": "الخزائن",
     "allCashboxes": "إجمالي كل الخزائن",
