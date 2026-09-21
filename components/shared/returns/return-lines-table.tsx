@@ -1,8 +1,10 @@
 import { useTranslations } from "next-intl";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Money } from "@/components/shared/money";
 import { EmptyState } from "@/components/shared/empty-state";
+import { AppTooltip } from "@/components/shared/app-tooltip";
 import { PackageSearch } from "lucide-react";
 import { formatMoney, formatNumber } from "@/lib/format";
 import type { ReturnLinesTableProps } from "@/types";
@@ -39,20 +41,33 @@ export function ReturnLinesTable({ lines, onUpdateQty }: ReturnLinesTableProps) 
               <TableCell>{line.unitName}</TableCell>
               <TableCell className="tabular-nums">{formatNumber(line.maxReturnableQty)}</TableCell>
               <TableCell>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  max={line.maxReturnableQty}
-                  step="any"
-                  value={line.qty}
-                  onChange={(e) => {
-                    const value = Math.min(Math.max(Number(e.target.value), 0), line.maxReturnableQty);
-                    onUpdateQty(line.lineId, value);
-                  }}
-                  className="w-20 text-end tabular-nums"
-                  aria-label={t("columnQtyReturn")}
-                />
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={line.maxReturnableQty}
+                    step="any"
+                    value={line.qty}
+                    onChange={(e) => {
+                      const value = Math.min(Math.max(Number(e.target.value), 0), line.maxReturnableQty);
+                      onUpdateQty(line.lineId, value);
+                    }}
+                    className="w-20 text-end tabular-nums"
+                    aria-label={t("columnQtyReturn")}
+                  />
+                  <AppTooltip content={t("returnAllTooltip")}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onUpdateQty(line.lineId, line.maxReturnableQty)}
+                      disabled={line.qty === line.maxReturnableQty}
+                    >
+                      {t("returnAll")}
+                    </Button>
+                  </AppTooltip>
+                </div>
               </TableCell>
               <TableCell>
                 <Money value={String(line.unitPrice)} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -39,7 +39,7 @@ export function EntityCombobox({
           <ChevronsUpDown className="size-4 shrink-0 opacity-50" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+      <PopoverContent className="w-(--radix-popover-trigger-width) gap-0 p-0" align="start">
         <Command>
           <CommandInput placeholder={searchPlaceholder ?? t("comboboxSearchPlaceholder")} />
           <CommandList>
@@ -55,7 +55,6 @@ export function EntityCombobox({
                     setOpen(false);
                   }}
                 >
-                  <Check className={cn("size-4", option.value === value ? "opacity-100" : "opacity-0")} />
                   <span className="flex flex-col">
                     <span>{option.label}</span>
                     {option.description && (

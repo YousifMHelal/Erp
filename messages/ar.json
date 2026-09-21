@@ -212,6 +212,8 @@
       "columnUnit": "الوحدة",
       "columnQtyInvoiced": "الكمية المفوترة",
       "columnQtyReturn": "كمية المرتجع",
+      "returnAll": "الكل",
+      "returnAllTooltip": "إرجاع كامل الكمية المتاحة",
       "columnPrice": "السعر",
       "columnTotal": "الإجمالي",
       "totalLabel": "إجمالي المرتجع",

@@ -7,7 +7,9 @@ export function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
   }
 
   const allItems = NAV_GROUPS.flatMap((g) => g.items);
-  const match = allItems.find((item) => item.href !== "/" && pathname.startsWith(item.href));
+  const match = allItems.find(
+    (item) => item.href !== "/" && (pathname === item.href || pathname.startsWith(`${item.href}/`)),
+  );
 
   if (!match) return [];
 
