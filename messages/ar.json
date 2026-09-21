@@ -309,6 +309,98 @@
       "updateSuccess": "تم تحديث الصنف"
     }
   },
+  "settings": {
+    "title": "الإعدادات",
+    "nav": {
+      "profile": "بيانات المتجر",
+      "users": "المستخدمون",
+      "roles": "الأدوار والصلاحيات",
+      "categories": "الفئات",
+      "cashboxes": "الخزائن"
+    },
+    "profile": {
+      "title": "بيانات المتجر",
+      "nameLabel": "اسم المتجر",
+      "phoneLabel": "رقم الهاتف",
+      "addressLabel": "العنوان",
+      "taxNoteLabel": "الرقم الضريبي",
+      "taxNotePlaceholder": "اختياري",
+      "invoiceFooterLabel": "نص أسفل الفاتورة",
+      "invoiceFooterPlaceholder": "مثال: شكراً لتعاملكم معنا",
+      "save": "حفظ",
+      "saved": "تم حفظ بيانات المتجر"
+    },
+    "printPrefs": {
+      "title": "تفضيلات الطباعة",
+      "defaultSizeLabel": "حجم الطباعة الافتراضي",
+      "defaultCashboxLabel": "الخزينة الافتراضية",
+      "save": "حفظ",
+      "saved": "تم حفظ تفضيلات الطباعة"
+    },
+    "users": {
+      "columnName": "الاسم",
+      "columnUsername": "اسم المستخدم",
+      "columnRole": "الدور",
+      "columnLastLogin": "آخر دخول",
+      "columnStatus": "الحالة",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "newUser": "مستخدم جديد",
+      "empty": "لا يوجد مستخدمون بعد"
+    },
+    "roles": {
+      "systemRole": "دور أساسي",
+      "userCount": "{count} مستخدم",
+      "groupColumn": "المجموعة",
+      "actionsColumn": "الصلاحيات",
+      "saveMatrix": "حفظ الصلاحيات",
+      "saveSuccess": "تم حفظ الصلاحيات",
+      "groups": {
+        "sale": "المبيعات",
+        "purchase": "المشتريات",
+        "return": "المرتجعات",
+        "inventory": "المخزون",
+        "customer": "العملاء",
+        "supplier": "الموردين",
+        "cashbox": "الخزائن",
+        "collection": "التحصيلات",
+        "payment": "المدفوعات",
+        "report": "التقارير",
+        "user": "المستخدمون",
+        "role": "الأدوار",
+        "audit": "سجل التدقيق",
+        "settings": "الإعدادات"
+      },
+      "actions": {
+        "view": "عرض",
+        "create": "إضافة",
+        "edit": "تعديل",
+        "cancel": "إلغاء",
+        "print": "طباعة",
+        "adjustPrice": "تعديل الأسعار",
+        "stocktake": "الجرد",
+        "manage": "إدارة",
+        "profitLoss": "الأرباح والخسائر",
+        "export": "تصدير"
+      }
+    },
+    "categories": {
+      "columnName": "الاسم",
+      "columnDescription": "الوصف",
+      "columnProductCount": "عدد الأصناف",
+      "newCategory": "فئة جديدة",
+      "empty": "لا توجد فئات بعد"
+    },
+    "cashboxes": {
+      "columnName": "الاسم",
+      "columnDescription": "الوصف",
+      "columnStatus": "الحالة",
+      "active": "نشطة",
+      "inactive": "غير نشطة",
+      "newCashbox": "خزينة جديدة",
+      "empty": "لا توجد خزائن بعد"
+    }
+  },
   "notifications": {
     "title": "الإشعارات",
     "markRead": "تحديد كمقروء",

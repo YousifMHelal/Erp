@@ -713,6 +713,75 @@ export type AuditDiffDialogProps = {
   entry: AuditLogRow | undefined;
 };
 
+// --- Settings (P2-20) ---
+
+export type ShopProfile = {
+  name: string;
+  phone: string;
+  address: string;
+  taxNote?: string;
+  invoiceFooter?: string;
+};
+
+export type PrintPreferences = {
+  defaultPrintSize: "A4" | "A5" | "80mm";
+  defaultCashboxId: string;
+};
+
+export type SettingsUserRow = {
+  id: string;
+  displayName: string;
+  username: string;
+  roleName: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+};
+
+export type PermissionGroupKey =
+  | "sale"
+  | "purchase"
+  | "return"
+  | "inventory"
+  | "customer"
+  | "supplier"
+  | "cashbox"
+  | "collection"
+  | "payment"
+  | "report"
+  | "user"
+  | "role"
+  | "audit"
+  | "settings";
+
+export type PermissionAction = {
+  key: string;
+  labelKey: string;
+};
+
+export type PermissionGroup = {
+  key: PermissionGroupKey;
+  labelKey: string;
+  actions: PermissionAction[];
+};
+
+export type RoleRow = {
+  id: string;
+  name: string;
+  description?: string;
+  isSystem: boolean;
+  userCount: number;
+};
+
+export type PermissionMatrixProps = {
+  groups: PermissionGroup[];
+  grantedKeys: Set<string>;
+  onToggle: (permissionKey: string) => void;
+  readOnly?: boolean;
+};
+
+export type CategoryRow = { id: string; name: string; description?: string; productCount: number };
+export type SettingsCashboxRow = { id: string; name: string; description?: string; isActive: boolean; sortOrder: number };
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {

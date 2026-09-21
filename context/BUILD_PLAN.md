@@ -73,7 +73,7 @@ Goal: every screen exists and looks finished, driven by static props. No databas
 - [x] **P2-17** — Collections `/collections/*` and payments `/payments/*`: form with party balance preview + list.
 - [x] **P2-18** — Reports `/reports` hub + `/reports/[report]` shell with filters, table, and chart slots. All 9 report types laid out.
 - [x] **P2-19** — Notifications, audit log (with before/after diff dialog).
-- [ ] **P2-20** — Settings: shop profile, print prefs, users, **roles permission matrix**, categories, cashboxes.
+- [x] **P2-20** — Settings: shop profile, print prefs, users, **roles permission matrix**, categories, cashboxes.
 - [ ] **P2-21** — Print templates: A4, A5, 80 mm + print stylesheet. Verify in a real browser print preview at all three sizes.
 - [ ] **P2-22** — Responsive + theme audit pass across **every** screen at 375 / 768 / 1024 / 1440 px. Fix what breaks. No screen exits this phase failing an audit.
 
