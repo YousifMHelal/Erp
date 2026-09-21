@@ -229,6 +229,32 @@
       "STOCKTAKE": "جرد",
       "OPENING": "رصيد افتتاحي"
     },
+    "stocktake": {
+      "listTitle": "الجرد",
+      "newTitle": "جرد جديد",
+      "newStocktake": "جرد جديد",
+      "listEmpty": "لا توجد عمليات جرد بعد",
+      "linesUnit": "صنف",
+      "columnProduct": "الصنف",
+      "columnUnit": "الوحدة",
+      "columnSystem": "الكمية بالنظام",
+      "columnCounted": "الكمية المجرودة",
+      "columnDifference": "الفرق",
+      "countedPlaceholder": "أدخل الكمية",
+      "countedLines": "الأصناف المجرودة (من {count})",
+      "surplusLines": "أصناف بها زيادة",
+      "shortageLines": "أصناف بها عجز",
+      "saveDraft": "حفظ كمسودة",
+      "confirmStocktake": "اعتماد الجرد",
+      "confirmDialogTitle": "اعتماد الجرد؟",
+      "confirmDialogDescription": "سيتم تعديل كميات المخزون لتطابق الكميات المجرودة وتسجيل حركة لكل فرق. هذا الإجراء لا يمكن التراجع عنه.",
+      "confirmSuccess": "تم اعتماد الجرد",
+      "status": {
+        "DRAFT": "مسودة",
+        "CONFIRMED": "معتمد",
+        "CANCELLED": "ملغي"
+      }
+    },
     "detail": {
       "breadcrumb": "تفاصيل الصنف",
       "stockQty": "الكمية الحالية",

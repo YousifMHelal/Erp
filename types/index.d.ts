@@ -430,6 +430,47 @@ export type InventoryGridProps = {
   categoryOptions: EntityComboboxOption[];
 };
 
+// --- Stocktake (P2-13) ---
+
+export type StocktakeStatus = "DRAFT" | "CONFIRMED" | "CANCELLED";
+
+export type StocktakeListRow = {
+  id: string;
+  number: number;
+  status: StocktakeStatus;
+  lineCount: number;
+  totalDifference: number;
+  createdByName: string;
+  createdAt: string;
+};
+
+export type StocktakeLineDraft = {
+  id: string;
+  productId: string;
+  productName: string;
+  unitName: string;
+  systemQty: number;
+  countedQty: number | null;
+};
+
+export type StocktakeSheetProps = {
+  lines: StocktakeLineDraft[];
+  onUpdateCounted: (lineId: string, countedQty: number | null) => void;
+};
+
+export type StocktakeLineRowProps = {
+  line: StocktakeLineDraft;
+  onUpdateCounted: (countedQty: number | null) => void;
+};
+
+export type StocktakeDiffSummaryProps = {
+  lines: StocktakeLineDraft[];
+};
+
+export type NewStocktakeViewProps = {
+  initialLines: StocktakeLineDraft[];
+};
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {

@@ -7,9 +7,19 @@ import { cn } from "@/lib/utils";
 import { NAV_GROUPS } from "@/lib/nav";
 import type { SidebarNavProps } from "@/types";
 
+function findActiveHref(pathname: string): string | undefined {
+  const allItems = NAV_GROUPS.flatMap((g) => g.items);
+  const matches = allItems.filter(
+    (item) => item.href === pathname || (item.href !== "/" && pathname.startsWith(`${item.href}/`)),
+  );
+  if (matches.length === 0) return undefined;
+  return matches.reduce((longest, item) => (item.href.length > longest.href.length ? item : longest)).href;
+}
+
 export function SidebarNav({ onNavigate }: SidebarNavProps) {
   const t = useTranslations();
   const pathname = usePathname();
+  const activeHref = findActiveHref(pathname);
 
   return (
     <nav className="flex flex-col gap-6 overflow-y-auto px-3 py-4">
@@ -19,8 +29,7 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
             {t(group.labelKey)}
           </span>
           {group.items.map((item) => {
-            const isActive =
-              item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = item.href === activeHref;
             const Icon = item.icon;
             return (
               <Link
