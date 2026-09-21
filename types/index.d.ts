@@ -555,6 +555,45 @@ export type StatementPrintDialogProps = {
   onSelect: (size: "A4" | "A5") => void;
 };
 
+// --- Cashboxes (P2-16) ---
+
+export type CashboxSummary = {
+  id: string;
+  name: string;
+  balance: string;
+};
+
+export type CashMovementRow = {
+  id: string;
+  cashboxName: string;
+  type: "SALE_PAYMENT" | "PURCHASE_PAYMENT" | "CUSTOMER_COLLECTION" | "SUPPLIER_PAYMENT" | "SALE_RETURN_REFUND" | "PURCHASE_RETURN_REFUND" | "OPENING";
+  amount: number;
+  balanceAfter: string;
+  partyName?: string;
+  refLabel: string;
+  createdAt: string;
+};
+
+export type CashboxSummaryStripProps = {
+  cashboxes: CashboxSummary[];
+  selectedId: string | undefined;
+  onSelectCashbox: (id: string | undefined) => void;
+};
+
+export type CashboxBalanceCardProps = {
+  label: string;
+  balance: string;
+};
+
+export type CashMovementTableProps = {
+  movements: CashMovementRow[];
+};
+
+export type CashboxesViewProps = {
+  cashboxes: CashboxSummary[];
+  movements: CashMovementRow[];
+};
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {

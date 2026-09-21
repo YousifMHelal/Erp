@@ -309,6 +309,27 @@
       "updateSuccess": "تم تحديث الصنف"
     }
   },
+  "cashboxes": {
+    "title": "الخزائن",
+    "allCashboxes": "إجمالي كل الخزائن",
+    "movementsEmpty": "لا توجد حركات مسجلة",
+    "columnDate": "التاريخ",
+    "columnCashbox": "الخزينة",
+    "columnType": "النوع",
+    "columnParty": "الطرف",
+    "columnRef": "المرجع",
+    "columnAmount": "المبلغ",
+    "columnBalanceAfter": "الرصيد بعد الحركة",
+    "movementType": {
+      "SALE_PAYMENT": "تحصيل فاتورة بيع",
+      "PURCHASE_PAYMENT": "سداد فاتورة شراء",
+      "CUSTOMER_COLLECTION": "تحصيل من عميل",
+      "SUPPLIER_PAYMENT": "دفعة لمورد",
+      "SALE_RETURN_REFUND": "استرداد مرتجع بيع",
+      "PURCHASE_RETURN_REFUND": "استرداد مرتجع شراء",
+      "OPENING": "رصيد افتتاحي"
+    }
+  },
   "parties": {
     "customersTitle": "العملاء",
     "suppliersTitle": "الموردين",
