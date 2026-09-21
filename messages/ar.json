@@ -221,6 +221,38 @@
       "LOW_STOCK": "منخفض",
       "OUT_OF_STOCK": "نفد"
     },
+    "movementType": {
+      "PURCHASE": "شراء",
+      "SALE": "بيع",
+      "SALE_RETURN": "مرتجع بيع",
+      "PURCHASE_RETURN": "مرتجع شراء",
+      "STOCKTAKE": "جرد",
+      "OPENING": "رصيد افتتاحي"
+    },
+    "detail": {
+      "breadcrumb": "تفاصيل الصنف",
+      "stockQty": "الكمية الحالية",
+      "avgCost": "متوسط التكلفة",
+      "sellPrice": "سعر البيع",
+      "valueAtCost": "القيمة بالتكلفة",
+      "baseUnit": "الوحدة الأساسية",
+      "subUnit": "الوحدة الفرعية",
+      "unitsPerBase": "وحدات فرعية لكل أساسية",
+      "minStock": "الحد الأدنى",
+      "movementHistoryTitle": "حركة المخزون",
+      "movementHistoryEmpty": "لا توجد حركات مسجلة",
+      "priceHistoryTitle": "سجل تغييرات الأسعار",
+      "priceHistoryEmpty": "لا توجد تغييرات مسجلة",
+      "columnDate": "التاريخ",
+      "columnType": "النوع",
+      "columnQty": "الكمية",
+      "columnBalanceAfter": "الرصيد بعد الحركة",
+      "columnRef": "المرجع",
+      "columnField": "الحقل",
+      "columnOldValue": "القيمة السابقة",
+      "columnNewValue": "القيمة الجديدة",
+      "columnChangedBy": "بواسطة"
+    },
     "form": {
       "createTitle": "صنف جديد",
       "editTitle": "تعديل الصنف",
