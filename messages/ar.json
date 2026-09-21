@@ -85,6 +85,48 @@
       "stocktake": "جرد جديد"
     }
   },
+  "sales": {
+    "new": {
+      "title": "فاتورة بيع جديدة",
+      "productSearchPlaceholder": "ابحث بالاسم أو الباركود...",
+      "noProductsFound": "لا توجد منتجات مطابقة",
+      "outOfStock": "نفد المخزون",
+      "emptyLines": "لم تتم إضافة أصناف بعد",
+      "emptyLinesHint": "ابحث عن منتج لإضافته للفاتورة",
+      "columnProduct": "الصنف",
+      "columnUnit": "الوحدة",
+      "columnQty": "الكمية",
+      "columnPrice": "السعر",
+      "columnTotal": "الإجمالي",
+      "unitLabel": "الوحدة",
+      "qtyLabel": "الكمية",
+      "priceLabel": "السعر",
+      "lineTotalLabel": "إجمالي السطر",
+      "removeLine": "حذف السطر",
+      "subtotalLabel": "الإجمالي الفرعي",
+      "totalsTitle": "الإجمالي",
+      "discountLabel": "الخصم",
+      "totalLabel": "الإجمالي الكلي",
+      "paymentTitle": "الدفع",
+      "customerLabel": "العميل",
+      "cashCustomerPlaceholder": "عميل نقدي",
+      "customerSearchPlaceholder": "ابحث عن عميل...",
+      "cashboxLabel": "الخزينة",
+      "cashboxPlaceholder": "اختر خزينة",
+      "paidAmountLabel": "المبلغ المدفوع",
+      "remainingLabel": "المتبقي",
+      "saveInvoice": "حفظ الفاتورة",
+      "errorEmptyLines": "أضف صنفاً واحداً على الأقل",
+      "savedTitle": "تم حفظ الفاتورة #{number}",
+      "savedDescription": "هل تريد طباعة الفاتورة الآن؟",
+      "skipPrint": "تخطي الطباعة",
+      "hotkeyProductSearch": "بحث عن صنف",
+      "hotkeyDeleteLine": "حذف السطر",
+      "hotkeySave": "حفظ",
+      "hotkeyNew": "فاتورة جديدة",
+      "hotkeySaveAndNew": "حفظ وجديد"
+    }
+  },
   "invoices": {
     "paymentStatus": {
       "PAID": "مدفوعة",

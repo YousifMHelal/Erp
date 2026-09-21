@@ -198,3 +198,87 @@ export type KpiRowProps = {
   lowStockCount: number;
   totalReceivables: string;
 };
+
+// --- New sale (P2-6) ---
+
+export type UnitType = "BASE" | "SUB";
+
+export type SearchableProduct = {
+  id: string;
+  name: string;
+  sku: string;
+  barcode?: string;
+  baseUnitName: string;
+  subUnitName: string;
+  unitsPerBase: number;
+  sellPricePerBase: string;
+  sellPricePerSub: string;
+  stockQty: number;
+};
+
+export type InvoiceLineDraft = {
+  lineId: string;
+  productId: string;
+  productName: string;
+  unitType: UnitType;
+  baseUnitName: string;
+  subUnitName: string;
+  unitsPerBase: number;
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+};
+
+export type ProductSearchProps = {
+  products: SearchableProduct[];
+  onAddLine: (product: SearchableProduct) => void;
+};
+
+export type LineItemsTableProps = {
+  lines: InvoiceLineDraft[];
+  onUpdateLine: (lineId: string, patch: Partial<InvoiceLineDraft>) => void;
+  onRemoveLine: (lineId: string) => void;
+  activeLineId?: string;
+};
+
+export type LineRowProps = {
+  line: InvoiceLineDraft;
+  isActive: boolean;
+  onUpdate: (patch: Partial<InvoiceLineDraft>) => void;
+  onRemove: () => void;
+};
+
+export type TotalsPanelProps = {
+  subtotal: number;
+  discountAmount: number;
+  onDiscountChange: (value: number) => void;
+  total: number;
+};
+
+export type PaymentPanelProps = {
+  cashboxOptions: EntityComboboxOption[];
+  cashboxId: string | undefined;
+  onCashboxChange: (id: string | undefined) => void;
+  customerOptions: EntityComboboxOption[];
+  customerId: string | undefined;
+  onCustomerChange: (id: string | undefined) => void;
+  paidAmount: number;
+  onPaidAmountChange: (value: number) => void;
+  total: number;
+};
+
+export type HotkeyBarProps = { className?: string };
+
+export type SaveInvoiceDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  invoiceNumber: string;
+  onPrint: (size: "A4" | "A5" | "80mm") => void;
+  onSkip: () => void;
+};
+
+export type InvoiceFormProps = {
+  products: SearchableProduct[];
+  customerOptions: EntityComboboxOption[];
+  cashboxOptions: EntityComboboxOption[];
+};
