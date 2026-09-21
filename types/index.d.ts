@@ -338,6 +338,98 @@ export type ReturnFormProps = {
   cashboxOptions: EntityComboboxOption[];
 };
 
+// --- Inventory (P2-11/12/13) ---
+
+export type StockStatus = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
+
+export type InventoryProductRow = {
+  id: string;
+  name: string;
+  sku: string;
+  barcode?: string;
+  categoryName: string;
+  stockQty: number;
+  baseUnitName: string;
+  subUnitName: string;
+  unitsPerBase: number;
+  purchasePricePerBase: string;
+  sellPricePerBase: string;
+  avgCostPerSub: string;
+  minStockQty: number;
+  isActive: boolean;
+};
+
+export type InventoryValueSummaryProps = {
+  totalCostValue: string;
+  totalSaleValue: string;
+  productCount: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+};
+
+export type InventoryFiltersProps = {
+  categoryOptions: EntityComboboxOption[];
+  categoryId: string | undefined;
+  onCategoryChange: (id: string | undefined) => void;
+  stockStatus: StockStatus | undefined;
+  onStockStatusChange: (status: StockStatus | undefined) => void;
+};
+
+export type StockStatusBadgeProps = { status: StockStatus };
+
+export type ProductGeneralTabProps = {
+  categoryOptions: EntityComboboxOption[];
+};
+
+export type UnitConversionPreviewProps = {
+  baseUnitName: string;
+  subUnitName: string;
+  unitsPerBase: number;
+  purchasePricePerBase: number;
+  sellPricePerBase: number;
+};
+
+export type ProductFormDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  categoryOptions: EntityComboboxOption[];
+  product?: InventoryProductRow;
+};
+
+export type ProductDetail = InventoryProductRow & {
+  notes?: string;
+  createdAt: string;
+};
+
+export type ProductSummaryCardProps = { product: ProductDetail };
+
+export type StockMovementRow = {
+  id: string;
+  type: "PURCHASE" | "SALE" | "SALE_RETURN" | "PURCHASE_RETURN" | "STOCKTAKE" | "OPENING";
+  qtyInSub: number;
+  balanceAfter: number;
+  refLabel: string;
+  createdAt: string;
+};
+
+export type StockMovementTableProps = { movements: StockMovementRow[] };
+
+export type PriceHistoryEntry = {
+  id: string;
+  changedAt: string;
+  fieldLabel: string;
+  oldValue: string;
+  newValue: string;
+  changedByName: string;
+};
+
+export type ProductPriceHistoryProps = { entries: PriceHistoryEntry[] };
+
+export type InventoryGridProps = {
+  products: InventoryProductRow[];
+  categoryOptions: EntityComboboxOption[];
+};
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {
