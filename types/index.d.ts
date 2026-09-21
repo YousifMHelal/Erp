@@ -666,6 +666,53 @@ export type ReportTableProps = {
 export type ReportChartPoint = { label: string; value: number };
 export type ReportChartProps = { title: string; data: ReportChartPoint[] };
 
+// --- Notifications & audit log (P2-19) ---
+
+export type NotificationSeverity = "INFO" | "WARNING" | "CRITICAL";
+export type NotificationType = "LOW_STOCK" | "OUT_OF_STOCK" | "CUSTOMER_BALANCE" | "SUPPLIER_BALANCE" | "SYSTEM";
+
+export type NotificationItem = {
+  id: string;
+  type: NotificationType;
+  severity: NotificationSeverity;
+  title: string;
+  body: string;
+  entityHref?: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+export type NotificationListProps = {
+  notifications: NotificationItem[];
+  onMarkRead: (id: string) => void;
+  onMarkAllRead: () => void;
+};
+
+export type NotificationListItemProps = {
+  notification: NotificationItem;
+  onMarkRead: (id: string) => void;
+};
+
+export type AuditLogRow = {
+  id: string;
+  userName: string;
+  action: string;
+  entityLabel: string;
+  createdAt: string;
+  beforeJson?: Record<string, unknown>;
+  afterJson?: Record<string, unknown>;
+};
+
+export type AuditLogListProps = {
+  entries: AuditLogRow[];
+};
+
+export type AuditDiffDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  entry: AuditLogRow | undefined;
+};
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {

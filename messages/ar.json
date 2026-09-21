@@ -309,6 +309,26 @@
       "updateSuccess": "تم تحديث الصنف"
     }
   },
+  "notifications": {
+    "title": "الإشعارات",
+    "markRead": "تحديد كمقروء",
+    "markAllRead": "تحديد الكل كمقروء",
+    "empty": "لا توجد إشعارات"
+  },
+  "auditLog": {
+    "title": "سجل التدقيق",
+    "columnDate": "التاريخ",
+    "columnUser": "المستخدم",
+    "columnAction": "الإجراء",
+    "columnEntity": "العنصر",
+    "columnField": "الحقل",
+    "columnOldValue": "القيمة السابقة",
+    "columnNewValue": "القيمة الجديدة",
+    "viewDiff": "عرض التغييرات",
+    "diffTitle": "التغييرات — {entity}",
+    "diffEmpty": "لا توجد تفاصيل تغييرات لهذا الإجراء",
+    "empty": "لا توجد سجلات تدقيق بعد"
+  },
   "reports": {
     "hubTitle": "التقارير",
     "hubDescription": "اختر تقريراً لعرضه بالتفصيل",
