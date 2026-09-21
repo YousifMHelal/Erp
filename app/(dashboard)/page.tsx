@@ -51,9 +51,10 @@ export default function DashboardPage() {
         <KpiRow
           todaySales="22,450.00 ج.م"
           todaySalesDelta={{ value: "+12.4%", tone: "success" }}
+          todayPurchases="14,900.00 ج.م"
+          todayPurchasesDelta={{ value: "+3.1%", tone: "success" }}
           invoiceCount={38}
           invoiceCountDelta={{ value: "+5", tone: "success" }}
-          lowStockCount={LOW_STOCK.length}
           totalReceivables="9,225.50 ج.م"
         />
         <QuickActions />

@@ -8,10 +8,10 @@ import { PasswordStep } from "@/components/auth/password-step";
 import type { LoginUserTile } from "@/types";
 
 const SAMPLE_USERS: LoginUserTile[] = [
-  { id: "1", displayName: "أحمد سعيد", roleName: "مدير", avatarColor: "#2A2F6B" },
-  { id: "2", displayName: "منى فتحي", roleName: "محاسب", avatarColor: "#14B8A6" },
-  { id: "3", displayName: "كريم عادل", roleName: "كاشير", avatarColor: "#5F6ABB" },
-  { id: "4", displayName: "سارة حسن", roleName: "كاشير", avatarColor: "#0E9788" },
+  { id: "1", displayName: "أحمد سعيد", roleName: "مدير" },
+  { id: "2", displayName: "منى فتحي", roleName: "محاسب" },
+  { id: "3", displayName: "كريم عادل", roleName: "كاشير" },
+  { id: "4", displayName: "سارة حسن", roleName: "كاشير" },
 ];
 
 export default function LoginPage() {

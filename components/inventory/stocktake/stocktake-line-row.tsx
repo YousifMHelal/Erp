@@ -13,26 +13,40 @@ export function StocktakeLineRow({ line, onUpdateCounted }: StocktakeLineRowProp
     <TableRow>
       <TableCell className="font-medium">{line.productName}</TableCell>
       <TableCell>{line.unitName}</TableCell>
-      <TableCell className="tabular-nums">{formatNumber(line.systemQty)}</TableCell>
+      <TableCell className="tabular-nums">
+        {formatNumber(line.systemQty)}
+      </TableCell>
       <TableCell>
         <Input
           type="number"
           inputMode="decimal"
           step="any"
           value={line.countedQty ?? ""}
-          onChange={(e) => onUpdateCounted(e.target.value === "" ? null : Number(e.target.value))}
+          onChange={(e) =>
+            onUpdateCounted(
+              e.target.value === "" ? null : Number(e.target.value),
+            )
+          }
           placeholder={t("countedPlaceholder")}
-          className="h-11 w-28 border-2 border-accent/40 bg-accent/5 text-end text-h3 tabular-nums focus-visible:border-accent"
+          className="border-accent/40 bg-accent/5 focus-visible:border-accent h-7 w-28 border-2 text-end text-sm font-semibold tabular-nums"
           aria-label={t("columnCounted")}
         />
       </TableCell>
       <TableCell
         className={cn(
-          "text-end tabular-nums font-medium",
-          difference === null ? "text-muted-foreground" : difference === 0 ? "text-muted-foreground" : difference > 0 ? "text-success-fg" : "text-danger-fg",
+          "text-end font-medium tabular-nums",
+          difference === null
+            ? "text-muted-foreground"
+            : difference === 0
+              ? "text-muted-foreground"
+              : difference > 0
+                ? "text-success-fg"
+                : "text-danger-fg",
         )}
       >
-        {difference === null ? "—" : `${difference > 0 ? "+" : ""}${formatNumber(difference)}`}
+        {difference === null
+          ? "—"
+          : `${difference > 0 ? "+" : ""}${formatNumber(difference)}`}
       </TableCell>
     </TableRow>
   );

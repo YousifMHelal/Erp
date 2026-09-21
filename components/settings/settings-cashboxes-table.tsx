@@ -104,6 +104,7 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("editCashbox")}
+                    className="max-md:min-h-11 max-md:min-w-11"
                     onClick={() => {
                       setEditingCashbox(row);
                       setFormOpen(true);
@@ -118,7 +119,7 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("deleteCashbox")}
-                    className="text-danger-fg hover:bg-danger-bg"
+                    className="text-danger-fg max-md:min-h-11 max-md:min-w-11 hover:bg-danger-bg"
                     onClick={() => setDeletingCashbox(row)}
                   >
                     <Trash2 className="size-4" />

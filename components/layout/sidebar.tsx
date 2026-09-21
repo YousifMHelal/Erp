@@ -19,8 +19,8 @@ export function Sidebar({ className }: SidebarProps) {
     <aside
       data-expanded={expanded}
       className={cn(
-        "group/sidebar sticky top-0 z-40 hidden h-dvh shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
-        expanded ? "w-64" : "w-[72px]",
+        "group/sidebar sticky top-0 z-40 hidden h-dvh w-18 shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
+        expanded && "xl:w-64",
         className,
       )}
     >

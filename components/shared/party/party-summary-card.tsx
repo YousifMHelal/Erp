@@ -28,7 +28,7 @@ export function PartySummaryCard({ party, partyType, onEdit, onDelete }: PartySu
           <div className="flex items-center gap-2">
             <BalanceBadge partyType={partyType} balance={party.balance} />
             <AppTooltip content={tCommon("edit")}>
-              <Button type="button" variant="outline" size="icon" onClick={onEdit}>
+              <Button type="button" variant="outline" size="icon" className="max-md:min-h-11 max-md:min-w-11" onClick={onEdit}>
                 <Pencil />
               </Button>
             </AppTooltip>
@@ -37,7 +37,7 @@ export function PartySummaryCard({ party, partyType, onEdit, onDelete }: PartySu
                 type="button"
                 variant="outline"
                 size="icon"
-                className="text-destructive hover:text-destructive"
+                className="max-md:min-h-11 max-md:min-w-11 text-destructive hover:text-destructive"
                 onClick={onDelete}
               >
                 <Trash2 />

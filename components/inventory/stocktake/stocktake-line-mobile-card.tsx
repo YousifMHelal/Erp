@@ -15,29 +15,39 @@ export function StocktakeLineMobileCard({ line, onUpdateCounted }: StocktakeLine
         <span className="font-medium">{line.productName}</span>
         <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col gap-1">
-            <span className="text-caption text-muted-foreground">{t("columnSystem")}</span>
+            <span className="text-caption text-muted-foreground">
+              {t("columnSystem")}
+            </span>
             <span className="tabular-nums">
               {formatNumber(line.systemQty)} {line.unitName}
             </span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-caption text-muted-foreground">{t("columnCounted")}</span>
+            <span className="text-caption text-muted-foreground">
+              {t("columnCounted")}
+            </span>
             <Input
               type="number"
               inputMode="decimal"
               step="any"
               value={line.countedQty ?? ""}
-              onChange={(e) => onUpdateCounted(e.target.value === "" ? null : Number(e.target.value))}
+              onChange={(e) =>
+                onUpdateCounted(
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
+              }
               placeholder={t("countedPlaceholder")}
-              className="h-11 border-2 border-accent/40 bg-accent/5 text-end text-h3 tabular-nums focus-visible:border-accent"
+              className="border-accent/40 bg-accent/5 focus-visible:border-accent h-7 w-28 border-2 text-end text-sm font-semibold tabular-nums"
               aria-label={t("columnCounted")}
             />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-caption text-muted-foreground">{t("columnDifference")}</span>
+            <span className="text-caption text-muted-foreground">
+              {t("columnDifference")}
+            </span>
             <span
               className={cn(
-                "tabular-nums font-medium",
+                "font-medium tabular-nums",
                 difference === null || difference === 0
                   ? "text-muted-foreground"
                   : difference > 0
@@ -45,7 +55,9 @@ export function StocktakeLineMobileCard({ line, onUpdateCounted }: StocktakeLine
                     : "text-danger-fg",
               )}
             >
-              {difference === null ? "—" : `${difference > 0 ? "+" : ""}${formatNumber(difference)}`}
+              {difference === null
+                ? "—"
+                : `${difference > 0 ? "+" : ""}${formatNumber(difference)}`}
             </span>
           </div>
         </div>

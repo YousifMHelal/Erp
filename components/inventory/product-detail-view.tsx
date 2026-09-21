@@ -44,12 +44,18 @@ export function ProductDetailView({ product: initialProduct, movements, priceHis
         breadcrumbs={[{ labelKey: "nav.inventory", href: "/inventory" }, { labelKey: "inventory.detail.breadcrumb" }]}
         actions={
           <>
-            <Button type="button" variant="outline" onClick={() => setEditOpen(true)}>
+            <Button type="button" variant="outline" className="max-md:min-h-11" onClick={() => setEditOpen(true)}>
               <Pencil /> {tCommon("edit")}
             </Button>
             <AppTooltip content={canDelete ? t("deleteAction") : t("deleteBlockedTooltip")}>
               <span>
-                <Button type="button" variant="destructive" disabled={!canDelete} onClick={() => setDeleteOpen(true)}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="max-md:min-h-11"
+                  disabled={!canDelete}
+                  onClick={() => setDeleteOpen(true)}
+                >
                   <Trash2 /> {tCommon("delete")}
                 </Button>
               </span>

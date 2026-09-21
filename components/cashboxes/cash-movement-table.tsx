@@ -45,9 +45,9 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
               <TableHead className="text-label">{t("columnDate")}</TableHead>
-              <TableHead className="text-label">{t("columnCashbox")}</TableHead>
+              <TableHead className="hidden text-label lg:table-cell">{t("columnCashbox")}</TableHead>
               <TableHead className="text-label">{t("columnType")}</TableHead>
-              <TableHead className="text-label">{t("columnParty")}</TableHead>
+              <TableHead className="hidden text-label lg:table-cell">{t("columnParty")}</TableHead>
               <TableHead className="text-label">{t("columnRef")}</TableHead>
               <TableHead className="text-label text-end">{t("columnAmount")}</TableHead>
               <TableHead className="text-label text-end">{t("columnBalanceAfter")}</TableHead>
@@ -57,9 +57,9 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
             {movements.map((movement) => (
               <TableRow key={movement.id}>
                 <TableCell className="tabular-nums">{formatDate(movement.createdAt)}</TableCell>
-                <TableCell>{movement.cashboxName}</TableCell>
+                <TableCell className="hidden lg:table-cell">{movement.cashboxName}</TableCell>
                 <TableCell>{tType(movement.type)}</TableCell>
-                <TableCell className="text-muted-foreground">{movement.partyName ?? "—"}</TableCell>
+                <TableCell className="hidden text-muted-foreground lg:table-cell">{movement.partyName ?? "—"}</TableCell>
                 <TableCell className="text-muted-foreground">
                   <RefLabel movement={movement} />
                 </TableCell>

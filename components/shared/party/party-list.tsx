@@ -129,7 +129,7 @@ export function PartyList({ partyType, parties: initialParties }: PartyListProps
       <ConfirmDialog
         open={!!deletingParty}
         onOpenChange={(open) => !open && setDeletingParty(undefined)}
-        title={t("deleteTitle")}
+        title={t("deleteTitle", { name: deletingParty?.name ?? "" })}
         description={t("deleteDescription", { name: deletingParty?.name ?? "" })}
         confirmLabel={t("deleteConfirm")}
         variant="destructive"

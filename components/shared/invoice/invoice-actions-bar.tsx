@@ -12,10 +12,10 @@ export function InvoiceActionsBar({ invoice, onPrint, onCancel, onEdit, onDelete
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button type="button" variant="outline" onClick={onPrint}>
+      <Button type="button" variant="outline" onClick={onPrint} className="max-sm:h-11">
         <Printer /> {t("printAction")}
       </Button>
-      <Button asChild variant="outline">
+      <Button asChild variant="outline" className="max-sm:h-11">
         <a href={`https://wa.me/?text=${whatsappText}`} target="_blank" rel="noopener noreferrer">
           <MessageCircle /> {t("shareAction")}
         </a>
@@ -23,16 +23,16 @@ export function InvoiceActionsBar({ invoice, onPrint, onCancel, onEdit, onDelete
       {!isCancelled && (
         <div className="ms-auto flex items-center gap-2">
           {onEdit && (
-            <Button type="button" variant="outline" onClick={onEdit}>
+            <Button type="button" variant="outline" onClick={onEdit} className="max-sm:h-11">
               <Pencil /> {t("editAction")}
             </Button>
           )}
           {onDelete && (
-            <Button type="button" variant="destructive" onClick={onDelete}>
+            <Button type="button" variant="destructive" onClick={onDelete} className="max-sm:h-11">
               <Trash2 /> {t("deleteAction")}
             </Button>
           )}
-          <Button type="button" variant="destructive" onClick={onCancel}>
+          <Button type="button" variant="destructive" onClick={onCancel} className="max-sm:h-11">
             <Ban /> {t("cancelAction")}
           </Button>
         </div>

@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { AlertTriangle, Info, OctagonAlert } from "lucide-react";
+import { AlertTriangle, Info, OctagonAlert, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { AppTooltip } from "@/components/shared/app-tooltip";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { NotificationListItemProps, NotificationSeverity } from "@/types";
@@ -18,7 +19,7 @@ const SEVERITY_COLOR: Record<NotificationSeverity, string> = {
   CRITICAL: "bg-danger-bg text-danger-fg",
 };
 
-export function NotificationListItem({ notification, onMarkRead }: NotificationListItemProps) {
+export function NotificationListItem({ notification, onMarkRead, onDelete }: NotificationListItemProps) {
   const t = useTranslations("notifications");
   const Icon = SEVERITY_ICON[notification.severity];
 
@@ -37,19 +38,37 @@ export function NotificationListItem({ notification, onMarkRead }: NotificationL
         <span className="text-body-sm text-muted-foreground">{notification.body}</span>
         <span className="text-caption text-muted-foreground">{formatDate(notification.createdAt)}</span>
       </div>
-      {!notification.isRead && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={(e) => {
-            e.preventDefault();
-            onMarkRead(notification.id);
-          }}
-        >
-          {t("markRead")}
-        </Button>
-      )}
+      <div className="flex shrink-0 items-center gap-1">
+        {!notification.isRead && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="max-md:min-h-11"
+            onClick={(e) => {
+              e.preventDefault();
+              onMarkRead(notification.id);
+            }}
+          >
+            {t("markRead")}
+          </Button>
+        )}
+        <AppTooltip content={t("delete")}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("delete")}
+            className="text-danger-fg max-md:min-h-11 max-md:min-w-11 hover:text-danger-fg"
+            onClick={(e) => {
+              e.preventDefault();
+              onDelete(notification.id);
+            }}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </AppTooltip>
+      </div>
     </div>
   );
 

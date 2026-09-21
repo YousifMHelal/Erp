@@ -6,6 +6,16 @@ import type { AuditDiffDialogProps } from "@/types";
 export function AuditDiffDialog({ open, onOpenChange, entry }: AuditDiffDialogProps) {
   const t = useTranslations("auditLog");
 
+  function fieldLabel(key: string): string {
+    return t.has(`fields.${key}`) ? t(`fields.${key}`) : key;
+  }
+
+  function formatValue(value: unknown): string {
+    if (value === undefined || value === null) return "—";
+    const asString = String(value);
+    return t.has(`statusValues.${asString}`) ? t(`statusValues.${asString}`) : asString;
+  }
+
   const fields = entry ? diffFields(entry.beforeJson, entry.afterJson) : [];
 
   return (
@@ -28,9 +38,9 @@ export function AuditDiffDialog({ open, onOpenChange, entry }: AuditDiffDialogPr
             <TableBody>
               {fields.map((field) => (
                 <TableRow key={field.key}>
-                  <TableCell className="font-medium">{field.key}</TableCell>
-                  <TableCell className="text-muted-foreground line-through">{field.before}</TableCell>
-                  <TableCell className="font-medium">{field.after}</TableCell>
+                  <TableCell className="font-medium">{fieldLabel(field.key)}</TableCell>
+                  <TableCell className="text-muted-foreground line-through">{formatValue(field.before)}</TableCell>
+                  <TableCell className="font-medium">{formatValue(field.after)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -47,12 +57,7 @@ function diffFields(before?: Record<string, unknown>, after?: Record<string, unk
     .filter((key) => JSON.stringify(before?.[key]) !== JSON.stringify(after?.[key]))
     .map((key) => ({
       key,
-      before: formatValue(before?.[key]),
-      after: formatValue(after?.[key]),
+      before: before?.[key],
+      after: after?.[key],
     }));
-}
-
-function formatValue(value: unknown): string {
-  if (value === undefined || value === null) return "—";
-  return String(value);
 }

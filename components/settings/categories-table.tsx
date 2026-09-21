@@ -103,6 +103,7 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("editCategory")}
+                    className="max-md:min-h-11 max-md:min-w-11"
                     onClick={() => {
                       setEditingCategory(row);
                       setFormOpen(true);
@@ -117,7 +118,7 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("deleteCategory")}
-                    className="text-danger-fg hover:bg-danger-bg"
+                    className="text-danger-fg max-md:min-h-11 max-md:min-w-11 hover:bg-danger-bg"
                     onClick={() => setDeletingCategory(row)}
                   >
                     <Trash2 className="size-4" />

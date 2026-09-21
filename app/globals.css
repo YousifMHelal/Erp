@@ -258,9 +258,9 @@
 
 /* density system — data-density="compact" | "comfortable" on a container */
 [data-density="compact"] {
-  --density-row-height: 40px;
-  --density-cell-padding-block: 8px;
-  --density-cell-padding-inline: 12px;
+  --density-row-height: 30px;
+  --density-cell-padding-block: 1px;
+  --density-cell-padding-inline: 10px;
   --density-card-padding: 16px;
   --density-section-gap: 16px;
   --density-control-height: 36px;
@@ -268,9 +268,9 @@
 }
 
 [data-density="comfortable"] {
-  --density-row-height: 56px;
-  --density-cell-padding-block: 14px;
-  --density-cell-padding-inline: 20px;
+  --density-row-height: 34px;
+  --density-cell-padding-block: 4px;
+  --density-cell-padding-inline: 16px;
   --density-card-padding: 24px;
   --density-section-gap: 32px;
   --density-control-height: 42px;
@@ -279,13 +279,13 @@
 
 @media (max-width: 767px) {
   [data-density] {
-    --density-row-height: 56px;
-    --density-cell-padding-block: 14px;
-    --density-cell-padding-inline: 20px;
+    --density-row-height: 36px;
+    --density-cell-padding-block: 10px;
+    --density-cell-padding-inline: 16px;
     --density-card-padding: 24px;
     --density-section-gap: 32px;
-    --density-control-height: 44px;
-    --density-body-size: 16px;
+    --density-control-height: 42px;
+    --density-body-size: 15px;
   }
 }
 

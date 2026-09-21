@@ -1,21 +1,23 @@
 import Link from "next/link";
-import { FilePlus2, PackagePlus, HandCoins, ClipboardList } from "lucide-react";
+import { FilePlus2, PackagePlus, Warehouse, Wallet, HandCoins, Banknote } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import type { QuickActionItem } from "@/types";
 
 const DEFAULT_ITEMS: QuickActionItem[] = [
-  { labelKey: "dashboard.quickActions.newSale", href: "/sales/new", icon: FilePlus2 },
   { labelKey: "dashboard.quickActions.newPurchase", href: "/purchases/new", icon: PackagePlus },
+  { labelKey: "dashboard.quickActions.newSale", href: "/sales/new", icon: FilePlus2 },
+  { labelKey: "dashboard.quickActions.inventory", href: "/inventory", icon: Warehouse },
+  { labelKey: "dashboard.quickActions.cashboxes", href: "/cashboxes", icon: Wallet },
   { labelKey: "dashboard.quickActions.collectPayment", href: "/collections/new", icon: HandCoins },
-  { labelKey: "dashboard.quickActions.stocktake", href: "/inventory/stocktake/new", icon: ClipboardList },
+  { labelKey: "dashboard.quickActions.makePayment", href: "/payments/new", icon: Banknote },
 ];
 
 export function QuickActions() {
   const t = useTranslations();
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
       {DEFAULT_ITEMS.map((item) => {
         const Icon = item.icon;
         return (

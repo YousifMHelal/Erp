@@ -4,9 +4,11 @@ import { cn } from "@/lib/utils";
 import type { ReportTableProps } from "@/types";
 
 export function ReportTable({ columns, rows, footerRow }: ReportTableProps) {
+  const [identityColumn, ...restColumns] = columns;
+
   return (
     <Card className="overflow-hidden p-0">
-      <div className="overflow-x-auto">
+      <div className="hidden overflow-x-auto md:block">
         <Table>
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
@@ -40,6 +42,31 @@ export function ReportTable({ columns, rows, footerRow }: ReportTableProps) {
             </TableFooter>
           )}
         </Table>
+      </div>
+
+      <div className="flex flex-col divide-y divide-border md:hidden">
+        {rows.map((row, index) => (
+          <div key={index} className="flex flex-col gap-1.5 p-4">
+            {identityColumn && <span className="font-medium">{row[identityColumn.key]}</span>}
+            {restColumns.map((col) => (
+              <div key={col.key} className="flex items-center justify-between text-body-sm">
+                <span className="text-muted-foreground">{col.label}</span>
+                <span>{row[col.key]}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+        {footerRow && (
+          <div className="flex flex-col gap-1.5 bg-muted/50 p-4 font-medium">
+            {identityColumn && <span>{footerRow[identityColumn.key]}</span>}
+            {restColumns.map((col) => (
+              <div key={col.key} className="flex items-center justify-between text-body-sm">
+                <span className="text-muted-foreground">{col.label}</span>
+                <span>{footerRow[col.key]}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </Card>
   );

@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { avatarColorClass, cn } from "@/lib/utils";
 import type { UserTileProps } from "@/types";
 
 export function UserTile({ user, onSelect }: UserTileProps) {
@@ -12,8 +13,7 @@ export function UserTile({ user, onSelect }: UserTileProps) {
     >
       <Avatar size="lg" className="size-16">
         <AvatarFallback
-          style={{ backgroundColor: user.avatarColor }}
-          className="text-h2 font-semibold text-white"
+          className={cn("text-h2 font-semibold text-primary-foreground", avatarColorClass(user.id))}
         >
           {initials}
         </AvatarFallback>

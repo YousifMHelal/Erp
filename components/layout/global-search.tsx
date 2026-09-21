@@ -38,7 +38,7 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 min-w-11 items-center gap-2 rounded-md border border-input bg-background px-3 text-body-sm text-muted-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:w-64"
+        className="flex h-9 min-h-11 min-w-11 items-center gap-2 rounded-md border border-input bg-background px-3 text-body-sm text-muted-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:h-9 sm:w-64"
       >
         <Search className="size-4 shrink-0" aria-hidden="true" />
         <span className="hidden truncate sm:inline">{t("layout.searchPlaceholder")}</span>

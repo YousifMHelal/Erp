@@ -19,7 +19,13 @@ export function PartyRowActions({ party, onEdit, onDelete }: PartyRowActionsProp
     <DropdownMenu>
       <AppTooltip content={t("actions")}>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="ghost" size="icon" className="size-8" onClick={(e) => e.stopPropagation()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 max-md:min-h-11 max-md:min-w-11"
+            onClick={(e) => e.stopPropagation()}
+          >
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>

@@ -14,7 +14,7 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 |-------|-------|--------|-------|
 | 0 | Scaffold & foundations | DONE | RTL app, theme toggle, database connection verified. |
 | 1 | Design system | DONE | Full token set, restyled primitives, Money/StatusBadge/Kbd, hotkeys, `/design-system` preview verified both themes × 4 widths. |
-| 2 | App shell & static UI | TODO | 22 screens |
+| 2 | App shell & static UI | DONE | 22 screens; responsive/theme audit pass complete. |
 | 3 | Database schema | TODO | Needs approval at P3-3 before migrating |
 | 4 | Auth, permissions & sales slice | TODO | Proves the end-to-end pattern |
 | 5 | Purchases, inventory & returns | TODO | |
@@ -23,7 +23,7 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 8 | Polish, motion & edge cases | TODO | |
 | 9 | Testing | TODO | Final pass |
 
-**Overall: 20 / 96 tasks done.**
+**Overall: 42 / 96 tasks done.**
 
 ---
 
@@ -61,28 +61,28 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P2-1 | AppShell: sidebar + topbar | TODO | |
-| P2-2 | Generic DataTable (+ mobile cards) | TODO | Built once, used everywhere |
-| P2-3 | Shared components set | TODO | |
-| P2-4 | Login screen | TODO | |
-| P2-5 | Dashboard | TODO | |
-| P2-6 | New sale screen | TODO | Highest-value screen |
-| P2-7 | Sales list + filters | TODO | |
-| P2-8 | Invoice detail | TODO | |
-| P2-9 | Purchases screens | TODO | |
-| P2-10 | Returns screens | TODO | |
-| P2-11 | Inventory grid + product dialog | TODO | |
-| P2-12 | Product detail | TODO | |
-| P2-13 | Stocktake | TODO | |
-| P2-14 | Customers | TODO | |
-| P2-15 | Suppliers | TODO | |
-| P2-16 | Cashboxes | TODO | |
-| P2-17 | Collections + payments | TODO | |
-| P2-18 | Reports hub + shell | TODO | |
-| P2-19 | Notifications + audit log | TODO | |
-| P2-20 | Settings incl. permission matrix | TODO | |
-| P2-21 | Print templates A4/A5/80mm | TODO | |
-| P2-22 | Responsive + theme audit pass | TODO | Gate for phase exit |
+| P2-1 | AppShell: sidebar + topbar | DONE | |
+| P2-2 | Generic DataTable (+ mobile cards) | DONE | Built once, used everywhere |
+| P2-3 | Shared components set | DONE | |
+| P2-4 | Login screen | DONE | |
+| P2-5 | Dashboard | DONE | |
+| P2-6 | New sale screen | DONE | Highest-value screen |
+| P2-7 | Sales list + filters | DONE | |
+| P2-8 | Invoice detail | DONE | |
+| P2-9 | Purchases screens | DONE | |
+| P2-10 | Returns screens | DONE | |
+| P2-11 | Inventory grid + product dialog | DONE | |
+| P2-12 | Product detail | DONE | |
+| P2-13 | Stocktake | DONE | |
+| P2-14 | Customers | DONE | |
+| P2-15 | Suppliers | DONE | |
+| P2-16 | Cashboxes | DONE | |
+| P2-17 | Collections + payments | DONE | |
+| P2-18 | Reports hub + shell | DONE | |
+| P2-19 | Notifications + audit log | DONE | |
+| P2-20 | Settings incl. permission matrix | DONE | |
+| P2-21 | Print templates A4/A5/80mm | DONE | |
+| P2-22 | Responsive + theme audit pass | DONE | 4 parallel audit passes across all 33 routes, both themes, 4 widths; fixed density-toggle root cause, Radix RTL default-direction bug, dashboard/report chart RTL wrapping, audit-log Arabic labels, missing user-form password field, and touch-target sizing. `typecheck`/`lint` clean. |
 
 ## Phase 3 — Database schema
 
@@ -188,6 +188,9 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 ## Changelog
 
 *Newest first. One entry per meaningful change — task completions, decision reversals, blockers hit and cleared.*
+
+### 2026-09-22 (Phase 2 complete)
+- **Phase 2 complete (P2-1…P2-22).** Closed the P2-22 responsive/theme audit gate with parallel audit passes across all 33 static routes at 375/768/1024/1440px in both themes. Fixed real bugs surfaced along the way: (1) the density toggle button did nothing because `data-density` was never written to the DOM — `DataTable` now reads the Zustand store and sets it, fixing every table in the app at once; (2) Radix UI primitives (Tabs, etc.) default their internal `dir` to `"ltr"` unless told otherwise, which silently flipped every tabbed dialog (e.g. the product-create form) to LTR layout — fixed once, app-wide, with a `Direction.Provider` in `components/providers.tsx` rather than patching each primitive; (3) dashboard/report charts wrapped in `dir="ltr"` so Recharts' internally-LTR rendering stops fighting the page's RTL context; (4) audit log showed raw permission-style keys (`product.price.update`) instead of Arabic — added an `auditLog.actions`/`fields` label map (next-intl forbids literal `.` in JSON keys, so action keys are looked up with `.` replaced by `_`); (5) the user-create/edit form was missing a password field entirely — added with the same show/hide pattern as login. Also: dashboard KPI row and quick-actions now match the owner's requested set (مبيعات اليوم / مشتريات اليوم / عدد الفواتير / إجمالي المستحقات; فاتورة شراء / فاتورة بيع / المخزن / الخزنة / تحصيل / دفع), notifications got a delete action, returns list's "Create New" button now resolves its Arabic label. `typecheck` and `lint` clean.
 
 ### 2026-09-21 (Phase 1)
 - **Phase 1 complete (P1-1…P1-9).** Full colour token set (indigo/teal ramps, semantic status pairs, chart palette) written into `app/globals.css` for both themes; type scale, density system, and shadow levels added as `@theme` tokens. Restyled `button`, `badge`, `input`, `card`, `dialog` primitives to the tokens — no more stock shadcn slate. Built `components/shared/money.tsx`, `status-badge.tsx`, `kbd.tsx`, plus `lib/hotkeys.ts` + `hooks/use-hotkeys.ts` for the F-key registry. Built the temporary `/design-system` preview route and verified it in both themes at 375/768/1024/1440px with `playwright-cli`. `typecheck` and `lint` clean throughout.

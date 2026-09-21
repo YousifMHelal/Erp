@@ -33,6 +33,13 @@ export type BreadcrumbItem = { labelKey: string; href?: string };
 
 import type { ColumnDef, Table as TanstackTable } from "@tanstack/react-table";
 
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData, TValue> {
+    /** Applied to the header/cell wrapper. Use to hide lower-priority columns at the md breakpoint (768–1023px). */
+    className?: string;
+  }
+}
+
 export type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
@@ -148,7 +155,6 @@ export type LoginUserTile = {
   id: string;
   displayName: string;
   roleName: string;
-  avatarColor: string;
 };
 
 export type UserTileGridProps = {
@@ -193,9 +199,10 @@ export type RecentInvoicesProps = { items: RecentInvoiceItem[] };
 export type KpiRowProps = {
   todaySales: string;
   todaySalesDelta: { value: string; tone: "success" | "danger" };
+  todayPurchases: string;
+  todayPurchasesDelta: { value: string; tone: "success" | "danger" };
   invoiceCount: number;
   invoiceCountDelta: { value: string; tone: "success" | "danger" };
-  lowStockCount: number;
   totalReceivables: string;
 };
 
@@ -766,11 +773,13 @@ export type NotificationListProps = {
   notifications: NotificationItem[];
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
+  onDelete: (id: string) => void;
 };
 
 export type NotificationListItemProps = {
   notification: NotificationItem;
   onMarkRead: (id: string) => void;
+  onDelete: (id: string) => void;
 };
 
 export type AuditLogRow = {

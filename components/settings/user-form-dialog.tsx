@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
@@ -17,6 +19,8 @@ export function UserFormDialog({ open, onOpenChange, roleOptions, user, onSave }
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [username, setUsername] = useState(user?.username ?? "");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [roleId, setRoleId] = useState<string | undefined>(
     roleOptions.find((r) => r.label === user?.roleName)?.value,
   );
@@ -26,6 +30,14 @@ export function UserFormDialog({ open, onOpenChange, roleOptions, user, onSave }
     e.preventDefault();
     if (!displayName.trim() || !username.trim()) {
       toast.error(t("errorRequired"));
+      return;
+    }
+    if (!isEdit && !password) {
+      toast.error(t("errorPasswordRequired"));
+      return;
+    }
+    if (password && password.length < 8) {
+      toast.error(t("errorPasswordLength"));
       return;
     }
     const roleName = roleOptions.find((r) => r.value === roleId)?.label ?? user?.roleName ?? "";
@@ -73,6 +85,33 @@ export function UserFormDialog({ open, onOpenChange, roleOptions, user, onSave }
               dir="ltr"
               className="text-end"
             />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="user-password">
+              {isEdit ? t("passwordLabelEdit") : t("passwordLabel")}
+              {!isEdit && <span className="text-accent"> *</span>}
+            </Label>
+            <InputGroup>
+              <InputGroupInput
+                id="user-password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("passwordPlaceholder")}
+                autoComplete="new-password"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="button"
+                  size="icon-xs"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+            {isEdit && <p className="text-caption text-muted-foreground">{t("passwordHintEdit")}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>{t("roleLabel")}</Label>

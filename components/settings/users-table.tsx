@@ -126,6 +126,7 @@ export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("editUser")}
+                    className="max-md:min-h-11 max-md:min-w-11"
                     onClick={() => {
                       setEditingUser(row);
                       setFormOpen(true);
@@ -140,7 +141,7 @@ export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("deleteUser")}
-                    className="text-danger-fg hover:bg-danger-bg"
+                    className="text-danger-fg max-md:min-h-11 max-md:min-w-11 hover:bg-danger-bg"
                     onClick={() => setDeletingUser(row)}
                   >
                     <Trash2 className="size-4" />

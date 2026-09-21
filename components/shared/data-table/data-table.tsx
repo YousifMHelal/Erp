@@ -11,6 +11,7 @@ import { DataTableToolbar } from "@/components/shared/data-table/data-table-tool
 import { DataTableSkeleton } from "@/components/shared/data-table/data-table-skeleton";
 import { DataTablePagination } from "@/components/shared/data-table/data-table-pagination";
 import { cn } from "@/lib/utils";
+import { useUiStore } from "@/stores/ui.store";
 import type { DataTableProps, DataTableToolbarProps } from "@/types";
 
 export function DataTable<TData>({
@@ -32,6 +33,7 @@ export function DataTable<TData>({
   className,
 }: DataTableProps<TData>) {
   const t = useTranslations("dataTable");
+  const density = useUiStore((s) => s.density);
   const tableColumns = enableRowSelection ? [selectionColumn(), ...columns] : columns;
 
   const table = useDataTable({ columns: tableColumns, data, getRowId, enableRowSelection });
@@ -44,10 +46,13 @@ export function DataTable<TData>({
   const isEmpty = !isLoading && data.length === 0;
 
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-md border border-border bg-card", className)}>
+    <div
+      data-density={density}
+      className={cn("flex flex-col overflow-hidden rounded-md border border-border bg-card", className)}
+    >
       {toolbar}
 
-      <div className="hidden md:block">
+      <div className="hidden overflow-x-auto md:block">
         {isLoading ? (
           <DataTableSkeleton columnCount={tableColumns.length} rowCount={skeletonRowCount} />
         ) : isEmpty ? (
@@ -63,8 +68,11 @@ export function DataTable<TData>({
                     return (
                       <TableHead
                         key={header.id}
-                        style={{ height: "var(--density-row-height)" }}
-                        className="text-label"
+                        style={{
+                          height: "var(--density-row-height)",
+                          paddingInline: "var(--density-cell-padding-inline)",
+                        }}
+                        className={cn("text-label", header.column.columnDef.meta?.className)}
                       >
                         {header.isPlaceholder ? null : canSort ? (
                           <button
@@ -101,6 +109,7 @@ export function DataTable<TData>({
                         paddingBlock: "var(--density-cell-padding-block)",
                         paddingInline: "var(--density-cell-padding-inline)",
                       }}
+                      className={cell.column.columnDef.meta?.className}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

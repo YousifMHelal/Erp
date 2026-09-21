@@ -37,7 +37,14 @@ export function InventoryMobileCard({ product, onEdit, onDelete }: InventoryMobi
         </div>
         <div className="flex items-center justify-end gap-1 border-t border-border pt-2">
           <AppTooltip content={t("editAction")}>
-            <Button type="button" variant="ghost" size="icon-sm" onClick={() => onEdit(product)} aria-label={t("editAction")}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="min-h-11 min-w-11"
+              onClick={() => onEdit(product)}
+              aria-label={t("editAction")}
+            >
               <Pencil className="size-4" />
             </Button>
           </AppTooltip>
@@ -50,7 +57,7 @@ export function InventoryMobileCard({ product, onEdit, onDelete }: InventoryMobi
                 disabled={!canDelete}
                 onClick={() => onDelete(product)}
                 aria-label={t("deleteAction")}
-                className="text-danger-fg hover:text-danger-fg"
+                className="min-h-11 min-w-11 text-danger-fg hover:text-danger-fg"
               >
                 <Trash2 className="size-4" />
               </Button>

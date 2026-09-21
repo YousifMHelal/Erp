@@ -18,10 +18,15 @@ export function AuditLogList({ entries }: AuditLogListProps) {
   const [selected, setSelected] = useState<AuditLogRow | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  function actionLabel(action: string): string {
+    const key = `actions.${action.replaceAll(".", "_")}`;
+    return t.has(key) ? t(key) : action;
+  }
+
   const columns: ColumnDef<AuditLogRow, unknown>[] = [
     { accessorKey: "createdAt", header: t("columnDate"), cell: ({ getValue }) => <span className="tabular-nums">{formatDate(getValue<string>())}</span> },
     { accessorKey: "userName", header: t("columnUser") },
-    { accessorKey: "action", header: t("columnAction") },
+    { accessorKey: "action", header: t("columnAction"), cell: ({ getValue }) => actionLabel(getValue<string>()) },
     { accessorKey: "entityLabel", header: t("columnEntity") },
     {
       id: "actions",
@@ -55,7 +60,7 @@ export function AuditLogList({ entries }: AuditLogListProps) {
           <Card>
             <div className="flex flex-col gap-2 p-4">
               <div className="flex items-center justify-between">
-                <span className="font-medium">{row.action}</span>
+                <span className="font-medium">{actionLabel(row.action)}</span>
                 <span className="tabular-nums text-caption text-muted-foreground">{formatDate(row.createdAt)}</span>
               </div>
               <span className="text-body-sm text-muted-foreground">
@@ -65,6 +70,7 @@ export function AuditLogList({ entries }: AuditLogListProps) {
                 type="button"
                 variant="outline"
                 size="sm"
+                className="max-md:min-h-11"
                 onClick={() => {
                   setSelected(row);
                   setDialogOpen(true);

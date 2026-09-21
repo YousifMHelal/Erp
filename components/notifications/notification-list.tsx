@@ -21,13 +21,17 @@ export function NotificationList({ notifications: initial }: { notifications: No
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   }
 
+  function deleteNotification(id: string) {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }
+
   const hasUnread = notifications.some((n) => !n.isRead);
 
   return (
     <div className="flex flex-col gap-4">
       {hasUnread && (
         <div className="flex justify-end">
-          <Button type="button" variant="outline" size="sm" onClick={markAllRead}>
+          <Button type="button" variant="outline" size="sm" className="max-md:min-h-11" onClick={markAllRead}>
             <CheckCheck /> {t("markAllRead")}
           </Button>
         </div>
@@ -37,7 +41,12 @@ export function NotificationList({ notifications: initial }: { notifications: No
       ) : (
         <Card className="divide-y divide-border overflow-hidden p-0">
           {notifications.map((notification) => (
-            <NotificationListItem key={notification.id} notification={notification} onMarkRead={markRead} />
+            <NotificationListItem
+              key={notification.id}
+              notification={notification}
+              onMarkRead={markRead}
+              onDelete={deleteNotification}
+            />
           ))}
         </Card>
       )}

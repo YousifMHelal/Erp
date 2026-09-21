@@ -40,8 +40,16 @@ export function useInvoiceColumns(
       header: t("columnDate"),
       cell: ({ getValue }) => <span className="tabular-nums">{formatDate(getValue<string>())}</span>,
     },
-    { accessorKey: "cashboxName", header: t("columnCashbox") },
-    { accessorKey: "userName", header: t("columnUser") },
+    {
+      accessorKey: "cashboxName",
+      header: t("columnCashbox"),
+      meta: { className: "hidden lg:table-cell" },
+    },
+    {
+      accessorKey: "userName",
+      header: t("columnUser"),
+      meta: { className: "hidden lg:table-cell" },
+    },
     {
       accessorKey: "total",
       header: t("columnTotal"),

@@ -26,7 +26,7 @@ export default function StocktakeListPage() {
         title={t("listTitle")}
         breadcrumbs={[{ labelKey: "nav.inventory", href: "/inventory" }, { labelKey: "inventory.stocktake.listTitle" }]}
         actions={
-          <Button asChild variant="primary">
+          <Button asChild variant="primary" className="max-md:min-h-11">
             <Link href="/inventory/stocktake/new">
               <ClipboardPlus /> {t("newStocktake")}
             </Link>

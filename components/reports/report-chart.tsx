@@ -16,9 +16,9 @@ export function ReportChart({ title, data }: ReportChartProps) {
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div role="img" aria-label={summary} className="h-60 w-full md:h-70">
+        <div role="img" aria-label={summary} className="h-60 w-full md:h-70" dir="ltr">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <BarChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
               <CartesianGrid stroke="var(--border)" vertical={false} />
               <XAxis dataKey="label" reversed stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis

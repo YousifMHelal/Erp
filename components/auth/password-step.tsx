@@ -7,16 +7,19 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
+import { avatarColorClass, cn } from "@/lib/utils";
 import type { PasswordStepProps } from "@/types";
 
 export function PasswordStep({ user, onBack }: PasswordStepProps) {
   const t = useTranslations("auth");
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const initials = user.displayName.trim().slice(0, 1);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setIsPending(true);
     // P4-5 wires this to the real credentials sign-in server action.
   }
@@ -34,7 +37,9 @@ export function PasswordStep({ user, onBack }: PasswordStepProps) {
 
       <div className="flex flex-col items-center gap-3">
         <Avatar size="lg" className="size-16">
-          <AvatarFallback style={{ backgroundColor: user.avatarColor }} className="text-h2 font-semibold text-white">
+          <AvatarFallback
+            className={cn("text-h2 font-semibold text-primary-foreground", avatarColorClass(user.id))}
+          >
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -53,6 +58,8 @@ export function PasswordStep({ user, onBack }: PasswordStepProps) {
             autoFocus
             autoComplete="current-password"
             placeholder={t("passwordPlaceholder")}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "login-password-error" : undefined}
           />
           <InputGroupAddon align="inline-end">
             <InputGroupButton
@@ -65,6 +72,11 @@ export function PasswordStep({ user, onBack }: PasswordStepProps) {
             </InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
+        {error ? (
+          <p id="login-password-error" role="alert" className="text-body-sm text-danger-fg">
+            {error}
+          </p>
+        ) : null}
       </div>
 
       <Button type="submit" variant="primary" size="lg" disabled={isPending} className="w-full">
