@@ -1,0 +1,97 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { EntityCombobox } from "@/components/shared/entity-combobox";
+import type { SettingsUserFormDialogProps, SettingsUserRow } from "@/types";
+
+export function UserFormDialog({ open, onOpenChange, roleOptions, user, onSave }: SettingsUserFormDialogProps) {
+  const t = useTranslations("settings.users.form");
+  const isEdit = !!user;
+
+  const [displayName, setDisplayName] = useState(user?.displayName ?? "");
+  const [username, setUsername] = useState(user?.username ?? "");
+  const [roleId, setRoleId] = useState<string | undefined>(
+    roleOptions.find((r) => r.label === user?.roleName)?.value,
+  );
+  const [isActive, setIsActive] = useState(user?.isActive ?? true);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!displayName.trim() || !username.trim()) {
+      toast.error(t("errorRequired"));
+      return;
+    }
+    const roleName = roleOptions.find((r) => r.value === roleId)?.label ?? user?.roleName ?? "";
+    const saved: SettingsUserRow = {
+      id: user?.id ?? crypto.randomUUID(),
+      displayName: displayName.trim(),
+      username: username.trim(),
+      roleName,
+      isActive,
+      lastLoginAt: user?.lastLoginAt,
+    };
+    onSave(saved);
+    toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
+    onOpenChange(false);
+    // P7-9 wires this to users.actions.ts create/update.
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? t("editTitle") : t("createTitle")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="user-display-name">
+              {t("nameLabel")} <span className="text-accent">*</span>
+            </Label>
+            <Input
+              id="user-display-name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder={t("namePlaceholder")}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="user-username">
+              {t("usernameLabel")} <span className="text-accent">*</span>
+            </Label>
+            <Input
+              id="user-username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={t("usernamePlaceholder")}
+              dir="ltr"
+              className="text-end"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>{t("roleLabel")}</Label>
+            <EntityCombobox options={roleOptions} value={roleId} onChange={setRoleId} placeholder={t("rolePlaceholder")} />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="user-active">{t("statusLabel")}</Label>
+            <Switch id="user-active" checked={isActive} onCheckedChange={setIsActive} />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" variant="accent">
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

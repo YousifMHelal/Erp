@@ -1,14 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { Pencil, Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { AppTooltip } from "@/components/shared/app-tooltip";
 import { Money } from "@/components/shared/money";
 import { StockStatusBadge, stockStatusFor } from "@/components/inventory/stock-status-badge";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { InventoryProductRow } from "@/types";
 
-export function useInventoryColumns(t: (key: string) => string): ColumnDef<InventoryProductRow, unknown>[] {
+type InventoryColumnsOptions = {
+  onEdit: (product: InventoryProductRow) => void;
+  onDelete: (product: InventoryProductRow) => void;
+};
+
+export function useInventoryColumns(
+  t: (key: string) => string,
+  { onEdit, onDelete }: InventoryColumnsOptions,
+): ColumnDef<InventoryProductRow, unknown>[] {
   return [
     {
       accessorKey: "name",
@@ -53,6 +64,38 @@ export function useInventoryColumns(t: (key: string) => string): ColumnDef<Inven
       cell: ({ row }) => (
         <StockStatusBadge status={stockStatusFor(row.original.stockQty, row.original.minStockQty)} />
       ),
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => {
+        const product = row.original;
+        const canDelete = product.stockQty <= 0;
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <AppTooltip content={t("editAction")}>
+              <Button type="button" variant="ghost" size="icon-sm" onClick={() => onEdit(product)} aria-label={t("editAction")}>
+                <Pencil className="size-4" />
+              </Button>
+            </AppTooltip>
+            <AppTooltip content={canDelete ? t("deleteAction") : t("deleteBlockedTooltip")}>
+              <span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={!canDelete}
+                  onClick={() => onDelete(product)}
+                  aria-label={t("deleteAction")}
+                  className="text-danger-fg hover:text-danger-fg"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </span>
+            </AppTooltip>
+          </div>
+        );
+      },
     },
   ];
 }

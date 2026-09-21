@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -5,7 +6,29 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Money } from "@/components/shared/money";
 import { History } from "lucide-react";
 import { formatDate } from "@/lib/format";
-import type { CashMovementTableProps } from "@/types";
+import type { CashMovementRefType, CashMovementRow, CashMovementTableProps } from "@/types";
+
+const REF_BASE_PATH: Record<CashMovementRefType, string> = {
+  SALE: "/sales",
+  PURCHASE: "/purchases",
+  COLLECTION: "/collections",
+  PAYMENT: "/payments",
+};
+
+function getRefHref(movement: CashMovementRow): string | undefined {
+  if (!movement.refType || !movement.refId) return undefined;
+  return `${REF_BASE_PATH[movement.refType]}/${movement.refId}`;
+}
+
+function RefLabel({ movement }: { movement: CashMovementRow }) {
+  const href = getRefHref(movement);
+  if (!href) return <span className="text-muted-foreground">{movement.refLabel}</span>;
+  return (
+    <Link href={href} className="text-primary hover:underline">
+      {movement.refLabel}
+    </Link>
+  );
+}
 
 export function CashMovementTable({ movements }: CashMovementTableProps) {
   const t = useTranslations("cashboxes");
@@ -37,7 +60,9 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
                 <TableCell>{movement.cashboxName}</TableCell>
                 <TableCell>{tType(movement.type)}</TableCell>
                 <TableCell className="text-muted-foreground">{movement.partyName ?? "—"}</TableCell>
-                <TableCell className="text-muted-foreground">{movement.refLabel}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  <RefLabel movement={movement} />
+                </TableCell>
                 <TableCell className="text-end">
                   <Money value={String(movement.amount)} sign />
                 </TableCell>
@@ -62,7 +87,9 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
               <span className="tabular-nums">{formatDate(movement.createdAt)}</span>
             </div>
             {movement.partyName && <span className="text-caption text-muted-foreground">{movement.partyName}</span>}
-            <span className="text-caption text-muted-foreground">{movement.refLabel}</span>
+            <span className="text-caption">
+              <RefLabel movement={movement} />
+            </span>
           </div>
         ))}
       </div>

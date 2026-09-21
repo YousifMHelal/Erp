@@ -106,7 +106,9 @@ export function InvoiceForm({ documentType, products, partyOptions, cashboxOptio
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-[1fr_340px]">
         <div className="flex flex-col gap-4 overflow-y-auto lg:overflow-hidden">
-          <ProductSearch ref={productSearchRef} products={products} onAddLine={addLine} />
+          <div className="m-1">
+            <ProductSearch ref={productSearchRef} products={products} onAddLine={addLine} />
+          </div>
           <div className="min-h-0 flex-1">
             <LineItemsTable lines={lines} onUpdateLine={updateLine} onRemoveLine={removeLine} />
           </div>

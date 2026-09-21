@@ -3,25 +3,66 @@
 import { useMemo, useState } from "react";
 import { Plus, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/shared/data-table/data-table";
 import { DataTableToolbar } from "@/components/shared/data-table/data-table-toolbar";
 import { DataTableDensityToggle } from "@/components/shared/data-table/data-table-density-toggle";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { PartyFormDialog } from "@/components/shared/party/party-form-dialog";
 import { PartyMobileCard } from "@/components/shared/party/party-mobile-card";
 import { usePartyColumns } from "@/components/shared/party/party-columns";
-import type { PartyListProps } from "@/types";
+import type { PartyListRow, PartyListProps } from "@/types";
 
 const PAGE_SIZE = 10;
 
-export function PartyList({ partyType, parties }: PartyListProps) {
+export function PartyList({ partyType, parties: initialParties }: PartyListProps) {
   const t = useTranslations("parties");
+  const [parties, setParties] = useState(initialParties);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingParty, setEditingParty] = useState<PartyListRow | undefined>(undefined);
+  const [deletingParty, setDeletingParty] = useState<PartyListRow | undefined>(undefined);
 
-  const columns = usePartyColumns(partyType, t);
+  function handleEdit(party: PartyListRow) {
+    setEditingParty(party);
+    setDialogOpen(true);
+  }
+
+  function handleDialogOpenChange(open: boolean) {
+    setDialogOpen(open);
+    if (!open) setEditingParty(undefined);
+  }
+
+  function handleSave(values: { name: string; phone: string; address: string; openingBalance: string; notes: string }) {
+    if (editingParty) {
+      setParties((prev) =>
+        prev.map((p) => (p.id === editingParty.id ? { ...p, name: values.name, phone: values.phone } : p)),
+      );
+    } else {
+      setParties((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), name: values.name, phone: values.phone, balance: values.openingBalance, isActive: true },
+      ]);
+    }
+  }
+
+  function handleDelete(party: PartyListRow) {
+    setDeletingParty(party);
+  }
+
+  function confirmDelete() {
+    if (!deletingParty) return;
+    setParties((prev) => prev.filter((p) => p.id !== deletingParty.id));
+    toast.success(t("deleteSuccess"));
+    setDeletingParty(undefined);
+    // P6-1 wires this to the real customers.actions.ts/suppliers.actions.ts,
+    // which should block/warn on deleting a party with a non-zero balance or existing transaction history.
+  }
+
+  const columns = usePartyColumns(partyType, t, handleEdit, handleDelete);
 
   const filtered = useMemo(
     () => parties.filter((p) => !search || p.name.includes(search) || (p.phone ?? "").includes(search)),
@@ -41,7 +82,9 @@ export function PartyList({ partyType, parties }: PartyListProps) {
         columns={columns}
         data={paged}
         getRowId={(row) => row.id}
-        renderMobileCard={(row) => <PartyMobileCard party={row} partyType={partyType} />}
+        renderMobileCard={(row) => (
+          <PartyMobileCard party={row} partyType={partyType} onEdit={handleEdit} onDelete={handleDelete} />
+        )}
         page={page}
         pageCount={pageCount}
         onPageChange={setPage}
@@ -76,7 +119,22 @@ export function PartyList({ partyType, parties }: PartyListProps) {
           />
         }
       />
-      <PartyFormDialog partyType={partyType} open={dialogOpen} onOpenChange={setDialogOpen} />
+      <PartyFormDialog
+        partyType={partyType}
+        open={dialogOpen}
+        onOpenChange={handleDialogOpenChange}
+        party={editingParty}
+        onSave={handleSave}
+      />
+      <ConfirmDialog
+        open={!!deletingParty}
+        onOpenChange={(open) => !open && setDeletingParty(undefined)}
+        title={t("deleteTitle")}
+        description={t("deleteDescription", { name: deletingParty?.name ?? "" })}
+        confirmLabel={t("deleteConfirm")}
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

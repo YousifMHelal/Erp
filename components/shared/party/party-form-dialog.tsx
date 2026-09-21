@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { PartyFormDialogProps } from "@/types";
 
-export function PartyFormDialog({ partyType, open, onOpenChange, party }: PartyFormDialogProps) {
+export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }: PartyFormDialogProps) {
   const t = useTranslations("parties.form");
   const isEdit = !!party;
 
@@ -20,6 +20,15 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party }: PartyF
   const [openingBalance, setOpeningBalance] = useState(party?.openingBalance ?? "0");
   const [notes, setNotes] = useState(party?.notes ?? "");
 
+  useEffect(() => {
+    if (!open) return;
+    setName(party?.name ?? "");
+    setPhone(party?.phone ?? "");
+    setAddress(party?.address ?? "");
+    setOpeningBalance(party?.openingBalance ?? "0");
+    setNotes(party?.notes ?? "");
+  }, [open, party]);
+
   const titleKey = isEdit ? (partyType === "CUSTOMER" ? "editCustomerTitle" : "editSupplierTitle") : partyType === "CUSTOMER" ? "createCustomerTitle" : "createSupplierTitle";
 
   function handleSubmit(e: React.FormEvent) {
@@ -28,6 +37,7 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party }: PartyF
       toast.error(t("errorRequired"));
       return;
     }
+    onSave?.({ name: name.trim(), phone, address, openingBalance, notes });
     toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
     onOpenChange(false);
     // P6-1 wires this to the real customers.actions.ts/suppliers.actions.ts.

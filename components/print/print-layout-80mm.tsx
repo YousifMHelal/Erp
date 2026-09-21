@@ -10,7 +10,10 @@ export function PrintLayout80mm({ data }: PrintLayoutProps) {
       <header className="flex flex-col items-center gap-0.5 text-center">
         <span className="text-sm font-bold">{data.shop.name}</span>
         <span>{data.shop.address}</span>
-        <span dir="ltr">{data.shop.phone}</span>
+        <span dir="ltr">
+          {data.shop.phone}
+          {data.shop.phone2 ? ` / ${data.shop.phone2}` : ""}
+        </span>
       </header>
 
       <Dashes />
@@ -35,7 +38,10 @@ export function PrintLayout80mm({ data }: PrintLayoutProps) {
       <div className="flex flex-col gap-1">
         {data.lines.map((line, index) => (
           <div key={index} className="flex flex-col">
-            <span>{line.productName}</span>
+            <span>
+              {line.productCode ? `${line.productCode} — ` : ""}
+              {line.productName}
+            </span>
             <div className="flex justify-between">
               <span>
                 {formatNumber(line.qty)} × {formatMoney(line.unitPrice)}
@@ -53,13 +59,19 @@ export function PrintLayout80mm({ data }: PrintLayoutProps) {
           <span>{t("total")}</span>
           <span>{formatMoney(data.total)}</span>
         </div>
+        {data.previousBalance !== undefined && (
+          <div className="flex justify-between">
+            <span>{t("previousBalance")}</span>
+            <span>{formatMoney(data.previousBalance)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span>{t("paid")}</span>
           <span>{formatMoney(data.paidAmount)}</span>
         </div>
         <div className="flex justify-between font-bold">
-          <span>{t("remaining")}</span>
-          <span>{formatMoney(data.remainingAmount)}</span>
+          <span>{data.currentBalance !== undefined ? t("currentBalance") : t("remaining")}</span>
+          <span>{formatMoney(data.currentBalance ?? data.remainingAmount)}</span>
         </div>
       </div>
 

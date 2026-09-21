@@ -11,16 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
 import { UnitConversionPreview } from "@/components/inventory/unit-conversion-preview";
-import type { ProductFormDialogProps } from "@/types";
+import type { InventoryProductRow, ProductFormDialogProps } from "@/types";
 
-export function ProductFormDialog({ open, onOpenChange, categoryOptions, product }: ProductFormDialogProps) {
+export function ProductFormDialog({ open, onOpenChange, categoryOptions, product, onSave }: ProductFormDialogProps) {
   const t = useTranslations("inventory.form");
   const isEdit = !!product;
 
   const [name, setName] = useState(product?.name ?? "");
   const [sku, setSku] = useState(product?.sku ?? "");
   const [barcode, setBarcode] = useState(product?.barcode ?? "");
-  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
+  const [categoryId, setCategoryId] = useState<string | undefined>(product?.categoryName);
   const [baseUnitName, setBaseUnitName] = useState(product?.baseUnitName ?? "كرتونة");
   const [subUnitName, setSubUnitName] = useState(product?.subUnitName ?? "قطعة");
   const [unitsPerBase, setUnitsPerBase] = useState(product?.unitsPerBase ?? 1);
@@ -34,6 +34,26 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
       toast.error(t("errorRequired"));
       return;
     }
+
+    const categoryLabel = categoryOptions.find((o) => o.value === categoryId)?.label ?? categoryId ?? "";
+    const saved: InventoryProductRow = {
+      id: product?.id ?? crypto.randomUUID(),
+      name: name.trim(),
+      sku: sku.trim(),
+      barcode: barcode.trim() || undefined,
+      categoryName: categoryLabel,
+      stockQty: product?.stockQty ?? 0,
+      baseUnitName: baseUnitName.trim() || t("baseUnitLabel"),
+      subUnitName: subUnitName.trim() || t("subUnitLabel"),
+      unitsPerBase,
+      purchasePricePerBase: purchasePricePerBase.toFixed(2),
+      sellPricePerBase: sellPricePerBase.toFixed(2),
+      avgCostPerSub: product?.avgCostPerSub ?? (purchasePricePerBase / (unitsPerBase || 1)).toFixed(2),
+      minStockQty,
+      isActive: product?.isActive ?? true,
+    };
+
+    onSave(saved);
     toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
     onOpenChange(false);
     // P5-3 wires this to the real inventory.actions.ts create/update.
@@ -73,8 +93,9 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
                     id="product-barcode"
                     value={barcode}
                     onChange={(e) => setBarcode(e.target.value)}
+                    inputMode="numeric"
                     placeholder="6221031xxxxxx"
-                    className="tabular-nums"
+                    className="text-end tabular-nums"
                     dir="ltr"
                   />
                 </div>

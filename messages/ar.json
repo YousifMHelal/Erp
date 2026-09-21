@@ -327,20 +327,27 @@
     }
   },
   "print": {
-    "number": "رقم",
+    "number": "رقم البيان",
     "date": "التاريخ",
+    "time": "الوقت",
     "cashier": "الكاشير",
     "taxNote": "الرقم الضريبي",
-    "columnProduct": "الصنف",
+    "shopAddress": "عنوان المؤسسة",
+    "columnCode": "رقم الصنف",
+    "columnProduct": "اسم الصنف",
     "columnUnit": "الوحدة",
     "columnQty": "الكمية",
     "columnPrice": "السعر",
     "columnTotal": "الإجمالي",
     "subtotal": "الإجمالي الفرعي",
     "discount": "الخصم",
-    "total": "الإجمالي الكلي",
+    "total": "الإجمالي",
     "paid": "المدفوع",
-    "remaining": "المتبقي"
+    "remaining": "المتبقي",
+    "previousBalance": "الرصيد السابق",
+    "currentBalance": "الرصيد الحالى",
+    "amountInWords": "المطلوب",
+    "signatureBox": "الفارغ"
   },
   "settings": {
     "title": "الإعدادات",

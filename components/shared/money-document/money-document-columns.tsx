@@ -2,11 +2,17 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Money } from "@/components/shared/money";
+import { MoneyDocumentRowActions } from "@/components/shared/money-document/money-document-row-actions";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { MoneyDocumentRow } from "@/types";
+import type { MoneyDocumentRow, MoneyDocumentType } from "@/types";
 
-export function useMoneyDocumentColumns(t: (key: string) => string): ColumnDef<MoneyDocumentRow, unknown>[] {
+export function useMoneyDocumentColumns(
+  documentType: MoneyDocumentType,
+  t: (key: string) => string,
+  onEdit: (document: MoneyDocumentRow) => void,
+  onDelete: (document: MoneyDocumentRow) => void,
+): ColumnDef<MoneyDocumentRow, unknown>[] {
   return [
     {
       accessorKey: "number",
@@ -28,6 +34,14 @@ export function useMoneyDocumentColumns(t: (key: string) => string): ColumnDef<M
       accessorKey: "amount",
       header: t("columnAmount"),
       cell: ({ getValue }) => <Money value={getValue<string>()} />,
+    },
+    {
+      id: "actions",
+      header: t("columnActions"),
+      enableSorting: false,
+      cell: ({ row }) => (
+        <MoneyDocumentRowActions documentType={documentType} document={row.original} onEdit={onEdit} onDelete={onDelete} />
+      ),
     },
   ];
 }

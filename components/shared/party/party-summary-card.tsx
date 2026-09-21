@@ -1,13 +1,15 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Money } from "@/components/shared/money";
+import { AppTooltip } from "@/components/shared/app-tooltip";
 import { BalanceBadge } from "@/components/shared/party/balance-badge";
-import type { PartyDetail, PartyType } from "@/types";
+import type { PartySummaryCardProps } from "@/types";
 
-export function PartySummaryCard({ party, partyType }: { party: PartyDetail; partyType: PartyType }) {
+export function PartySummaryCard({ party, partyType, onEdit, onDelete }: PartySummaryCardProps) {
   const t = useTranslations("parties.detail");
+  const tCommon = useTranslations("common");
   const whatsappText = encodeURIComponent(t("whatsappGreeting", { name: party.name }));
 
   return (
@@ -23,7 +25,25 @@ export function PartySummaryCard({ party, partyType }: { party: PartyDetail; par
             )}
             {party.address && <span className="text-body-sm text-muted-foreground">{party.address}</span>}
           </div>
-          <BalanceBadge partyType={partyType} balance={party.balance} />
+          <div className="flex items-center gap-2">
+            <BalanceBadge partyType={partyType} balance={party.balance} />
+            <AppTooltip content={tCommon("edit")}>
+              <Button type="button" variant="outline" size="icon" onClick={onEdit}>
+                <Pencil />
+              </Button>
+            </AppTooltip>
+            <AppTooltip content={tCommon("delete")}>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="text-destructive hover:text-destructive"
+                onClick={onDelete}
+              >
+                <Trash2 />
+              </Button>
+            </AppTooltip>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-3">

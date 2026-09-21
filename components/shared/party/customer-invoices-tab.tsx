@@ -27,15 +27,16 @@ export function CustomerInvoicesTab({ partyType, invoices }: CustomerInvoicesTab
         <Table>
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-label">{t("columnNumber")}</TableHead>
               <TableHead className="text-label">{t("columnDate")}</TableHead>
-              <TableHead className="text-label">{t("columnTotal")}</TableHead>
+              <TableHead className="text-label">{t("columnNumber")}</TableHead>
               <TableHead className="text-label">{t("columnPaymentStatus")}</TableHead>
+              <TableHead className="text-label text-end">{t("columnTotal")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {invoices.map((invoice) => (
               <TableRow key={invoice.id}>
+                <TableCell className="tabular-nums">{formatDate(invoice.issuedAt)}</TableCell>
                 <TableCell>
                   <Link
                     href={`${basePath}/${invoice.id}`}
@@ -47,12 +48,11 @@ export function CustomerInvoicesTab({ partyType, invoices }: CustomerInvoicesTab
                     #{String(invoice.number).padStart(6, "0")}
                   </Link>
                 </TableCell>
-                <TableCell className="tabular-nums">{formatDate(invoice.issuedAt)}</TableCell>
-                <TableCell>
-                  <Money value={invoice.total} />
-                </TableCell>
                 <TableCell>
                   <StatusBadge tone={PAYMENT_STATUS_TONE[invoice.paymentStatus]} label={tStatus(invoice.paymentStatus)} />
+                </TableCell>
+                <TableCell className="text-end">
+                  <Money value={invoice.total} />
                 </TableCell>
               </TableRow>
             ))}

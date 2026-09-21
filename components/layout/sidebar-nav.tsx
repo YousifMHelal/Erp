@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS } from "@/lib/nav";
+import { AppTooltip } from "@/components/shared/app-tooltip";
+import { useUiStore } from "@/stores/ui.store";
 import type { SidebarNavProps } from "@/types";
 
 function findActiveHref(pathname: string): string | undefined {
@@ -20,6 +22,7 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
   const t = useTranslations();
   const pathname = usePathname();
   const activeHref = findActiveHref(pathname);
+  const expanded = useUiStore((s) => s.sidebarExpanded);
 
   return (
     <nav className="flex flex-col gap-6 overflow-y-auto px-3 py-4">
@@ -31,13 +34,12 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
           {group.items.map((item) => {
             const isActive = item.href === activeHref;
             const Icon = item.icon;
-            return (
+            const link = (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
                 aria-current={isActive ? "page" : undefined}
-                title={t(item.labelKey)}
                 className={cn(
                   "relative flex min-h-11 items-center gap-3 rounded-md px-3 text-body-sm font-medium text-sidebar-foreground transition-colors duration-200",
                   "hover:bg-sidebar-accent/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
@@ -50,6 +52,12 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
                 <Icon className="size-5 shrink-0" aria-hidden="true" />
                 <span className="truncate group-data-[expanded=false]/sidebar:sr-only">{t(item.labelKey)}</span>
               </Link>
+            );
+            if (expanded) return <div key={item.href}>{link}</div>;
+            return (
+              <AppTooltip key={item.href} content={t(item.labelKey)} side="left">
+                {link}
+              </AppTooltip>
             );
           })}
         </div>

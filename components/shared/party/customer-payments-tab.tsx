@@ -20,8 +20,8 @@ export function CustomerPaymentsTab({ payments }: CustomerPaymentsTabProps) {
         <Table>
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-label">{t("columnNumber")}</TableHead>
               <TableHead className="text-label">{t("columnDate")}</TableHead>
+              <TableHead className="text-label">{t("columnNumber")}</TableHead>
               <TableHead className="text-label">{t("columnCashbox")}</TableHead>
               <TableHead className="text-label text-end">{t("columnAmount")}</TableHead>
             </TableRow>
@@ -29,8 +29,8 @@ export function CustomerPaymentsTab({ payments }: CustomerPaymentsTabProps) {
           <TableBody>
             {payments.map((payment) => (
               <TableRow key={payment.id}>
-                <TableCell className="font-medium">#{String(payment.number).padStart(5, "0")}</TableCell>
                 <TableCell className="tabular-nums">{formatDate(payment.occurredAt)}</TableCell>
+                <TableCell className="font-medium">#{String(payment.number).padStart(5, "0")}</TableCell>
                 <TableCell>{payment.cashboxName}</TableCell>
                 <TableCell className="text-end">
                   <Money value={payment.amount} sign />

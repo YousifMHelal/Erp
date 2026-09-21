@@ -1,8 +1,5 @@
-import { PageHeader } from "@/components/shared/page-header";
-import { ProductSummaryCard } from "@/components/inventory/product-summary-card";
-import { StockMovementTable } from "@/components/inventory/stock-movement-table";
-import { ProductPriceHistory } from "@/components/inventory/product-price-history";
-import type { PriceHistoryEntry, ProductDetail, StockMovementRow } from "@/types";
+import { ProductDetailView } from "@/components/inventory/product-detail-view";
+import type { EntityComboboxOption, PriceHistoryEntry, ProductDetail, StockMovementRow } from "@/types";
 
 const PRODUCT: ProductDetail = {
   id: "1",
@@ -35,18 +32,14 @@ const PRICE_HISTORY: PriceHistoryEntry[] = [
   { id: "2", changedAt: "2026-08-20", fieldLabel: "سعر الشراء", oldValue: "950.00 ج.م", newValue: "1000.00 ج.م", changedByName: "أحمد سعيد" },
 ];
 
+const CATEGORIES: EntityComboboxOption[] = [
+  { value: "مواد غذائية", label: "مواد غذائية" },
+  { value: "زيوت", label: "زيوت" },
+  { value: "مشروبات", label: "مشروبات" },
+];
+
 export default function ProductDetailPage() {
   return (
-    <>
-      <PageHeader
-        title={PRODUCT.name}
-        breadcrumbs={[{ labelKey: "nav.inventory", href: "/inventory" }, { labelKey: "inventory.detail.breadcrumb" }]}
-      />
-      <div className="flex flex-col gap-4">
-        <ProductSummaryCard product={PRODUCT} />
-        <StockMovementTable movements={MOVEMENTS} />
-        <ProductPriceHistory entries={PRICE_HISTORY} />
-      </div>
-    </>
+    <ProductDetailView product={PRODUCT} movements={MOVEMENTS} priceHistory={PRICE_HISTORY} categoryOptions={CATEGORIES} />
   );
 }

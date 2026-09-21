@@ -11,6 +11,7 @@ const ITEMS = [
   { href: "/settings/roles", labelKey: "settings.nav.roles" },
   { href: "/settings/categories", labelKey: "settings.nav.categories" },
   { href: "/settings/cashboxes", labelKey: "settings.nav.cashboxes" },
+  { href: "/settings/print-template", labelKey: "settings.nav.printTemplate" },
 ];
 
 export function SettingsNav() {

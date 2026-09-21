@@ -29,7 +29,7 @@ export function StocktakeLineMobileCard({ line, onUpdateCounted }: StocktakeLine
               value={line.countedQty ?? ""}
               onChange={(e) => onUpdateCounted(e.target.value === "" ? null : Number(e.target.value))}
               placeholder={t("countedPlaceholder")}
-              className="text-end tabular-nums"
+              className="h-11 border-2 border-accent/40 bg-accent/5 text-end text-h3 tabular-nums focus-visible:border-accent"
               aria-label={t("columnCounted")}
             />
           </div>

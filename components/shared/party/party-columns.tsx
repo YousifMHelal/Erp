@@ -3,9 +3,15 @@
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { BalanceBadge } from "@/components/shared/party/balance-badge";
+import { PartyRowActions } from "@/components/shared/party/party-row-actions";
 import type { PartyListRow, PartyType } from "@/types";
 
-export function usePartyColumns(partyType: PartyType, t: (key: string) => string): ColumnDef<PartyListRow, unknown>[] {
+export function usePartyColumns(
+  partyType: PartyType,
+  t: (key: string) => string,
+  onEdit: (party: PartyListRow) => void,
+  onDelete: (party: PartyListRow) => void,
+): ColumnDef<PartyListRow, unknown>[] {
   const detailBasePath = partyType === "CUSTOMER" ? "/customers" : "/suppliers";
 
   return [
@@ -27,6 +33,14 @@ export function usePartyColumns(partyType: PartyType, t: (key: string) => string
       accessorKey: "balance",
       header: t("columnBalance"),
       cell: ({ row }) => <BalanceBadge partyType={partyType} balance={row.original.balance} />,
+    },
+    {
+      id: "actions",
+      header: t("columnActions"),
+      enableSorting: false,
+      cell: ({ row }) => (
+        <PartyRowActions partyType={partyType} party={row.original} onEdit={onEdit} onDelete={onDelete} />
+      ),
     },
   ];
 }

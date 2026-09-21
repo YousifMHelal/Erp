@@ -506,11 +506,26 @@ export type PartyFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   party?: PartyListRow & { address?: string; openingBalance?: string; notes?: string };
+  onSave?: (party: { name: string; phone: string; address: string; openingBalance: string; notes: string }) => void;
 };
 
 export type PartyListProps = {
   partyType: PartyType;
   parties: PartyListRow[];
+};
+
+export type PartyRowActionsProps = {
+  partyType: PartyType;
+  party: PartyListRow;
+  onEdit: (party: PartyListRow) => void;
+  onDelete: (party: PartyListRow) => void;
+};
+
+export type PartyMobileCardProps = {
+  party: PartyListRow;
+  partyType: PartyType;
+  onEdit: (party: PartyListRow) => void;
+  onDelete: (party: PartyListRow) => void;
 };
 
 export type BalanceBadgeProps = {
@@ -562,6 +577,13 @@ export type PartyDetailViewProps = {
   invoices: PartyInvoiceRow[];
   payments: PartyPaymentRow[];
   statement: StatementLine[];
+};
+
+export type PartySummaryCardProps = {
+  party: PartyDetail;
+  partyType: PartyType;
+  onEdit: () => void;
+  onDelete: () => void;
 };
 
 export type CustomerInvoicesTabProps = { partyType: PartyType; invoices: PartyInvoiceRow[] };
@@ -845,6 +867,8 @@ export type SettingsCashboxRow = { id: string; name: string; description?: strin
 export type PrintShopInfo = {
   name: string;
   phone: string;
+  /** Second contact number, e.g. a landline alongside a mobile — shown next to `phone` when present. */
+  phone2?: string;
   address: string;
   taxNote?: string;
   invoiceFooter?: string;
@@ -852,7 +876,15 @@ export type PrintShopInfo = {
   logoDataUrl?: string;
 };
 
+/** A named staff contact line shown in the print header, e.g. "أ/محمد فوزي : 01110292946". */
+export type PrintStaffContact = {
+  name: string;
+  phone: string;
+};
+
 export type PrintInvoiceLine = {
+  /** Internal product/item code (رقم الصنف), shown as the rightmost table column. */
+  productCode?: string;
   productName: string;
   unitName: string;
   qty: number;
@@ -865,16 +897,27 @@ export type PrintInvoiceData = {
   documentTypeLabel: string;
   number: number;
   issuedAt: string;
+  /** Invoice time, shown alongside the date (الوقت). */
+  issuedTime?: string;
   cashierName: string;
+  /** Additional named staff/contact lines shown in the header, e.g. sales reps. */
+  staffContacts?: PrintStaffContact[];
   partyLabel: string;
   partyName: string;
+  /** Party's company/entity name, shown above partyName when they differ (e.g. "شركة الخلود..."). */
+  partyCompanyName?: string;
   partyPhone?: string;
+  partyAddress?: string;
   lines: PrintInvoiceLine[];
   subtotal: string;
   discountAmount: string;
   total: string;
   paidAmount: string;
   remainingAmount: string;
+  /** Party's account balance before this invoice (الرصيد السابق). Omit when not tracked/relevant. */
+  previousBalance?: string;
+  /** Party's account balance after this invoice (الرصيد الحالى). Omit when not tracked/relevant. */
+  currentBalance?: string;
 };
 
 export type PrintLayoutProps = { data: PrintInvoiceData };
@@ -1010,7 +1053,7 @@ export type SettingsCashboxFormDialogProps = {
 
 // --- Print template customizer (settings, P2-21) ---
 
-export type PrintLineColumnKey = "unitName" | "sku" | "discount";
+export type PrintLineColumnKey = "productCode" | "unitName" | "sku" | "discount";
 
 export type PrintLineColumnConfig = {
   key: PrintLineColumnKey;

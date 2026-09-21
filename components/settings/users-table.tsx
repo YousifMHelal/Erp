@@ -1,18 +1,47 @@
 "use client";
 
-import { UserPlus, Users } from "lucide-react";
+import { useState } from "react";
+import { Pencil, Trash2, UserPlus, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable } from "@/components/shared/data-table/data-table";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { AppTooltip } from "@/components/shared/app-tooltip";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { UserFormDialog } from "@/components/settings/user-form-dialog";
 import { formatDate } from "@/lib/format";
-import type { SettingsUserRow } from "@/types";
+import type { EntityComboboxOption, SettingsUserRow } from "@/types";
 
-export function UsersTable({ users }: { users: SettingsUserRow[] }) {
+const ROLE_OPTIONS: EntityComboboxOption[] = [
+  { value: "1", label: "مدير" },
+  { value: "2", label: "محاسب" },
+  { value: "3", label: "كاشير" },
+];
+
+export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }) {
   const t = useTranslations("settings.users");
+  const tCommon = useTranslations("common");
+
+  const [users, setUsers] = useState(initialUsers);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<SettingsUserRow | undefined>(undefined);
+  const [deletingUser, setDeletingUser] = useState<SettingsUserRow | undefined>(undefined);
+
+  function handleSave(user: SettingsUserRow) {
+    setUsers((prev) => (prev.some((u) => u.id === user.id) ? prev.map((u) => (u.id === user.id ? user : u)) : [...prev, user]));
+  }
+
+  function handleDelete() {
+    if (!deletingUser) return;
+    setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+    toast.success(t("deleteSuccess"));
+    setDeletingUser(undefined);
+    // P7-9 wires this to users.actions.ts delete.
+  }
 
   const columns: ColumnDef<SettingsUserRow, unknown>[] = [
     { accessorKey: "displayName", header: t("columnName") },
@@ -36,36 +65,126 @@ export function UsersTable({ users }: { users: SettingsUserRow[] }) {
           <StatusBadge tone="neutral" label={t("inactive")} />
         ),
     },
+    {
+      id: "actions",
+      header: t("columnActions"),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          <AppTooltip content={t("editUser")}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("editUser")}
+              onClick={() => {
+                setEditingUser(row.original);
+                setFormOpen(true);
+              }}
+            >
+              <Pencil className="size-4" />
+            </Button>
+          </AppTooltip>
+          <AppTooltip content={t("deleteUser")}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("deleteUser")}
+              className="text-danger-fg hover:bg-danger-bg"
+              onClick={() => setDeletingUser(row.original)}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </AppTooltip>
+        </div>
+      ),
+    },
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      data={users}
-      getRowId={(row) => row.id}
-      renderMobileCard={(row) => (
-        <Card>
-          <div className="flex items-center justify-between gap-3 p-4">
-            <div className="flex flex-col">
-              <span className="font-medium">{row.displayName}</span>
-              <span className="text-body-sm text-muted-foreground">{row.roleName}</span>
+    <>
+      <DataTable
+        columns={columns}
+        data={users}
+        getRowId={(row) => row.id}
+        renderMobileCard={(row) => (
+          <Card>
+            <div className="flex items-center justify-between gap-3 p-4">
+              <div className="flex flex-col">
+                <span className="font-medium">{row.displayName}</span>
+                <span className="text-body-sm text-muted-foreground">{row.roleName}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {row.isActive ? (
+                  <StatusBadge tone="success" label={t("active")} />
+                ) : (
+                  <StatusBadge tone="neutral" label={t("inactive")} />
+                )}
+                <AppTooltip content={t("editUser")}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("editUser")}
+                    onClick={() => {
+                      setEditingUser(row);
+                      setFormOpen(true);
+                    }}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                </AppTooltip>
+                <AppTooltip content={t("deleteUser")}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("deleteUser")}
+                    className="text-danger-fg hover:bg-danger-bg"
+                    onClick={() => setDeletingUser(row)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </AppTooltip>
+              </div>
             </div>
-            {row.isActive ? (
-              <StatusBadge tone="success" label={t("active")} />
-            ) : (
-              <StatusBadge tone="neutral" label={t("inactive")} />
-            )}
+          </Card>
+        )}
+        emptyState={<EmptyState icon={<Users className="size-6" />} title={t("empty")} />}
+        toolbar={
+          <div className="flex justify-end p-3">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => {
+                setEditingUser(undefined);
+                setFormOpen(true);
+              }}
+            >
+              <UserPlus /> {t("newUser")}
+            </Button>
           </div>
-        </Card>
-      )}
-      emptyState={<EmptyState icon={<Users className="size-6" />} title={t("empty")} />}
-      toolbar={
-        <div className="flex justify-end p-3">
-          <Button type="button" variant="primary">
-            <UserPlus /> {t("newUser")}
-          </Button>
-        </div>
-      }
-    />
+        }
+      />
+
+      <UserFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        roleOptions={ROLE_OPTIONS}
+        user={editingUser}
+        onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={!!deletingUser}
+        onOpenChange={(open) => !open && setDeletingUser(undefined)}
+        title={t("deleteDialogTitle", { name: deletingUser?.displayName ?? "" })}
+        description={t("deleteDialogDescription")}
+        confirmLabel={tCommon("delete")}
+        cancelLabel={tCommon("cancel")}
+        variant="destructive"
+        onConfirm={handleDelete}
+      />
+    </>
   );
 }

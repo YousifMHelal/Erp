@@ -24,3 +24,96 @@ export function formatNumber(value: Prisma.Decimal | string | number, decimals =
 export function formatDate(value: Date | string): string {
   return formatDateFns(new Date(value), "dd/MM/yyyy", { locale: arEG });
 }
+
+export function formatTime(value: Date | string): string {
+  return formatDateFns(new Date(value), "h:mm a", { locale: arEG });
+}
+
+const ONES = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
+const TEENS = [
+  "عشرة",
+  "أحد عشر",
+  "اثنا عشر",
+  "ثلاثة عشر",
+  "أربعة عشر",
+  "خمسة عشر",
+  "ستة عشر",
+  "سبعة عشر",
+  "ثمانية عشر",
+  "تسعة عشر",
+];
+const TENS = ["", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
+const HUNDREDS = [
+  "",
+  "مائة",
+  "مائتان",
+  "ثلاثمائة",
+  "أربعمائة",
+  "خمسمائة",
+  "ستمائة",
+  "سبعمائة",
+  "ثمانمائة",
+  "تسعمائة",
+];
+
+/** Converts a 0-999 integer to Arabic words, joined with "و" (and). */
+function threeDigitsToWords(n: number): string {
+  const parts: string[] = [];
+  const hundreds = Math.floor(n / 100);
+  const remainder = n % 100;
+  if (hundreds > 0) parts.push(HUNDREDS[hundreds]!);
+  if (remainder >= 10 && remainder < 20) {
+    parts.push(TEENS[remainder - 10]!);
+  } else {
+    const tens = Math.floor(remainder / 10);
+    const ones = remainder % 10;
+    if (ones > 0) parts.push(ONES[ones]!);
+    if (tens >= 2) parts.push(TENS[tens]!);
+  }
+  return parts.join(" و");
+}
+
+const SCALES = [
+  { value: 1_000_000_000, singular: "مليار", dual: "ملياران", plural: "مليارات" },
+  { value: 1_000_000, singular: "مليون", dual: "مليونان", plural: "ملايين" },
+  { value: 1_000, singular: "ألف", dual: "ألفان", plural: "آلاف" },
+];
+
+function scaleGroupToWords(count: number, scale: (typeof SCALES)[number]): string {
+  if (count === 1) return scale.singular;
+  if (count === 2) return scale.dual;
+  const words = threeDigitsToWords(count);
+  return count <= 10 ? `${words} ${scale.plural}` : `${words} ${scale.singular}`;
+}
+
+/**
+ * Converts a non-negative integer amount into Arabic words for the invoice's
+ * "المطلوب بالحروف" line. Handles up to billions; falls back to "صفر" for zero.
+ */
+export function numberToArabicWords(value: number): string {
+  const n = Math.floor(Math.abs(value));
+  if (n === 0) return "صفر";
+
+  const parts: string[] = [];
+  let remainder = n;
+  for (const scale of SCALES) {
+    const count = Math.floor(remainder / scale.value);
+    if (count > 0) {
+      parts.push(scaleGroupToWords(count, scale));
+      remainder %= scale.value;
+    }
+  }
+  if (remainder > 0) parts.push(threeDigitsToWords(remainder));
+
+  return parts.join(" و");
+}
+
+/** "المطلوب: سبعة مائة وخمسين ألف... جنيه" style line for a money amount. */
+export function formatMoneyInWords(value: Prisma.Decimal | string): string {
+  const decimal = new Prisma.Decimal(value);
+  const whole = decimal.trunc().toNumber();
+  const fraction = decimal.minus(whole).times(100).round().toNumber();
+  const wholeWords = `${numberToArabicWords(whole)} جنيه`;
+  if (fraction === 0) return wholeWords;
+  return `${wholeWords} و${numberToArabicWords(fraction)} قرش`;
+}

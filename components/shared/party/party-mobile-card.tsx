@@ -1,26 +1,28 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { BalanceBadge } from "@/components/shared/party/balance-badge";
-import type { PartyListRow, PartyType } from "@/types";
+import { PartyRowActions } from "@/components/shared/party/party-row-actions";
+import type { PartyMobileCardProps } from "@/types";
 
-export function PartyMobileCard({ party, partyType }: { party: PartyListRow; partyType: PartyType }) {
+export function PartyMobileCard({ party, partyType, onEdit, onDelete }: PartyMobileCardProps) {
   const detailBasePath = partyType === "CUSTOMER" ? "/customers" : "/suppliers";
 
   return (
-    <Link href={`${detailBasePath}/${party.id}`}>
-      <Card>
-        <CardContent className="flex items-center justify-between gap-3">
-          <div className="flex flex-col">
-            <span className="font-medium">{party.name}</span>
-            {party.phone && (
-              <span className="text-body-sm text-muted-foreground tabular-nums" dir="ltr">
-                {party.phone}
-              </span>
-            )}
-          </div>
+    <Card>
+      <CardContent className="flex items-center justify-between gap-3">
+        <Link href={`${detailBasePath}/${party.id}`} className="flex flex-1 flex-col">
+          <span className="font-medium">{party.name}</span>
+          {party.phone && (
+            <span className="text-body-sm text-muted-foreground tabular-nums" dir="ltr">
+              {party.phone}
+            </span>
+          )}
+        </Link>
+        <div className="flex items-center gap-2">
           <BalanceBadge partyType={partyType} balance={party.balance} />
-        </CardContent>
-      </Card>
-    </Link>
+          <PartyRowActions partyType={partyType} party={party} onEdit={onEdit} onDelete={onDelete} />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
