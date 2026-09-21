@@ -471,6 +471,90 @@ export type NewStocktakeViewProps = {
   initialLines: StocktakeLineDraft[];
 };
 
+// --- Parties: customers/suppliers (P2-14/15) ---
+
+export type PartyType = "CUSTOMER" | "SUPPLIER";
+
+export type PartyListRow = {
+  id: string;
+  name: string;
+  phone?: string;
+  balance: string;
+  isActive: boolean;
+};
+
+export type PartyFormDialogProps = {
+  partyType: PartyType;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  party?: PartyListRow & { address?: string; openingBalance?: string; notes?: string };
+};
+
+export type PartyListProps = {
+  partyType: PartyType;
+  parties: PartyListRow[];
+};
+
+export type BalanceBadgeProps = {
+  partyType: PartyType;
+  balance: string;
+};
+
+export type PartyDetail = {
+  id: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  balance: string;
+  openingBalance: string;
+  totalInvoiced: string;
+  notes?: string;
+  createdAt: string;
+};
+
+export type PartyInvoiceRow = {
+  id: string;
+  number: number;
+  total: string;
+  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
+  status: "CONFIRMED" | "CANCELLED";
+  issuedAt: string;
+};
+
+export type PartyPaymentRow = {
+  id: string;
+  number: number;
+  amount: string;
+  cashboxName: string;
+  occurredAt: string;
+};
+
+export type StatementLine = {
+  id: string;
+  date: string;
+  description: string;
+  debit: string;
+  credit: string;
+  balanceAfter: string;
+};
+
+export type PartyDetailViewProps = {
+  partyType: PartyType;
+  party: PartyDetail;
+  invoices: PartyInvoiceRow[];
+  payments: PartyPaymentRow[];
+  statement: StatementLine[];
+};
+
+export type CustomerInvoicesTabProps = { partyType: PartyType; invoices: PartyInvoiceRow[] };
+export type CustomerPaymentsTabProps = { payments: PartyPaymentRow[] };
+export type AccountStatementTabProps = { statement: StatementLine[]; onPrint: () => void };
+export type StatementPrintDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (size: "A4" | "A5") => void;
+};
+
 // --- Sales/purchases list (P2-7/9) ---
 
 export type InvoiceListRow = {
