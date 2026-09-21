@@ -141,3 +141,27 @@ export type StatCardProps = {
   icon?: LucideIcon;
   sparkline?: ReactNode;
 };
+
+// --- Auth (P2-4) ---
+
+export type LoginUserTile = {
+  id: string;
+  displayName: string;
+  roleName: string;
+  avatarColor: string;
+};
+
+export type UserTileGridProps = {
+  users: LoginUserTile[];
+  onSelect: (user: LoginUserTile) => void;
+};
+
+export type UserTileProps = {
+  user: LoginUserTile;
+  onSelect: () => void;
+};
+
+export type PasswordStepProps = {
+  user: LoginUserTile;
+  onBack: () => void;
+};

@@ -61,6 +61,19 @@
     "auditLog": "سجل التدقيق",
     "settings": "الإعدادات"
   },
+  "auth": {
+    "brandHeadline": "إدارة متجرك بثقة وسرعة",
+    "brandSubline": "فواتير، مخزون، عملاء، وتقارير — كل شيء في مكان واحد.",
+    "chooseUserTitle": "من أنت؟",
+    "chooseUserSubtitle": "اختر اسمك لتسجيل الدخول",
+    "backToUsers": "رجوع لاختيار المستخدم",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جارٍ تسجيل الدخول..."
+  },
   "shared": {
     "dateRangePlaceholder": "اختر فترة زمنية",
     "comboboxPlaceholder": "اختر...",
