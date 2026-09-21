@@ -16,7 +16,14 @@ import type { DateRange, InvoiceListProps } from "@/types";
 
 const PAGE_SIZE = 10;
 
-export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHref, detailBasePath }: InvoiceListProps) {
+export function InvoiceList({
+  documentType,
+  invoices,
+  partyOptions,
+  newInvoiceHref,
+  detailBasePath,
+  newInvoiceLabel: newInvoiceLabelOverride,
+}: InvoiceListProps) {
   const t = useTranslations("invoices.list");
   const tStatus = useTranslations("invoices.paymentStatus");
   const [search, setSearch] = useState("");
@@ -33,14 +40,20 @@ export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHr
       if (search && !invoice.partyName.includes(search) && !String(invoice.number).includes(search)) return false;
       if (partyId && invoice.id !== partyId) return false;
       if (paymentStatus && invoice.paymentStatus !== paymentStatus) return false;
+      if (dateRange.from || dateRange.to) {
+        const issuedAt = new Date(invoice.issuedAt);
+        if (dateRange.from && issuedAt < dateRange.from) return false;
+        if (dateRange.to && issuedAt > dateRange.to) return false;
+      }
       return true;
     });
-  }, [invoices, search, partyId, paymentStatus]);
+  }, [invoices, search, partyId, paymentStatus, dateRange]);
 
   const pageCount = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const newInvoiceLabel = documentType === "SALE" ? t("newInvoiceSale") : t("newInvoicePurchase");
+  const newInvoiceLabel =
+    newInvoiceLabelOverride ?? (documentType === "SALE" ? t("newInvoiceSale") : t("newInvoicePurchase"));
   const emptyTitle = documentType === "SALE" ? t("emptyTitleSale") : t("emptyTitlePurchase");
   const emptyDescription = documentType === "SALE" ? t("emptyDescriptionSale") : t("emptyDescriptionPurchase");
   const searchPlaceholder = documentType === "SALE" ? t("searchPlaceholderSale") : t("searchPlaceholderPurchase");
@@ -85,7 +98,10 @@ export function InvoiceList({ documentType, invoices, partyOptions, newInvoiceHr
             <InvoiceFilters
               documentType={documentType}
               dateRange={dateRange}
-              onDateRangeChange={setDateRange}
+              onDateRangeChange={(range) => {
+                setDateRange(range);
+                setPage(1);
+              }}
               partyId={partyId}
               onPartyChange={setPartyId}
               partyOptions={partyOptions}

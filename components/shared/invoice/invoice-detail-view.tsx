@@ -17,14 +17,18 @@ import type { InvoiceDetailViewProps } from "@/types";
 const EDIT_BASE_PATH: Record<string, string> = {
   SALE: "/sales",
   PURCHASE: "/purchases",
+  SALE_RETURN: "/sales-returns",
+  PURCHASE_RETURN: "/purchase-returns",
 };
 
 export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
   const t = useTranslations("invoices.detail");
+  const tReturns = useTranslations("returns");
   const router = useRouter();
   const [printOpen, setPrintOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const isReturn = invoice.type === "SALE_RETURN" || invoice.type === "PURCHASE_RETURN";
   const editBasePath = EDIT_BASE_PATH[invoice.type];
   const invoiceNumber = String(invoice.number).padStart(6, "0");
 
@@ -34,6 +38,15 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
     // P4-12 wires real print/PDF generation.
   }
 
+  function handlePrintClick() {
+    if (isReturn) {
+      // Returns print directly with the default A4 template — no size-choice step.
+      router.push(`/print/${invoice.id}?size=A4`);
+      return;
+    }
+    setPrintOpen(true);
+  }
+
   function handleCancelConfirm() {
     setCancelOpen(false);
     toast.success(t("cancelSuccess"));
@@ -41,14 +54,20 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
   }
 
   function handleEdit() {
+    if (isReturn) {
+      // Phase 2 is UI-only: no edit route/Server Action exists yet, so this confirms the
+      // intent locally. P5-7 wires this to the return form pre-filled via a real update flow.
+      toast.success(tReturns("editSuccess"));
+      return;
+    }
     if (editBasePath) router.push(`${editBasePath}/${invoice.id}/edit`);
   }
 
   function handleDeleteConfirm() {
     setDeleteOpen(false);
-    toast.success(t("deleteSuccess"));
+    toast.success(isReturn ? tReturns("deleteSuccess") : t("deleteSuccess"));
     if (editBasePath) router.push(editBasePath);
-    // NOTE: the real Server Action (P4-12/P5-5) must implement this as cancel+reverse, not a
+    // NOTE: the real Server Action (P4-12/P5-5/P5-7) must implement this as cancel+reverse, not a
     // hard delete — AGENTS.md §2.5 forbids hard deletes on financial/inventory records.
   }
 
@@ -56,7 +75,7 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
     <div className="flex flex-col gap-4">
       <InvoiceActionsBar
         invoice={invoice}
-        onPrint={() => setPrintOpen(true)}
+        onPrint={handlePrintClick}
         onCancel={() => setCancelOpen(true)}
         onEdit={editBasePath ? handleEdit : undefined}
         onDelete={editBasePath ? () => setDeleteOpen(true) : undefined}
@@ -87,8 +106,12 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
       <ConfirmDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title={t("deleteDialogTitle", { number: invoiceNumber })}
-        description={t("deleteDialogDescription")}
+        title={
+          isReturn
+            ? tReturns("deleteDialogTitle", { number: invoiceNumber })
+            : t("deleteDialogTitle", { number: invoiceNumber })
+        }
+        description={isReturn ? tReturns("deleteDialogDescription") : t("deleteDialogDescription")}
         variant="destructive"
         onConfirm={handleDeleteConfirm}
       />

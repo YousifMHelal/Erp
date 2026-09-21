@@ -24,6 +24,7 @@ export default function PurchaseReturnsListPage() {
         partyOptions={SUPPLIERS}
         newInvoiceHref="/purchase-returns/new"
         detailBasePath="/purchase-returns"
+        newInvoiceLabel={t("newReturnLabel")}
       />
     </>
   );

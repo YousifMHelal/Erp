@@ -25,6 +25,7 @@ export default function SalesReturnsListPage() {
         partyOptions={CUSTOMERS}
         newInvoiceHref="/sales-returns/new"
         detailBasePath="/sales-returns"
+        newInvoiceLabel={t("newReturnLabel")}
       />
     </>
   );

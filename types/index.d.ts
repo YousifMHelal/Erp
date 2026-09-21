@@ -581,14 +581,32 @@ export type CashboxSummary = {
   balance: string;
 };
 
+export type CashMovementType =
+  | "SALE_PAYMENT"
+  | "PURCHASE_PAYMENT"
+  | "CUSTOMER_COLLECTION"
+  | "SUPPLIER_PAYMENT"
+  | "SALE_RETURN_REFUND"
+  | "PURCHASE_RETURN_REFUND"
+  | "OPENING"
+  | "TRANSFER_IN"
+  | "TRANSFER_OUT";
+
+/** The kind of source document a movement's reference points to, when it can be resolved to a detail route. */
+export type CashMovementRefType = "SALE" | "PURCHASE" | "COLLECTION" | "PAYMENT";
+
 export type CashMovementRow = {
   id: string;
   cashboxName: string;
-  type: "SALE_PAYMENT" | "PURCHASE_PAYMENT" | "CUSTOMER_COLLECTION" | "SUPPLIER_PAYMENT" | "SALE_RETURN_REFUND" | "PURCHASE_RETURN_REFUND" | "OPENING";
+  type: CashMovementType;
   amount: number;
   balanceAfter: string;
   partyName?: string;
   refLabel: string;
+  /** Document type the reference points to. Omitted when the reference can't resolve to a route yet (e.g. transfers). */
+  refType?: CashMovementRefType;
+  /** Id of the source document, used with refType to build the detail link. */
+  refId?: string;
   createdAt: string;
 };
 
@@ -612,6 +630,13 @@ export type CashboxesViewProps = {
   movements: CashMovementRow[];
 };
 
+export type TransferCashDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  cashboxes: CashboxSummary[];
+  onConfirm: (input: { fromCashboxId: string; toCashboxId: string; amount: number }) => void;
+};
+
 // --- Collections/payments (P2-17) ---
 
 export type MoneyDocumentType = "COLLECTION" | "PAYMENT";
@@ -629,6 +654,21 @@ export type MoneyDocumentRow = {
 export type MoneyDocumentListProps = {
   documentType: MoneyDocumentType;
   documents: MoneyDocumentRow[];
+};
+
+export type MoneyDocumentRowActionsProps = {
+  documentType: MoneyDocumentType;
+  document: MoneyDocumentRow;
+  onEdit: (document: MoneyDocumentRow) => void;
+  onDelete: (document: MoneyDocumentRow) => void;
+};
+
+export type MoneyDocumentEditDialogProps = {
+  documentType: MoneyDocumentType;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  document: MoneyDocumentRow | undefined;
+  onSave: (id: string, amount: string) => void;
 };
 
 export type PartyBalancePreviewProps = {

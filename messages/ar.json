@@ -139,6 +139,8 @@
       "printAction": "طباعة",
       "shareAction": "مشاركة واتساب",
       "cancelAction": "إلغاء الفاتورة",
+      "editAction": "تعديل",
+      "deleteAction": "حذف",
       "whatsappMessage": "فاتورة #{number} بإجمالي {total} ج.م",
       "printSizeTitle": "اختر حجم الطباعة",
       "printSizeDescription": "سيتم فتح معاينة الطباعة بالحجم المختار",
@@ -149,11 +151,18 @@
       "cancelReasonPlaceholder": "اكتب سبب إلغاء الفاتورة...",
       "cancelDialogDismiss": "تراجع",
       "cancelDialogConfirm": "تأكيد الإلغاء",
-      "cancelSuccess": "تم إلغاء الفاتورة"
+      "cancelSuccess": "تم إلغاء الفاتورة",
+      "deleteDialogTitle": "حذف الفاتورة #{number}؟",
+      "deleteDialogDescription": "سيتم حذف هذه الفاتورة نهائياً. هذا الإجراء لا يمكن التراجع عنه.",
+      "deleteSuccess": "تم حذف الفاتورة",
+      "breadcrumbEditSale": "تعديل فاتورة البيع",
+      "breadcrumbEditPurchase": "تعديل فاتورة الشراء"
     },
     "form": {
       "titleSale": "فاتورة بيع جديدة",
       "titlePurchase": "فاتورة شراء جديدة",
+      "titleEditSale": "تعديل فاتورة بيع #{number}",
+      "titleEditPurchase": "تعديل فاتورة شراء #{number}",
       "productSearchPlaceholder": "ابحث بالاسم أو الباركود...",
       "noProductsFound": "لا توجد منتجات مطابقة",
       "outOfStock": "نفد المخزون",
@@ -185,9 +194,11 @@
       "paidAmountLabel": "المبلغ المدفوع",
       "remainingLabel": "المتبقي",
       "saveInvoice": "حفظ الفاتورة",
+      "updateInvoice": "تحديث الفاتورة",
       "errorEmptyLines": "أضف صنفاً واحداً على الأقل",
       "savedTitle": "تم حفظ الفاتورة #{number}",
       "savedDescription": "هل تريد طباعة الفاتورة الآن؟",
+      "updatedTitle": "تم تحديث الفاتورة #{number}",
       "skipPrint": "تخطي الطباعة",
       "hotkeyProductSearch": "بحث عن صنف",
       "hotkeyDeleteLine": "حذف السطر",
@@ -216,6 +227,12 @@
     "columnSellPrice": "سعر البيع",
     "columnValueAtCost": "القيمة بالتكلفة",
     "columnStatus": "الحالة",
+    "editAction": "تعديل الصنف",
+    "deleteAction": "حذف الصنف",
+    "deleteBlockedTooltip": "لا يمكن حذف صنف يوجد به مخزون. أفرغ الكمية أولاً",
+    "deleteDialogTitle": "حذف {name}؟",
+    "deleteDialogDescription": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف الصنف نهائياً.",
+    "deleteSuccess": "تم حذف الصنف",
     "stockStatus": {
       "IN_STOCK": "متوفر",
       "LOW_STOCK": "منخفض",
@@ -332,7 +349,8 @@
       "users": "المستخدمون",
       "roles": "الأدوار والصلاحيات",
       "categories": "الفئات",
-      "cashboxes": "الخزائن"
+      "cashboxes": "الخزائن",
+      "printTemplate": "قالب الطباعة"
     },
     "profile": {
       "title": "بيانات المتجر",
@@ -362,7 +380,29 @@
       "active": "نشط",
       "inactive": "غير نشط",
       "newUser": "مستخدم جديد",
-      "empty": "لا يوجد مستخدمون بعد"
+      "empty": "لا يوجد مستخدمون بعد",
+      "columnActions": "إجراءات",
+      "editUser": "تعديل المستخدم",
+      "deleteUser": "حذف المستخدم",
+      "deleteDialogTitle": "حذف المستخدم \"{name}\"؟",
+      "deleteDialogDescription": "لن يتمكن هذا المستخدم من تسجيل الدخول بعد الحذف. هذا الإجراء لا يمكن التراجع عنه.",
+      "deleteSuccess": "تم حذف المستخدم",
+      "form": {
+        "createTitle": "مستخدم جديد",
+        "editTitle": "تعديل المستخدم",
+        "nameLabel": "الاسم الكامل",
+        "namePlaceholder": "مثال: أحمد سعيد",
+        "usernameLabel": "اسم المستخدم",
+        "usernamePlaceholder": "مثال: ahmed",
+        "roleLabel": "الدور",
+        "rolePlaceholder": "اختر دوراً",
+        "statusLabel": "الحساب نشط",
+        "errorRequired": "يرجى تعبئة الاسم واسم المستخدم",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "createSuccess": "تم إضافة المستخدم",
+        "updateSuccess": "تم تحديث بيانات المستخدم"
+      }
     },
     "roles": {
       "systemRole": "دور أساسي",
@@ -405,7 +445,26 @@
       "columnDescription": "الوصف",
       "columnProductCount": "عدد الأصناف",
       "newCategory": "فئة جديدة",
-      "empty": "لا توجد فئات بعد"
+      "empty": "لا توجد فئات بعد",
+      "columnActions": "إجراءات",
+      "editCategory": "تعديل الفئة",
+      "deleteCategory": "حذف الفئة",
+      "deleteDialogTitle": "حذف الفئة \"{name}\"؟",
+      "deleteDialogDescription": "لن يمكن التراجع عن هذا الإجراء. الأصناف المرتبطة بهذه الفئة تبقى دون فئة.",
+      "deleteSuccess": "تم حذف الفئة",
+      "form": {
+        "createTitle": "فئة جديدة",
+        "editTitle": "تعديل الفئة",
+        "nameLabel": "اسم الفئة",
+        "namePlaceholder": "مثال: مواد غذائية",
+        "descriptionLabel": "الوصف",
+        "descriptionPlaceholder": "اختياري",
+        "errorRequired": "يرجى إدخال اسم الفئة",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "createSuccess": "تم إضافة الفئة",
+        "updateSuccess": "تم تحديث الفئة"
+      }
     },
     "cashboxes": {
       "columnName": "الاسم",
@@ -414,7 +473,54 @@
       "active": "نشطة",
       "inactive": "غير نشطة",
       "newCashbox": "خزينة جديدة",
-      "empty": "لا توجد خزائن بعد"
+      "empty": "لا توجد خزائن بعد",
+      "columnActions": "إجراءات",
+      "editCashbox": "تعديل الخزينة",
+      "deleteCashbox": "حذف الخزينة",
+      "deleteDialogTitle": "حذف الخزينة \"{name}\"؟",
+      "deleteDialogDescription": "لن يمكن التراجع عن هذا الإجراء. تأكد من عدم وجود حركات نقدية مرتبطة بهذه الخزينة.",
+      "deleteSuccess": "تم حذف الخزينة",
+      "form": {
+        "createTitle": "خزينة جديدة",
+        "editTitle": "تعديل الخزينة",
+        "nameLabel": "اسم الخزينة",
+        "namePlaceholder": "مثال: نقدي",
+        "descriptionLabel": "الوصف",
+        "descriptionPlaceholder": "اختياري",
+        "statusLabel": "الخزينة نشطة",
+        "errorRequired": "يرجى إدخال اسم الخزينة",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "createSuccess": "تم إضافة الخزينة",
+        "updateSuccess": "تم تحديث الخزينة"
+      }
+    },
+    "printTemplate": {
+      "title": "قالب الطباعة",
+      "description": "خصص شكل الفاتورة المطبوعة وشاهد المعاينة الحية",
+      "templateNameLabel": "اسم القالب",
+      "templateNamePlaceholder": "مثال: القالب الافتراضي",
+      "logoTitle": "شعار المتجر",
+      "logoLabel": "اختر صورة الشعار",
+      "logoHint": "PNG أو JPG، مقاس مربع يعطي أفضل نتيجة",
+      "logoRemove": "إزالة الشعار",
+      "companyInfoTitle": "بيانات المتجر",
+      "nameLabel": "اسم المتجر",
+      "phoneLabel": "رقم الهاتف",
+      "addressLabel": "العنوان",
+      "footerLabel": "نص أسفل الفاتورة",
+      "footerPlaceholder": "مثال: شكراً لتعاملكم معنا",
+      "columnsTitle": "أعمدة أصناف الفاتورة",
+      "columnsHint": "حدد الأعمدة التي تظهر في جدول الأصناف وترتيبها",
+      "columnUnitName": "اسم الوحدة",
+      "columnSku": "رمز الصنف / الباركود",
+      "columnDiscount": "خصم السطر",
+      "moveUp": "نقل لأعلى",
+      "moveDown": "نقل لأسفل",
+      "previewTitle": "معاينة حية",
+      "previewSizeLabel": "حجم المعاينة",
+      "save": "حفظ القالب",
+      "saved": "تم حفظ قالب الطباعة"
     }
   },
   "notifications": {
@@ -445,15 +551,42 @@
     "exportPdf": "تصدير PDF",
     "chartSummary": "{title}: {count} فترة",
     "types": {
-      "sales": { "title": "تقرير المبيعات", "description": "إجمالي المبيعات وعدد الفواتير حسب الفترة" },
-      "purchases": { "title": "تقرير المشتريات", "description": "إجمالي المشتريات حسب المورد والفترة" },
-      "inventory": { "title": "تقرير المخزون", "description": "كميات وقيم المخزون الحالية" },
-      "customers": { "title": "تقرير العملاء", "description": "أرصدة العملاء وعدد فواتيرهم" },
-      "suppliers": { "title": "تقرير الموردين", "description": "أرصدة الموردين وعدد فواتيرهم" },
-      "cashboxes": { "title": "تقرير الخزائن", "description": "أرصدة الخزائن وعدد حركاتها" },
-      "collections": { "title": "تقرير التحصيلات", "description": "التحصيلات من العملاء حسب الفترة" },
-      "payments": { "title": "تقرير المدفوعات", "description": "المدفوعات للموردين حسب الفترة" },
-      "profit-loss": { "title": "الأرباح والخسائر", "description": "الإيرادات والتكلفة وصافي الربح" }
+      "sales": {
+        "title": "تقرير المبيعات",
+        "description": "إجمالي المبيعات وعدد الفواتير حسب الفترة"
+      },
+      "purchases": {
+        "title": "تقرير المشتريات",
+        "description": "إجمالي المشتريات حسب المورد والفترة"
+      },
+      "inventory": {
+        "title": "تقرير المخزون",
+        "description": "كميات وقيم المخزون الحالية"
+      },
+      "customers": {
+        "title": "تقرير العملاء",
+        "description": "أرصدة العملاء وعدد فواتيرهم"
+      },
+      "suppliers": {
+        "title": "تقرير الموردين",
+        "description": "أرصدة الموردين وعدد فواتيرهم"
+      },
+      "cashboxes": {
+        "title": "تقرير الخزائن",
+        "description": "أرصدة الخزائن وعدد حركاتها"
+      },
+      "collections": {
+        "title": "تقرير التحصيلات",
+        "description": "التحصيلات من العملاء حسب الفترة"
+      },
+      "payments": {
+        "title": "تقرير المدفوعات",
+        "description": "المدفوعات للموردين حسب الفترة"
+      },
+      "profit-loss": {
+        "title": "الأرباح والخسائر",
+        "description": "الإيرادات والتكلفة وصافي الربح"
+      }
     }
   },
   "moneyDocuments": {
@@ -470,7 +603,20 @@
       "columnParty": "الطرف",
       "columnDate": "التاريخ",
       "columnCashbox": "الخزينة",
-      "columnAmount": "المبلغ"
+      "columnAmount": "المبلغ",
+      "columnActions": "إجراءات",
+      "editAction": "تعديل",
+      "deleteAction": "حذف",
+      "editCollectionTitle": "تعديل التحصيل",
+      "editPaymentTitle": "تعديل الدفعة",
+      "deleteCollectionTitle": "حذف التحصيل",
+      "deletePaymentTitle": "حذف الدفعة",
+      "deleteCollectionDescription": "سيتم حذف التحصيل رقم #{number} نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+      "deletePaymentDescription": "سيتم حذف الدفعة رقم #{number} نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+      "collectionDeleted": "تم حذف التحصيل",
+      "paymentDeleted": "تم حذف الدفعة",
+      "collectionUpdated": "تم تحديث التحصيل",
+      "paymentUpdated": "تم تحديث الدفعة"
     },
     "form": {
       "newCollectionTitle": "تحصيل دفعة جديدة",
@@ -513,7 +659,25 @@
       "SUPPLIER_PAYMENT": "دفعة لمورد",
       "SALE_RETURN_REFUND": "استرداد مرتجع بيع",
       "PURCHASE_RETURN_REFUND": "استرداد مرتجع شراء",
-      "OPENING": "رصيد افتتاحي"
+      "OPENING": "رصيد افتتاحي",
+      "TRANSFER_IN": "تحويل وارد",
+      "TRANSFER_OUT": "تحويل صادر"
+    },
+    "transferAction": "تحويل بين الخزائن",
+    "transferDialog": {
+      "title": "تحويل بين الخزائن",
+      "description": "حوّل مبلغاً من خزينة إلى أخرى مباشرة.",
+      "fromLabel": "من خزينة",
+      "toLabel": "إلى خزينة",
+      "amountLabel": "المبلغ",
+      "availableBalance": "الرصيد المتاح",
+      "confirmAction": "تأكيد التحويل",
+      "refLabel": "تحويل بين الخزائن",
+      "errorSameCashbox": "لا يمكن التحويل إلى نفس الخزينة",
+      "errorAmountPositive": "أدخل مبلغاً أكبر من صفر",
+      "errorInsufficientBalance": "المبلغ أكبر من الرصيد المتاح في الخزينة المصدر",
+      "errorRequired": "اختر الخزينتين وأدخل مبلغاً صحيحاً",
+      "success": "تم تحويل {amount} من {from} إلى {to}"
     }
   },
   "parties": {
@@ -530,6 +694,11 @@
     "columnName": "الاسم",
     "columnPhone": "الهاتف",
     "columnBalance": "الرصيد",
+    "columnActions": "إجراءات",
+    "deleteTitle": "حذف {name}",
+    "deleteDescription": "سيتم حذف \"{name}\" نهائياً. هذا الإجراء لا يمكن التراجع عنه.",
+    "deleteConfirm": "حذف",
+    "deleteSuccess": "تم الحذف بنجاح",
     "form": {
       "createCustomerTitle": "عميل جديد",
       "createSupplierTitle": "مورد جديد",
@@ -623,6 +792,10 @@
   },
   "shared": {
     "dateRangePlaceholder": "اختر فترة زمنية",
+    "dateRangePresetToday": "اليوم",
+    "dateRangePresetThisWeek": "هذا الأسبوع",
+    "dateRangePresetThisMonth": "هذا الشهر",
+    "dateRangeClear": "مسح",
     "comboboxPlaceholder": "اختر...",
     "comboboxSearchPlaceholder": "ابحث...",
     "comboboxEmpty": "لا توجد نتائج"
