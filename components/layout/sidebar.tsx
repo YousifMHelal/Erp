@@ -19,23 +19,31 @@ export function Sidebar({ className }: SidebarProps) {
     <aside
       data-expanded={expanded}
       className={cn(
-        "group/sidebar sticky top-0 z-40 hidden h-dvh w-18 shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 lg:flex",
+        "group/sidebar bg-sidebar text-sidebar-foreground sticky top-0 z-40 hidden h-dvh w-18 shrink-0 flex-col transition-[width] duration-200 lg:flex",
         expanded && "xl:w-64",
         className,
       )}
     >
       <div className="relative">
         <SidebarBrand />
-        <AppTooltip content={expanded ? t("collapseSidebar") : t("expandSidebar")} side="left">
+        <AppTooltip
+          content={expanded ? t("collapseSidebar") : t("expandSidebar")}
+          side="left"
+        >
           <Button
             type="button"
             variant="outline"
             size="icon"
             onClick={toggleSidebar}
             aria-label={expanded ? t("collapseSidebar") : t("expandSidebar")}
-            className="absolute top-1/2 start-full z-40 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-sidebar-border bg-sidebar text-sidebar-foreground shadow-elevation-sm hover:bg-sidebar-accent/60 hover:text-white"
+            className="border-sidebar-border bg-sidebar text-sidebar-foreground shadow-elevation-sm hover:bg-sidebar-accent/60 absolute start-full top-24 z-40 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full hover:text-white rtl:translate-x-1/2"
           >
-            <ChevronsRight className={cn("size-3.5 transition-transform duration-200", expanded && "rotate-180")} />
+            <ChevronsRight
+              className={cn(
+                "size-3.5 transition-transform duration-200",
+                expanded && "rotate-180",
+              )}
+            />
           </Button>
         </AppTooltip>
       </div>
