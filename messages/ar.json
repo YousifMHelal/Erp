@@ -31,7 +31,8 @@
     "add": "إضافة",
     "filter": "تصفية",
     "clearFilters": "مسح التصفية",
-    "required": "هذا الحقل مطلوب"
+    "required": "هذا الحقل مطلوب",
+    "saving": "جارٍ الحفظ..."
   },
   "nav": {
     "groups": {
@@ -120,7 +121,8 @@
       "columnCashbox": "الخزينة",
       "columnUser": "المستخدم",
       "columnTotal": "الإجمالي",
-      "columnPaymentStatus": "حالة الدفع"
+      "columnPaymentStatus": "حالة الدفع",
+      "walkInCustomer": "عميل نقدي"
     },
     "detail": {
       "title": "فاتورة #{number}",
@@ -207,7 +209,13 @@
       "hotkeyDeleteLine": "حذف السطر",
       "hotkeySave": "حفظ",
       "hotkeyNew": "فاتورة جديدة",
-      "hotkeySaveAndNew": "حفظ وجديد"
+      "hotkeySaveAndNew": "حفظ وجديد",
+      "errorNoCashbox": "اختر الخزنة أولاً",
+      "errorInsufficientStock": "الكمية المطلوبة من {product} غير متوفرة. المتاح: {available} {unit}"
+    },
+    "print": {
+      "documentTypeSale": "فاتورة بيع",
+      "documentTypePurchase": "فاتورة شراء"
     }
   },
   "inventory": {
@@ -453,6 +461,7 @@
         "print": "طباعة",
         "adjustPrice": "تعديل الأسعار",
         "stocktake": "الجرد",
+        "transfer": "تحويل",
         "manage": "إدارة",
         "profitLoss": "الأرباح والخسائر",
         "export": "تصدير"
@@ -922,7 +931,74 @@
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
     "signIn": "تسجيل الدخول",
-    "signingIn": "جارٍ تسجيل الدخول..."
+    "signingIn": "جارٍ تسجيل الدخول...",
+    "usernameLabel": "اسم المستخدم",
+    "usernamePlaceholder": "ahmed.said",
+    "usernameTitle": "تسجيل الدخول",
+    "usernameSubtitle": "أدخل اسم المستخدم وكلمة المرور",
+    "noUsers": "لا يوجد مستخدمون نشطون",
+    "signOut": "تسجيل الخروج"
+  },
+  "authAction": {
+    "invalid": "بيانات الدخول غير صالحة",
+    "badCredentials": "اسم المستخدم أو كلمة المرور غير صحيحة",
+    "failed": "تعذر تسجيل الدخول. أعد المحاولة"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "short": "القيمة أقصر من الحد المسموح",
+    "long": "القيمة أطول من الحد المسموح",
+    "invalid": "القيمة غير صالحة",
+    "phone": "أدخل رقم هاتف مصري صحيح",
+    "password": "كلمة المرور يجب أن تحتوي على أحرف كبيرة وصغيرة ورقم ورمز",
+    "passwordMatch": "كلمتا المرور غير متطابقتين",
+    "positive": "أدخل قيمة أكبر من صفر",
+    "date": "أدخل تاريخاً صحيحاً",
+    "dateRange": "تاريخ البداية يجب أن يسبق تاريخ النهاية",
+    "lines": "أضف صنفاً واحداً على الأقل",
+    "customerCredit": "اختر عميلاً للبيع الآجل"
+  },
+  "salesAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية لتنفيذ هذا الإجراء",
+    "invalid": "بيانات الفاتورة غير صالحة",
+    "notFound": "الفاتورة غير موجودة",
+    "inactiveProduct": "الصنف غير نشط",
+    "stock": "الكمية المطلوبة غير متوفرة في المخزون",
+    "invalidQuantity": "الكمية المحولة تتجاوز دقة المخزون المسموحة",
+    "discount": "الخصم أكبر من إجمالي الفاتورة",
+    "paid": "المبلغ المدفوع أكبر من إجمالي الفاتورة",
+    "customer": "اختر عميلاً للبيع الآجل",
+    "cashbox": "الخزنة غير متاحة",
+    "cancelled": "الفاتورة ملغاة بالفعل",
+    "hasReturns": "لا يمكن إلغاء فاتورة لها مرتجعات مؤكدة",
+    "conflict": "تغيرت بيانات الفاتورة. أعد المحاولة",
+    "failed": "تعذر حفظ الفاتورة. أعد المحاولة",
+    "created": "تم حفظ الفاتورة #{number}",
+    "updated": "تم تعديل الفاتورة #{number}",
+    "cancelledOk": "تم إلغاء الفاتورة #{number}",
+    "searchFailed": "تعذر البحث عن الأصناف",
+    "loadFailed": "تعذر تحميل البيانات"
+  },
+  "invoicePdf": {
+    "saleTitle": "فاتورة بيع",
+    "cancelled": "فاتورة ملغاة",
+    "currency": "ج.م",
+    "date": "التاريخ",
+    "cashier": "المستخدم",
+    "customer": "العميل",
+    "cashbox": "الخزينة",
+    "product": "الصنف",
+    "unit": "الوحدة",
+    "quantity": "الكمية",
+    "price": "السعر",
+    "lineTotal": "الإجمالي",
+    "subtotal": "الإجمالي الفرعي",
+    "discount": "الخصم",
+    "total": "الإجمالي الكلي",
+    "paid": "المدفوع",
+    "remaining": "المتبقي",
+    "notes": "ملاحظات"
   },
   "shared": {
     "dateRangePlaceholder": "اختر فترة زمنية",

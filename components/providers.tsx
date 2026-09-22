@@ -7,10 +7,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import type { ProvidersProps } from "@/types";
 
-export function Providers({ children }: ProvidersProps) {
-  // P4-2 replaces the initial empty session with the server session.
+export function Providers({ children, session }: ProvidersProps) {
   return (
-    <SessionProvider session={null} refetchOnWindowFocus={false}>
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         {/* Radix primitives (Tabs, Select, DropdownMenu, ...) default their internal `dir` to
             "ltr" unless told otherwise — this app is RTL-only, so a single Direction.Provider

@@ -23,6 +23,8 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-09-22 | **Phase 4 UI wiring deferred; backend tasks continue.** P4-5/P4-10/P4-11/P4-12 remain TODO while P4-6…P4-9 and P4-13 are completed. | The owner explicitly requested finishing Phase 4's non-UI work first. This supersedes the normal in-order task workflow for this phase only; the sales slice exit criterion still needs the screens wired. |
+| 2026-09-22 | **Invoice edits retain prior `InvoiceLine` rows with `isCurrent=false`.** Current rows remain attached to the same invoice number and old rows stay in the database. | Full reversal and reapplication must preserve the original line snapshots without hard deleting financial history. A Boolean flag and index are the smallest schema change that keeps the invoice number stable while making live calculations unambiguous. |
 | 2026-09-20 | **Arabic only (RTL). No English locale in v1.** | Users are Egyptian shop staff. Building a second locale is pure cost with no reader. |
 | 2026-09-20 | **All strings still go through `next-intl` and `messages/ar.json`, despite the single locale.** | Retrofitting i18n into 22 screens later is a multi-day refactor; a dictionary from day one makes adding English a content task. Also enforces the "no hardcoded strings" rule mechanically. |
 | 2026-09-20 | **Layout built direction-agnostic (logical CSS properties only) even though only RTL ships.** | Same reasoning — costs nothing now, saves a full restyle later. Also prevents the mixed physical/logical mess that makes RTL bugs hard to trace. |
@@ -88,6 +90,10 @@
 
 *Populate as the build hits surprises — Prisma Decimal quirks, Arabic font shaping in PDFs, RTL chart behaviour, Next.js caching gotchas. Each entry: what broke, why, and the fix.*
 
+- **2026-09-22 — Arabic PDF font format:** `@react-pdf/renderer` 4.9.0 failed embedding the project's WOFF2 font with a FontKit `RangeError` during PDF finalization. IBM's official complete TTF registered successfully; an authenticated A4 invoice PDF rendered with correctly shaped Arabic when inspected as an image. The WOFF2 files remain for the web UI.
+
+- **2026-09-22 — Auth.js host trust:** The first production runtime smoke test returned `UntrustedHost` from `/api/auth/providers` despite a successful build. Auth.js requires explicit host trust in this deployment setup; `trustHost: true` in the shared edge-safe auth config fixed it. The endpoint then returned 200.
+
 - **2026-09-21 — Local Postgres host port:** Docker could not bind host port 5432 because another process had it. Compose maps host 5433 to container 5432, and `.env.example` uses 5433. The database still runs PostgreSQL 16 on its normal container port.
 
 **Already anticipated, watch for these:**
@@ -96,7 +102,7 @@
 - **Prisma `Decimal` is `Decimal.js`, not a JS number.** Arithmetic must use its methods; `JSON.stringify` and Server Component→Client Component serialisation both need explicit conversion.
 - **CSV opened in Excel mangles Arabic** without a UTF-8 BOM prefix.
 - **2026-09-21 — shadcn CLI registry:** The current CLI initialized `radix-nova` with RTL support but did not generate `components/ui/form.tsx` from the requested `form` entry. Added the standard React Hook Form wrapper locally; future shadcn updates should preserve it.
-- **2026-09-21 — Session provider before auth:** With no NextAuth route until Phase 4, an uninitialized `SessionProvider` fetched `/api/auth/session` and received 404s. P0 passes `session={null}` and disables focus refetch. P4-2 must replace this with the real server session when credentials auth is wired.
+- **2026-09-21 — Session provider before auth:** With no NextAuth route until Phase 4, an uninitialized `SessionProvider` fetched `/api/auth/session` and received 404s. P0 passed `session={null}` and disabled focus refetch. P4-2 replaced this with the server session from `auth()`.
 - **2026-09-21 — Dependency audit:** The scaffold's Next.js 15.5.12 had a critical npm advisory, so it was patched within the locked major to 15.5.25. `npm audit` still reports advisories through Prisma 6's `deepmerge-ts` and Next 15's bundled `postcss`. A nested PostCSS override produced an invalid dependency tree, so it was removed. Revisit these when the locked framework/ORM versions are reviewed; do not force a major upgrade as a silent scaffold change.
 - **2026-09-21 — Tailwind v4 `@theme inline` vars are not runtime-readable.** `--color-primary` etc. (declared under `@theme inline` in `globals.css`) only exist as inputs to Tailwind's utility-class generation at build time — `getComputedStyle(el).getPropertyValue('--color-primary')` returns `""` in the browser. Any inline `style={{ background: 'var(--color-x)' }}` silently renders transparent. Components must reference tokens only via utility classes (`bg-primary`), never via raw `var(--color-*)` in inline styles; the underlying `--primary` etc. custom properties on `:root`/`.dark` **are** real and readable if a raw CSS var is ever genuinely needed. Caught in the `/design-system` colour swatches, which used the wrong var name.
 - **2026-09-21 — Locked: week starts Saturday.** `components/ui/calendar.tsx` defaults `weekStartsOn={6}` for every `Calendar` instance app-wide (Egyptian convention), not just the design-system demo. Applies automatically to P2-3's `DateRangePicker` and any other future date picker built on this primitive.

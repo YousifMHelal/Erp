@@ -1,11 +1,259 @@
 import type { ReactNode } from "react";
+import type { DefaultSession } from "next-auth";
 
-export type ProvidersProps = { children: ReactNode };
+declare module "next-auth" {
+  interface User {
+    displayName: string;
+    roleId: string;
+    permissions: string[];
+  }
+
+  interface Session {
+    user: DefaultSession["user"] & {
+      id: string;
+      displayName: string;
+      roleId: string;
+      permissions: string[];
+    };
+  }
+}
+
+declare module "@auth/core/jwt" {
+  interface JWT {
+    userId: string;
+    displayName: string;
+    roleId: string;
+    permissions: string[];
+  }
+}
+
+export type ProvidersProps = {
+  children: ReactNode;
+  session: import("next-auth").Session | null;
+};
 export type RootLayoutProps = { children: ReactNode };
 
 export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string; fieldErrors?: Record<string, string[]> };
+
+export type AuditInput = {
+  userId: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  entityLabel: string;
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
+};
+
+export type DecimalInput =
+  import("@prisma/client").Prisma.Decimal | string | number;
+export type SuggestedPrice = {
+  pricePerSub: import("@prisma/client").Prisma.Decimal;
+  source: "customer" | "recent" | "catalogue";
+};
+
+export type SaleInput = import("zod").infer<
+  typeof import("@/lib/validations").createSaleSchema
+>;
+export type SaleLineSnapshot = {
+  productId: string;
+  productName: string;
+  unitName: string;
+  unitType: UnitType;
+  unitsPerBaseSnapshot: import("@prisma/client").Prisma.Decimal;
+  qtyInUnit: import("@prisma/client").Prisma.Decimal;
+  qtyInSub: import("@prisma/client").Prisma.Decimal;
+  unitPrice: import("@prisma/client").Prisma.Decimal;
+  lineTotal: import("@prisma/client").Prisma.Decimal;
+  costPerSubAtSale: import("@prisma/client").Prisma.Decimal;
+  sortOrder: number;
+};
+export type PreparedSale = {
+  lines: SaleLineSnapshot[];
+  subtotal: import("@prisma/client").Prisma.Decimal;
+  discountAmount: import("@prisma/client").Prisma.Decimal;
+  total: import("@prisma/client").Prisma.Decimal;
+  paidAmount: import("@prisma/client").Prisma.Decimal;
+  remainingAmount: import("@prisma/client").Prisma.Decimal;
+  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
+};
+export type SaleWithLines = import("@prisma/client").Prisma.InvoiceGetPayload<{
+  include: { lines: true; returns: true };
+}>;
+export type SaleErrorCode =
+  | "notFound"
+  | "inactiveProduct"
+  | "stock"
+  | "invalidQuantity"
+  | "discount"
+  | "paid"
+  | "customer"
+  | "cashbox"
+  | "cancelled"
+  | "hasReturns"
+  | "conflict";
+export type SaleListRow = {
+  id: string;
+  number: number;
+  status: string;
+  paymentStatus: string;
+  issuedAt: string;
+  customerName: string | null;
+  cashierName: string;
+  cashboxName: string;
+  total: string;
+  paidAmount: string;
+  remainingAmount: string;
+};
+export type SalesPage = {
+  rows: SaleListRow[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+};
+export type SaleDetail = SaleListRow & {
+  customerId: string | null;
+  customerPhone: string | null;
+  customerBalance: string | null;
+  cashboxId: string;
+  notes: string | null;
+  cancelledAt: string | null;
+  cancelledByName: string | null;
+  updatedAt: string;
+  subtotal: string;
+  discountAmount: string;
+  cancelReason: string | null;
+  lines: {
+    id: string;
+    productId: string;
+    productName: string;
+    sku: string;
+    unitName: string;
+    unitType: UnitType;
+    qtyInUnit: string;
+    qtyInSub: string;
+    unitPrice: string;
+    lineTotal: string;
+  }[];
+};
+export type SaleProductOption = {
+  id: string;
+  name: string;
+  sku: string;
+  barcode: string | null;
+  baseUnitName: string;
+  subUnitName: string;
+  unitsPerBase: string;
+  stockQty: string;
+  pricePerBase: string;
+  pricePerSub: string;
+  exactBarcodeMatch: boolean;
+};
+export type SaleFormOptions = {
+  customers: { id: string; name: string }[];
+  cashboxes: { id: string; name: string }[];
+};
+
+export type SaleListFilterOptions = SaleFormOptions & {
+  users: { id: string; name: string }[];
+};
+
+/** Stock snapshot captured when a product is added to a sale draft. */
+export type SaleLineStock = {
+  stockQty: string;
+  productName: string;
+  subUnitName: string;
+};
+
+/** Pre-fill for editing an existing sale, plus the stock each of its lines may reoccupy. */
+export type SaleFormInitialData = {
+  id: string;
+  number: number;
+  updatedAt: string;
+  customerId: string | null;
+  cashboxId: string;
+  discountAmount: string;
+  paidAmount: string;
+  lines: InvoiceLineDraft[];
+  stock: (SaleLineStock & { productId: string })[];
+};
+
+export type SaleFormProps = {
+  options: SaleFormOptions;
+  /** Omitted for a new sale; present to edit an existing one. */
+  initialSale?: SaleFormInitialData;
+};
+
+export type EditSalePageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export type SaleEditData = {
+  options: SaleFormOptions;
+  sale: SaleFormInitialData;
+};
+
+export type SaleProductSearchProps = {
+  onAddLine: (product: SaleProductOption) => void;
+};
+
+/** Raw `searchParams` as Next hands them over, before validation. */
+export type SalesSearchParams = Record<string, string | string[] | undefined>;
+
+/** URL-derived sales-list filter. Validated server-side by `salesFilterSchema`. */
+export type SalesListFilter = {
+  q?: string;
+  from?: string;
+  to?: string;
+  customerId?: string;
+  cashboxId?: string;
+  paymentStatus?: "PAID" | "PARTIAL" | "UNPAID";
+  userId?: string;
+  sortBy: "issuedAt" | "number" | "total";
+  sortDirection: "asc" | "desc";
+  page: number;
+  pageSize: number;
+};
+
+export type SalesListPageProps = {
+  searchParams: Promise<SalesSearchParams>;
+};
+
+export type SalesListViewProps = {
+  result: ActionResult<SalesPage>;
+  options: SaleFormOptions;
+  filter: SalesListFilter;
+};
+export type PdfInvoiceData = {
+  number: number;
+  issuedAt: Date;
+  cashierName: string;
+  cancelled: boolean;
+  shopName: string;
+  shopPhone?: string;
+  shopAddress?: string;
+  footer?: string;
+  customerName?: string;
+  customerPhone?: string;
+  cashboxName: string;
+  notes?: string;
+  lines: {
+    name: string;
+    unit: string;
+    quantity: string;
+    price: string;
+    total: string;
+  }[];
+  subtotal: string;
+  discount: string;
+  total: string;
+  paid: string;
+  remaining: string;
+};
+export type InvoicePdfProps = { data: PdfInvoiceData };
+export type PdfRouteContext = { params: Promise<{ id: string }> };
 
 // --- Layout ---
 
@@ -34,6 +282,8 @@ export type BreadcrumbItem = { labelKey: string; href?: string };
 import type { ColumnDef, Table as TanstackTable } from "@tanstack/react-table";
 
 declare module "@tanstack/react-table" {
+  // TanStack's declaration requires both generic parameters even when our metadata uses neither.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData, TValue> {
     /** Applied to the header/cell wrapper. Use to hide lower-priority columns at the md breakpoint (768–1023px). */
     className?: string;
@@ -71,6 +321,9 @@ export type DataTablePaginationProps = {
 
 export type DataTableToolbarProps = {
   searchValue?: string;
+  /** Renders the search box uncontrolled — for debounced/URL-driven search, where a
+      controlled value would fight the user's typing on every server re-render. */
+  defaultSearchValue?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
   filters?: ReactNode;
@@ -128,7 +381,11 @@ export type DateRangePickerProps = {
   className?: string;
 };
 
-export type EntityComboboxOption = { value: string; label: string; description?: string };
+export type EntityComboboxOption = {
+  value: string;
+  label: string;
+  description?: string;
+};
 
 export type EntityComboboxProps = {
   options: EntityComboboxOption[];
@@ -156,6 +413,10 @@ export type LoginUserTile = {
   displayName: string;
   roleName: string;
 };
+export type PublicLoginOptions = {
+  mode: "tiles" | "username";
+  users: LoginUserTile[];
+};
 
 export type UserTileGridProps = {
   users: LoginUserTile[];
@@ -169,7 +430,21 @@ export type UserTileProps = {
 
 export type PasswordStepProps = {
   user: LoginUserTile;
+  /** Where to land after a successful sign-in — the guarded route the user first asked for. */
+  callbackUrl: string;
   onBack: () => void;
+};
+
+export type UsernameStepProps = {
+  callbackUrl: string;
+};
+
+export type LoginFlowProps = PublicLoginOptions & {
+  callbackUrl: string;
+};
+
+export type LoginPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 // --- Dashboard (P2-5) ---
@@ -177,10 +452,20 @@ export type PasswordStepProps = {
 export type SalesTrendPoint = { date: string; total: number };
 export type SalesTrendChartProps = { data: SalesTrendPoint[] };
 
-export type QuickActionItem = { labelKey: string; href: string; icon: LucideIcon };
+export type QuickActionItem = {
+  labelKey: string;
+  href: string;
+  icon: LucideIcon;
+};
 export type QuickActionsProps = { items: QuickActionItem[] };
 
-export type LowStockItem = { id: string; name: string; stockQty: number; minStockQty: number; unitName: string };
+export type LowStockItem = {
+  id: string;
+  name: string;
+  stockQty: number;
+  minStockQty: number;
+  unitName: string;
+};
 export type LowStockPanelProps = { items: LowStockItem[] };
 
 export type TopDebtorItem = { id: string; name: string; balance: string };
@@ -417,7 +702,13 @@ export type ProductSummaryCardProps = { product: ProductDetail };
 
 export type StockMovementRow = {
   id: string;
-  type: "PURCHASE" | "SALE" | "SALE_RETURN" | "PURCHASE_RETURN" | "STOCKTAKE" | "OPENING";
+  type:
+    | "PURCHASE"
+    | "SALE"
+    | "SALE_RETURN"
+    | "PURCHASE_RETURN"
+    | "STOCKTAKE"
+    | "OPENING";
   qtyInSub: number;
   balanceAfter: number;
   refLabel: string;
@@ -512,8 +803,18 @@ export type PartyFormDialogProps = {
   partyType: PartyType;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  party?: PartyListRow & { address?: string; openingBalance?: string; notes?: string };
-  onSave?: (party: { name: string; phone: string; address: string; openingBalance: string; notes: string }) => void;
+  party?: PartyListRow & {
+    address?: string;
+    openingBalance?: string;
+    notes?: string;
+  };
+  onSave?: (party: {
+    name: string;
+    phone: string;
+    address: string;
+    openingBalance: string;
+    notes: string;
+  }) => void;
 };
 
 export type PartyListProps = {
@@ -593,9 +894,15 @@ export type PartySummaryCardProps = {
   onDelete: () => void;
 };
 
-export type CustomerInvoicesTabProps = { partyType: PartyType; invoices: PartyInvoiceRow[] };
+export type CustomerInvoicesTabProps = {
+  partyType: PartyType;
+  invoices: PartyInvoiceRow[];
+};
 export type CustomerPaymentsTabProps = { payments: PartyPaymentRow[] };
-export type AccountStatementTabProps = { statement: StatementLine[]; onPrint: () => void };
+export type AccountStatementTabProps = {
+  statement: StatementLine[];
+  onPrint: () => void;
+};
 export type StatementPrintDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -622,7 +929,8 @@ export type CashMovementType =
   | "TRANSFER_OUT";
 
 /** The kind of source document a movement's reference points to, when it can be resolved to a detail route. */
-export type CashMovementRefType = "SALE" | "PURCHASE" | "COLLECTION" | "PAYMENT";
+export type CashMovementRefType =
+  "SALE" | "PURCHASE" | "COLLECTION" | "PAYMENT";
 
 export type CashMovementRow = {
   id: string;
@@ -663,7 +971,11 @@ export type TransferCashDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   cashboxes: CashboxSummary[];
-  onConfirm: (input: { fromCashboxId: string; toCashboxId: string; amount: number }) => void;
+  onConfirm: (input: {
+    fromCashboxId: string;
+    toCashboxId: string;
+    amount: number;
+  }) => void;
 };
 
 // --- Collections/payments (P2-17) ---
@@ -743,7 +1055,11 @@ export type ReportFiltersBarProps = {
   onDateRangeChange: (range: DateRange) => void;
 };
 
-export type ReportTableColumn = { key: string; label: string; align?: "start" | "end" };
+export type ReportTableColumn = {
+  key: string;
+  label: string;
+  align?: "start" | "end";
+};
 export type ReportTableProps = {
   columns: ReportTableColumn[];
   rows: Record<string, ReactNode>[];
@@ -756,7 +1072,12 @@ export type ReportChartProps = { title: string; data: ReportChartPoint[] };
 // --- Notifications & audit log (P2-19) ---
 
 export type NotificationSeverity = "INFO" | "WARNING" | "CRITICAL";
-export type NotificationType = "LOW_STOCK" | "OUT_OF_STOCK" | "CUSTOMER_BALANCE" | "SUPPLIER_BALANCE" | "SYSTEM";
+export type NotificationType =
+  | "LOW_STOCK"
+  | "OUT_OF_STOCK"
+  | "CUSTOMER_BALANCE"
+  | "SUPPLIER_BALANCE"
+  | "SYSTEM";
 
 export type NotificationItem = {
   id: string;
@@ -868,8 +1189,19 @@ export type PermissionMatrixProps = {
   readOnly?: boolean;
 };
 
-export type CategoryRow = { id: string; name: string; description?: string; productCount: number };
-export type SettingsCashboxRow = { id: string; name: string; description?: string; isActive: boolean; sortOrder: number };
+export type CategoryRow = {
+  id: string;
+  name: string;
+  description?: string;
+  productCount: number;
+};
+export type SettingsCashboxRow = {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  sortOrder: number;
+};
 
 // --- Print templates (P2-21) ---
 
@@ -929,6 +1261,11 @@ export type PrintInvoiceData = {
   currentBalance?: string;
 };
 
+export type PrintPreviewPageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ size?: string }>;
+};
+
 export type PrintLayoutProps = {
   data: PrintInvoiceData;
   /** Configurable info-section columns (col1/col2). Falls back to the built-in default arrangement when omitted. */
@@ -983,6 +1320,8 @@ export type InvoiceDetail = {
   status: "CONFIRMED" | "CANCELLED";
   paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
   partyName: string;
+  /** Customer/supplier id, for the party-card link. Omitted for walk-in sales. */
+  partyId?: string;
   partyPhone?: string;
   partyBalance?: string;
   cashboxName: string;
@@ -1009,7 +1348,9 @@ export type InvoiceDetailViewProps = { invoice: InvoiceDetail };
 export type InvoiceActionsBarProps = {
   invoice: InvoiceDetail;
   onPrint: () => void;
-  onCancel: () => void;
+  /** Omitted when the signed-in user lacks the cancel permission. */
+  onCancel?: () => void;
+  /** Omitted when the signed-in user lacks the edit permission. */
   onEdit?: () => void;
   onDelete?: () => void;
 };
@@ -1022,7 +1363,19 @@ export type CancelInvoiceDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceNumber: string;
+  /** Keeps the dialog open and the confirm button busy while the action runs. */
+  isPending?: boolean;
   onConfirm: (reason: string) => void;
+};
+
+export type SaleDetailPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export type SaleDetailViewProps = {
+  sale: SaleDetail;
+  canEdit: boolean;
+  canCancel: boolean;
 };
 
 export type InvoiceFiltersProps = {
@@ -1068,7 +1421,8 @@ export type SettingsCashboxFormDialogProps = {
 
 // --- Print template customizer (settings, P2-21) ---
 
-export type PrintLineColumnKey = "productCode" | "unitName" | "sku" | "discount";
+export type PrintLineColumnKey =
+  "productCode" | "unitName" | "sku" | "discount";
 
 export type PrintLineColumnConfig = {
   key: PrintLineColumnKey;
@@ -1077,7 +1431,8 @@ export type PrintLineColumnConfig = {
 };
 
 /** The totals-block rows (subtotal/discount/paid/etc.) — always real computed values, never free text. Visibility, order, and label are configurable. */
-export type PrintTotalsRowKey = "total" | "discount" | "previousBalance" | "paid" | "remaining";
+export type PrintTotalsRowKey =
+  "total" | "discount" | "previousBalance" | "paid" | "remaining";
 
 export type PrintTotalsRowConfig = {
   key: PrintTotalsRowKey;
@@ -1109,7 +1464,9 @@ export type PrintSystemFieldKey =
   | "shopAddress";
 
 /** One row in an editable info column: either a system field (real data at print time) or free text the user typed. */
-export type PrintFieldSource = { kind: "system"; fieldKey: PrintSystemFieldKey } | { kind: "custom"; value: string };
+export type PrintFieldSource =
+  | { kind: "system"; fieldKey: PrintSystemFieldKey }
+  | { kind: "custom"; value: string };
 
 export type PrintFieldItem = {
   id: string;
@@ -1153,18 +1510,43 @@ export type PrintTotalsRowListProps = {
   onUpdateLabel: (key: PrintTotalsRowKey, label: string) => void;
 };
 
-export type PrintSystemFieldOption = { key: PrintSystemFieldKey; labelKey: string };
+export type PrintSystemFieldOption = {
+  key: PrintSystemFieldKey;
+  labelKey: string;
+};
 
 export type PrintFieldEditorListProps = {
   column: PrintInfoColumnKey;
   items: PrintFieldItem[];
   systemFieldOptions: PrintSystemFieldOption[];
-  onAddSystemField: (column: PrintInfoColumnKey, fieldKey: PrintSystemFieldKey, label: string) => void;
-  onAddCustomField: (column: PrintInfoColumnKey, label: string, value: string) => void;
-  onEditSystemField: (column: PrintInfoColumnKey, id: string, fieldKey: PrintSystemFieldKey, label: string) => void;
-  onEditCustomField: (column: PrintInfoColumnKey, id: string, label: string, value: string) => void;
+  onAddSystemField: (
+    column: PrintInfoColumnKey,
+    fieldKey: PrintSystemFieldKey,
+    label: string,
+  ) => void;
+  onAddCustomField: (
+    column: PrintInfoColumnKey,
+    label: string,
+    value: string,
+  ) => void;
+  onEditSystemField: (
+    column: PrintInfoColumnKey,
+    id: string,
+    fieldKey: PrintSystemFieldKey,
+    label: string,
+  ) => void;
+  onEditCustomField: (
+    column: PrintInfoColumnKey,
+    id: string,
+    label: string,
+    value: string,
+  ) => void;
   onRemove: (column: PrintInfoColumnKey, id: string) => void;
-  onMove: (column: PrintInfoColumnKey, id: string, direction: "up" | "down") => void;
+  onMove: (
+    column: PrintInfoColumnKey,
+    id: string,
+    direction: "up" | "down",
+  ) => void;
 };
 
 /** Add mode (no `editingItem`) creates a new field; edit mode opens pre-filled with that field's current tab/label/value. */

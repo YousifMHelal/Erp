@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RolesTable } from "@/components/settings/roles-table";
 import { PermissionMatrix } from "@/components/settings/permission-matrix";
-import { PERMISSION_GROUPS } from "@/components/settings/permission-catalogue";
+import { PERMISSION_GROUPS } from "@/lib/permissions";
 import type { RoleRow } from "@/types";
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {

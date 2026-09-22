@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { ALL_PERMISSIONS } from "../lib/permissions";
 
 const prisma = new PrismaClient();
 
@@ -26,32 +27,6 @@ function pick<T>(arr: T[]): T {
   if (item === undefined) throw new Error("pick() called on empty array");
   return item;
 }
-
-// ---------------------------------------------------------------------------
-// Permission catalogue (provisional — mirrors PermissionGroupKey in types/index.d.ts;
-// P4-1 builds the canonical lib/permissions.ts from the same group/action shape)
-// ---------------------------------------------------------------------------
-
-const PERMISSION_GROUPS: Record<string, string[]> = {
-  sale: ["view", "create", "edit", "cancel", "print"],
-  purchase: ["view", "create", "edit", "cancel", "print"],
-  return: ["view", "create", "cancel"],
-  inventory: ["view", "create", "edit", "adjustPrice", "stocktake"],
-  customer: ["view", "create", "edit"],
-  supplier: ["view", "create", "edit"],
-  cashbox: ["view", "create", "edit", "transfer"],
-  collection: ["view", "create", "cancel"],
-  payment: ["view", "create", "cancel"],
-  report: ["view", "profitLoss", "export"],
-  user: ["view", "create", "edit"],
-  role: ["view", "create", "edit"],
-  audit: ["view"],
-  settings: ["manage"],
-};
-
-const ALL_PERMISSIONS = Object.entries(PERMISSION_GROUPS).flatMap(([group, actions]) =>
-  actions.map((action) => `${group}.${action}`),
-);
 
 const CASHIER_PERMISSIONS = [
   "sale.view",

@@ -32,9 +32,11 @@ export function InvoiceActionsBar({ invoice, onPrint, onCancel, onEdit, onDelete
               <Trash2 /> {t("deleteAction")}
             </Button>
           )}
-          <Button type="button" variant="destructive" onClick={onCancel} className="max-sm:h-11">
-            <Ban /> {t("cancelAction")}
-          </Button>
+          {onCancel && (
+            <Button type="button" variant="destructive" onClick={onCancel} className="max-sm:h-11">
+              <Ban /> {t("cancelAction")}
+            </Button>
+          )}
         </div>
       )}
     </div>

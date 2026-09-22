@@ -1,27 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
+import { signInWithCredentials } from "@/actions/auth.actions";
 import { avatarColorClass, cn } from "@/lib/utils";
 import type { PasswordStepProps } from "@/types";
 
-export function PasswordStep({ user, onBack }: PasswordStepProps) {
+export function PasswordStep({ user, callbackUrl, onBack }: PasswordStepProps) {
   const t = useTranslations("auth");
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const initials = user.displayName.trim().slice(0, 1);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setIsPending(true);
-    // P4-5 wires this to the real credentials sign-in server action.
+    startTransition(async () => {
+      const result = await signInWithCredentials({ userId: user.id, password });
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      router.replace(callbackUrl);
+      router.refresh();
+    });
   }
 
   return (
@@ -57,6 +68,8 @@ export function PasswordStep({ user, onBack }: PasswordStepProps) {
             type={showPassword ? "text" : "password"}
             autoFocus
             autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder={t("passwordPlaceholder")}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "login-password-error" : undefined}
@@ -79,7 +92,13 @@ export function PasswordStep({ user, onBack }: PasswordStepProps) {
         ) : null}
       </div>
 
-      <Button type="submit" variant="primary" size="lg" disabled={isPending} className="w-full">
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        disabled={isPending || password.length === 0}
+        className="w-full"
+      >
         {isPending ? t("signingIn") : t("signIn")}
       </Button>
     </form>

@@ -8,13 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { CancelInvoiceDialogProps } from "@/types";
 
-export function CancelInvoiceDialog({ open, onOpenChange, invoiceNumber, onConfirm }: CancelInvoiceDialogProps) {
+export function CancelInvoiceDialog({
+  open,
+  onOpenChange,
+  invoiceNumber,
+  isPending,
+  onConfirm,
+}: CancelInvoiceDialogProps) {
   const t = useTranslations("invoices.detail");
+  const tCommon = useTranslations("common");
   const [reason, setReason] = useState("");
 
   function handleConfirm() {
     onConfirm(reason);
-    setReason("");
   }
 
   return (
@@ -32,14 +38,20 @@ export function CancelInvoiceDialog({ open, onOpenChange, invoiceNumber, onConfi
             onChange={(e) => setReason(e.target.value)}
             placeholder={t("cancelReasonPlaceholder")}
             rows={3}
+            disabled={isPending}
           />
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>
             {t("cancelDialogDismiss")}
           </Button>
-          <Button type="button" variant="destructive" disabled={!reason.trim()} onClick={handleConfirm}>
-            {t("cancelDialogConfirm")}
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={!reason.trim() || isPending}
+            onClick={handleConfirm}
+          >
+            {isPending ? tCommon("saving") : t("cancelDialogConfirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

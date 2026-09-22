@@ -1,42 +1,35 @@
-import { useTranslations } from "next-intl";
+import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
-import { InvoiceDetailView } from "@/components/shared/invoice/invoice-detail-view";
-import type { InvoiceDetail } from "@/types";
+import { SaleDetailView } from "@/components/sales/sale-detail-view";
+import { getSaleById } from "@/actions/sales.actions";
+import { getCurrentUser } from "@/lib/auth-guard";
+import { hasPermission } from "@/lib/permissions";
+import type { SaleDetailPageProps } from "@/types";
 
-const INVOICE: InvoiceDetail = {
-  id: "1",
-  number: 1042,
-  type: "SALE",
-  status: "CONFIRMED",
-  paymentStatus: "PARTIAL",
-  partyName: "بقالة النور",
-  partyPhone: "01012345678",
-  partyBalance: "4250.00",
-  cashboxName: "نقدي",
-  userName: "أحمد سعيد",
-  issuedAt: "2026-09-21",
-  subtotal: "1450.00",
-  discountAmount: "200.00",
-  total: "1250.00",
-  paidAmount: "600.00",
-  remainingAmount: "650.00",
-  lines: [
-    { id: "1", productName: "أرز أبو كاس ٥ كجم", unitName: "كيس", qty: 5, unitPrice: "120.00", lineTotal: "600.00" },
-    { id: "2", productName: "سكر ٢ كجم", unitName: "كيس", qty: 6, unitPrice: "60.00", lineTotal: "360.00" },
-    { id: "3", productName: "زيت عافية ١.٥ لتر", unitName: "زجاجة", qty: 6, unitPrice: "80.00", lineTotal: "480.00" },
-  ],
-};
+export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
+  const t = await getTranslations("invoices.detail");
+  const { id } = await params;
 
-export default function InvoiceDetailPage() {
-  const t = useTranslations("invoices.detail");
+  const [result, user] = await Promise.all([getSaleById(id), getCurrentUser()]);
+  if (!result.success) notFound();
+
+  const permissions = user?.role.permissions ?? [];
 
   return (
     <>
       <PageHeader
-        title={t("title", { number: String(INVOICE.number).padStart(6, "0") })}
-        breadcrumbs={[{ labelKey: "nav.sales", href: "/sales" }, { labelKey: "invoices.detail.breadcrumbSale" }]}
+        title={t("title", { number: String(result.data.number).padStart(6, "0") })}
+        breadcrumbs={[
+          { labelKey: "nav.sales", href: "/sales" },
+          { labelKey: "invoices.detail.breadcrumbSale" },
+        ]}
       />
-      <InvoiceDetailView invoice={INVOICE} />
+      <SaleDetailView
+        sale={result.data}
+        canEdit={hasPermission(permissions, "sale.edit")}
+        canCancel={hasPermission(permissions, "sale.cancel")}
+      />
     </>
   );
 }

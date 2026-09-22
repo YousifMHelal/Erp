@@ -314,6 +314,7 @@ Derived (never stored): sub-unit prices = per-base ÷ `unitsPerBase`; stock valu
 `unitPrice (Decimal, price for one `unitType`) · lineTotal (Decimal)`
 `costPerSubAtSale (Decimal)` — avg cost frozen at sale time, so P&L is historically correct
 `sortOrder`
+`isCurrent (Boolean)` — edits retain prior line snapshots; only current lines count toward the live invoice.
 PRD §15: "every invoice stores the actual price used at the time of the transaction" — hence the snapshots.
 
 **`StockMovement`** — append-only ledger, the single explanation for every stock change

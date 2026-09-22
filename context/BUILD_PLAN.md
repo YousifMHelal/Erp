@@ -100,19 +100,19 @@ Goal: a schema that serves the UI actually built, with a seed that fills every s
 
 Goal: prove the full end-to-end pattern — auth → permission → validated action → transaction → audit → revalidate → toast — on sales, before repeating it.
 
-- [ ] **P4-1** — `lib/permissions.ts`: the permission catalogue, grouped, with Arabic labels for the matrix UI.
-- [ ] **P4-2** — NextAuth v5 credentials provider, `bcryptjs`, JWT session carrying `userId`/`displayName`/`roleId`/`permissions[]`. `lib/auth.ts`.
-- [ ] **P4-3** — `lib/auth-guard.ts`: `requireAuth()`, `requirePermission(key)`, `getCurrentUser()`. **Every mutating action calls one of these first.**
-- [ ] **P4-4** — `middleware.ts` route protection + redirect to `/login`.
-- [ ] **P4-5** — Wire the login screen: server action lists active users for the tile grid, credential sign-in, error handling, redirect. Add the `settings.loginMode` flag (`tiles` | `username`) so the roster can be hidden before public deployment.
-- [ ] **P4-6** — `lib/audit.ts` (`writeAudit` with before/after diff), `lib/numbering.ts` (counter inside the transaction).
-- [ ] **P4-7** — Domain libraries with unit-testable pure functions: `lib/money.ts`, `lib/units.ts` (base⇄sub), `lib/costing.ts` (weighted moving average), `lib/pricing.ts` (3-tier suggestion), `lib/stock.ts` (availability + movement application).
-- [ ] **P4-8** — Zod schemas for auth, product, and sales in `lib/validations.ts` — full production-grade rules per [ARCHITECTURE.md §8.5](./ARCHITECTURE.md) and the user's validation spec (min/max on every field, phone regex for Egypt, password complexity + confirm `.refine()`, `.trim()` on strings, `.int()`/`.positive()` on numbers, `z.enum()` for enums, date `.refine()`s, cross-field rules).
-- [ ] **P4-9** — `actions/sales.actions.ts`: `createSale`, `getSales`, `getSaleById`, `updateSale`, `cancelSale` — each permission-checked, schema-re-validated, wrapped in `$transaction`, writing stock + cash + party ledger rows, audit, and `revalidatePath`.
-- [ ] **P4-10** — Wire `/sales/new` to real data: server-side product search (name / SKU / **barcode exact match → instant line add**), customer combobox, live price suggestion, **hard negative-stock block**, save → toast → print prompt.
-- [ ] **P4-11** — Wire `/sales` list: server-side filtering, sorting, pagination from URL search params.
-- [ ] **P4-12** — Wire `/sales/[id]`: real detail, permission-gated actions, cancel with reason + compensating entries, print, `wa.me` share.
-- [ ] **P4-13** — PDF route `/api/invoices/[id]/pdf` (A4, `@react-pdf/renderer`, Arabic font embedded — verify Arabic shaping renders correctly, this is a common failure point).
+- [x] **P4-1** — `lib/permissions.ts`: the permission catalogue, grouped, with Arabic labels for the matrix UI.
+- [x] **P4-2** — NextAuth v5 credentials provider, `bcryptjs`, JWT session carrying `userId`/`displayName`/`roleId`/`permissions[]`. `lib/auth.ts`.
+- [x] **P4-3** — `lib/auth-guard.ts`: `requireAuth()`, `requirePermission(key)`, `getCurrentUser()`. **Every mutating action calls one of these first.**
+- [x] **P4-4** — `middleware.ts` route protection + redirect to `/login`.
+- [x] **P4-5** — Wire the login screen: server action lists active users for the tile grid, credential sign-in, error handling, redirect. Add the `settings.loginMode` flag (`tiles` | `username`) so the roster can be hidden before public deployment.
+- [x] **P4-6** — `lib/audit.ts` (`writeAudit` with before/after diff), `lib/numbering.ts` (counter inside the transaction).
+- [x] **P4-7** — Domain libraries with unit-testable pure functions: `lib/money.ts`, `lib/units.ts` (base⇄sub), `lib/costing.ts` (weighted moving average), `lib/pricing.ts` (3-tier suggestion), `lib/stock.ts` (availability + movement application).
+- [x] **P4-8** — Zod schemas for auth, product, and sales in `lib/validations.ts` — full production-grade rules per [ARCHITECTURE.md §8.5](./ARCHITECTURE.md) and the user's validation spec (min/max on every field, phone regex for Egypt, password complexity + confirm `.refine()`, `.trim()` on strings, `.int()`/`.positive()` on numbers, `z.enum()` for enums, date `.refine()`s, cross-field rules).
+- [x] **P4-9** — `actions/sales.actions.ts`: `createSale`, `getSales`, `getSaleById`, `updateSale`, `cancelSale` — each permission-checked, schema-re-validated, wrapped in `$transaction`, writing stock + cash + party ledger rows, audit, and `revalidatePath`.
+- [x] **P4-10** — Wire `/sales/new` to real data: server-side product search (name / SKU / **barcode exact match → instant line add**), customer combobox, live price suggestion, **hard negative-stock block**, save → toast → print prompt.
+- [x] **P4-11** — Wire `/sales` list: server-side filtering, sorting, pagination from URL search params.
+- [x] **P4-12** — Wire `/sales/[id]`: real detail, permission-gated actions, cancel with reason + compensating entries, print, `wa.me` share.
+- [x] **P4-13** — PDF route `/api/invoices/[id]/pdf` (A4, `@react-pdf/renderer`, Arabic font embedded — verify Arabic shaping renders correctly, this is a common failure point).
 
 **Exit:** a user logs in via tile+password, creates a real credit sale that correctly moves stock, cashbox, and customer balance in one transaction, sees it in the list, opens the detail, prints it at all three sizes, downloads the A4 PDF, and cancels it — with every step permission-checked and audit-logged.
 

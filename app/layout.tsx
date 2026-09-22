@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Providers } from "@/components/providers";
+import { auth } from "@/lib/auth";
 import type { RootLayoutProps } from "@/types";
 import "./globals.css";
 
@@ -24,12 +25,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: RootLayoutProps) {
   const messages = await getMessages();
+  const session = await auth();
 
   return (
     <html lang="ar" dir="rtl" className={ibmPlexSansArabic.variable} suppressHydrationWarning>
       <body>
         <NextIntlClientProvider locale="ar" messages={messages}>
-          <Providers>{children}</Providers>
+          <Providers session={session}>{children}</Providers>
         </NextIntlClientProvider>
       </body>
     </html>

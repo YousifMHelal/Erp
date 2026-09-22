@@ -16,14 +16,14 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 1 | Design system | DONE | Full token set, restyled primitives, Money/StatusBadge/Kbd, hotkeys, `/design-system` preview verified both themes × 4 widths. |
 | 2 | App shell & static UI | DONE | 22 screens; responsive/theme audit pass complete. |
 | 3 | Database schema | DONE | Schema, migration, and seed reconciled against Neon. |
-| 4 | Auth, permissions & sales slice | TODO | Proves the end-to-end pattern |
+| 4 | Auth, permissions & sales slice | DONE | Full vertical slice verified end-to-end against Neon + browser. |
 | 5 | Purchases, inventory & returns | TODO | |
 | 6 | Parties, cashboxes & money | TODO | |
 | 7 | Reports, notifications & audit | TODO | |
 | 8 | Polish, motion & edge cases | TODO | |
 | 9 | Testing | TODO | Final pass |
 
-**Overall: 48 / 96 tasks done.**
+**Overall: 61 / 96 tasks done.**
 
 ---
 
@@ -99,19 +99,19 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P4-1 | Permission catalogue | TODO | |
-| P4-2 | NextAuth credentials provider | TODO | |
-| P4-3 | `requireAuth` / `requirePermission` | TODO | |
-| P4-4 | Middleware protection | TODO | |
-| P4-5 | Wire login + `loginMode` flag | TODO | |
-| P4-6 | Audit + numbering libs | TODO | |
-| P4-7 | Domain libs (units, costing, pricing, stock) | TODO | |
-| P4-8 | Auth/product/sales Zod schemas | TODO | |
-| P4-9 | `sales.actions.ts` | TODO | |
-| P4-10 | Wire new-sale to real data | TODO | |
-| P4-11 | Wire sales list | TODO | |
-| P4-12 | Wire invoice detail + cancel | TODO | |
-| P4-13 | A4 PDF route | TODO | Verify Arabic shaping |
+| P4-1 | Permission catalogue | DONE | Shared catalogue now drives role matrix and seed; added missing transfer label. |
+| P4-2 | NextAuth credentials provider | DONE | Credentials + bcrypt, 12-hour JWT, session fields, login audit; auth endpoint smoke-tested. |
+| P4-3 | `requireAuth` / `requirePermission` | DONE | Reads live user/role for immediate deactivation and permission changes. |
+| P4-4 | Middleware protection | DONE | Anonymous app routes redirect to login; auth endpoint stays public. |
+| P4-5 | Wire login + `loginMode` flag | DONE | Login page now a Server Component reading real users; `tiles` and `username` modes; wrong password rejected, sign-in redirects to `callbackUrl`. User menu wired to session + real sign-out. |
+| P4-6 | Audit + numbering libs | DONE | Diff snapshots and transactional per-type counters. |
+| P4-7 | Domain libs (units, costing, pricing, stock) | DONE | Decimal-based helpers; pure checks passed. |
+| P4-8 | Auth/product/sales Zod schemas | DONE | Auth, product, sale, list, and Egyptian phone validation. |
+| P4-9 | `sales.actions.ts` | DONE | Create/edit/cancel/read plus form queries; serializable writes, audit and append-only ledgers. Rollback transaction checks passed. |
+| P4-10 | Wire new-sale to real data | DONE | Server-side product search (name/SKU/barcode), barcode exact-match instant add, live price suggestion, hard negative-stock block. Created a real invoice: stock −4, cash +38, audit row, one transaction. |
+| P4-11 | Wire sales list | DONE | Server-side filter/sort/paginate from URL search params (`lib/sales-filters.ts`), debounced search. Verified: unfiltered 3 pages, PAID 2, number search 1 row. |
+| P4-12 | Wire invoice detail + cancel | DONE | Real detail, permission-gated edit/cancel, cancel with mandatory reason. Verified exact ledger reversal (stock and cash returned to baseline) + `sale.cancel` audit. Edit flow verified: line history preserved via `isCurrent`. |
+| P4-13 | A4 PDF route | DONE | Authenticated sale PDF streamed; IBM TTF Arabic shaping checked visually. |
 
 ## Phase 5 — Purchases, inventory & returns
 
@@ -188,6 +188,28 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 ## Changelog
 
 *Newest first. One entry per meaningful change — task completions, decision reversals, blockers hit and cleared.*
+
+### 2026-09-22 (Phase 4 complete)
+- **Phase 4 complete (P4-5, P4-10, P4-11, P4-12).** Wired the four deferred UI tasks and verified the whole slice end-to-end against the seeded Neon database in a real browser: logged in by tile + password, created a sale, saw it in the list, opened the detail, edited it, printed it, and cancelled it — checking the database after each step.
+  - **P4-5.** `app/(auth)/login/page.tsx` is now a Server Component reading `getPublicLoginOptions()`; the sample-user array is gone. Added `actions/auth.actions.ts` (`signInWithCredentials` returning `ActionResult` so the Arabic error renders inline rather than throwing, plus `signOutAction`), `components/auth/login-flow.tsx`, and `components/auth/username-step.tsx` for the `loginMode = "username"` path the owner wanted before public deployment. `UserMenu` now shows the signed-in user and actually signs out. Verified: wrong password renders "اسم المستخدم أو كلمة المرور غير صحيحة" in a `role="alert"`; correct password lands on `/`.
+  - **P4-10.** `components/sales/sale-form.tsx` (one component serving both create and edit) + `sale-product-search.tsx`, which queries the server instead of filtering a static array. A scan resolving to a single `exactBarcodeMatch` adds the line without a click. Prices start from the catalogue and are corrected by `getSalePriceSuggestion`. A client-side stock block refuses to submit an over-stock line; `createSale` re-checks inside the transaction, which stays the real enforcement point.
+  - **P4-11.** List state lives in URL search params per the AGENTS.md convention: `lib/sales-filters.ts` maps params to the filter shape and back, the page is a Server Component calling `getSales`, and `components/sales/sales-list-view.tsx` pushes filter changes to the URL. Search is debounced through the new `hooks/use-debounced-callback.ts`; `DataTableToolbar` gained `defaultSearchValue` so an uncontrolled box does not fight the user's typing on each server re-render.
+  - **P4-12.** Detail page is a Server Component; edit/cancel buttons are gated on real permissions read from the session's role. Cancel requires a reason and reverses stock, cash, and party balance in one transaction.
+- **Bugs found and fixed while wiring:**
+  1. `InvoicePartyCard` linked every party to a hardcoded `/customers/1`. Added a real `partyId` to `InvoiceDetail`; the name renders as plain text for a walk-in sale with no party to link to.
+  2. `suggestSellPrice` searched all invoice lines including superseded ones, so editing an invoice could poison later price suggestions with a price that is no longer on any live invoice. Now filtered to `isCurrent: true`.
+  3. The invoice detail had a delete button that called a stubbed hard delete — forbidden by AGENTS.md §2.5. Removed; cancel is the only reversal path.
+  4. `/print/[id]` still rendered a hardcoded sample invoice, so the print dialog and the post-save print prompt both showed the wrong document. Added `getSalePrintData` and wired the route to it.
+  5. `router.refresh()` batched inside `startTransition` left a cancelled invoice still showing as active until a manual reload — the transition settled before the server re-render arrived. Moved out of the transition.
+  6. Lowering a quantity or price during an edit could pull the total below the already-recorded paid amount, which `updateSale` correctly rejects — but the form surfaced only the generic message. Paid now follows a shrinking total down, and field errors are surfaced ahead of the generic one.
+- **Verification.** A rollback harness against seeded Neon data confirmed posting moves stock/cash/customer balance together, reversal restores all three exactly, and an oversell is blocked. In the browser: invoice created (stock −4, cash +38, `sale.create` audit); cancelled (stock and cash returned to the exact baseline, compensating movement written, `sale.cancel` audit); edited (qty 24→20, total 762.50→724.50, stock +4 returned, old lines preserved as `isCurrent: false` history). `typecheck`, `lint`, and `next build` all pass clean.
+- **Not covered, carried forward:** permission gating was exercised only as مدير (admin) — a cashier-role pass belongs with P7-9 when the role matrix is wired. The two-theme / four-width audit for these four screens is not done; it is folded into the P8-8 sweep.
+
+### 2026-09-22 (Phase 4 in progress)
+- **Backend Phase 4 tasks complete (P4-6…P4-9, P4-13).** Added Decimal domain calculations, Zod schemas, audit and numbering helpers, sale create/edit/cancel/read actions, server product search and price suggestions, plus authenticated A4 PDF. Added `InvoiceLine.isCurrent` with a migration so edits retain old line records. A rollback transaction verified sale posting, reversal, edit, line history, and balance restoration against seeded Neon data without leaving an invoice behind. An authenticated PDF request returned 200; a rendered A4 page showed correctly shaped Arabic. Owner deferred P4-5/P4-10/P4-11/P4-12 UI wiring, so Phase 4 stays in progress.
+- **P4-1 complete.** Canonical `lib/permissions.ts` now supplies the role matrix and seed, including `cashbox.transfer`.
+- **P4-2…P4-4 complete.** Added Auth.js credentials provider, bcrypt verification, 12-hour JWT/session carrying identity and role permissions, audited login timestamp, database-backed auth guards, and coarse middleware redirect. Production build passed; `/api/auth/providers` returned 200 and anonymous `/` redirected to `/login` in runtime smoke tests. Typecheck and lint pass clean.
+- **P4-5 blocked.** The project's mandatory UI skills (`ui-ux-pro-max`, `frontend-design`) are unavailable in the installed skill directories. The login page remains the Phase 2 static preview until those skills are available.
 
 ### 2026-09-22 (Phase 3 complete)
 - **Phase 3 complete (P3-1…P3-6).** Full `prisma/schema.prisma` written — 20 models covering every entity in ARCHITECTURE.md §4.2, all FKs indexed, `@@unique([type, number])` on Invoice, `dedupeKey` unique on Notification. Two open questions resolved with the project owner ahead of P3-3 approval: no multi-warehouse, no VAT (both logged in MEMORY.md). Migrated against Neon (the project owner chose cloud Postgres over local Docker for this session — Docker Desktop wasn't running; `.env.example`/`docker-compose.yml` remain the local-dev fallback). `prisma/seed.ts` seeds a fully reconciled dataset (3 roles, 4 users, 3 cashboxes, 8 categories, 61 products, 20 customers, 10 suppliers, 28 purchases, 44 sales, 6 returns, 8 collections, 7 payments, 1 stocktake) and ends with a self-check that throws if any cashbox/customer/supplier/product balance doesn't equal its ledger sum — this caught two real bugs during the build: (1) the reconciliation formula itself double-counted the opening balance (both the `balance` column and an OPENING ledger row carried it — fixed to sum the ledger alone, since the OPENING row already includes it); (2) supplier `PartyTransaction` debit/credit were inverted (a purchase should debit — increase what we owe — and a payment should credit — decrease it — but both were backwards). Also fixed a fragile placeholder-refId-then-backfill pattern in the purchase/sale seed loops (StockMovement rows now get their real `invoiceId` at write time, after the invoice row exists, instead of via a same-transaction `updateMany` sweep). Added `bcryptjs` + `ts-node`, `db:migrate`/`db:seed`/`db:reset` npm scripts, and `package.json#prisma.seed` config. `typecheck`/`lint` clean; `npm run db:reset` verified to run clean from scratch.

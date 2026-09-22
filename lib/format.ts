@@ -117,3 +117,15 @@ export function formatMoneyInWords(value: Prisma.Decimal | string): string {
   if (fraction === 0) return wholeWords;
   return `${wholeWords} و${numberToArabicWords(fraction)} قرش`;
 }
+
+/**
+ * Formats a Date as the `yyyy-MM-dd` string the sales filters and date-only Zod
+ * schemas expect. Uses the local calendar date so a picker selection never shifts
+ * a day across the UTC boundary.
+ */
+export function toDateInputValue(date: Date | undefined): string | undefined {
+  if (!date || Number.isNaN(date.getTime())) return undefined;
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}

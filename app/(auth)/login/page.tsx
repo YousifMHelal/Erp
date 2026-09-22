@@ -1,21 +1,18 @@
-"use client";
-
-import { useState } from "react";
+import { getPublicLoginOptions } from "@/lib/login-options";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { LoginBrandPanel } from "@/components/auth/login-brand-panel";
-import { UserTileGrid } from "@/components/auth/user-tile-grid";
-import { PasswordStep } from "@/components/auth/password-step";
-import type { LoginUserTile } from "@/types";
+import { LoginFlow } from "@/components/auth/login-flow";
+import type { LoginPageProps } from "@/types";
 
-const SAMPLE_USERS: LoginUserTile[] = [
-  { id: "1", displayName: "أحمد سعيد", roleName: "مدير" },
-  { id: "2", displayName: "منى فتحي", roleName: "محاسب" },
-  { id: "3", displayName: "كريم عادل", roleName: "كاشير" },
-  { id: "4", displayName: "سارة حسن", roleName: "كاشير" },
-];
-
-export default function LoginPage() {
-  const [selectedUser, setSelectedUser] = useState<LoginUserTile | null>(null);
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const [{ mode, users }, params] = await Promise.all([
+    getPublicLoginOptions(),
+    searchParams,
+  ]);
+  const callbackUrl =
+    typeof params.callbackUrl === "string" && params.callbackUrl.startsWith("/")
+      ? params.callbackUrl
+      : "/";
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
@@ -24,11 +21,7 @@ export default function LoginPage() {
         <div className="absolute end-4 top-4">
           <ThemeToggle />
         </div>
-        {selectedUser ? (
-          <PasswordStep user={selectedUser} onBack={() => setSelectedUser(null)} />
-        ) : (
-          <UserTileGrid users={SAMPLE_USERS} onSelect={setSelectedUser} />
-        )}
+        <LoginFlow mode={mode} users={users} callbackUrl={callbackUrl} />
       </div>
     </div>
   );

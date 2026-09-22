@@ -323,8 +323,10 @@ model InvoiceLine {
   costPerSubAtSale Decimal @db.Decimal(14, 4)
 
   sortOrder Int @default(0)
+  isCurrent Boolean @default(true)
 
   @@index([invoiceId])
+  @@index([invoiceId, isCurrent])
   @@index([productId])
 }
 

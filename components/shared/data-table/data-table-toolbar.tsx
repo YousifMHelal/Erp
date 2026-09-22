@@ -7,6 +7,7 @@ import type { DataTableToolbarProps } from "@/types";
 
 export function DataTableToolbar({
   searchValue,
+  defaultSearchValue,
   onSearchChange,
   searchPlaceholder,
   filters,
@@ -22,7 +23,9 @@ export function DataTableToolbar({
         {hasSearch && (
           <InputGroup className="max-w-xs">
             <InputGroupInput
-              value={searchValue}
+              {...(defaultSearchValue === undefined
+                ? { value: searchValue }
+                : { defaultValue: defaultSearchValue })}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={searchPlaceholder ?? t("search")}
               aria-label={t("search")}
