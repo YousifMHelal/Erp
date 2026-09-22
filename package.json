@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
+    "db:reconcile": "ts-node --project tsconfig.scripts.json scripts/reconcile-ledgers.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
 import { Money } from "@/components/shared/money";
+import { decimal } from "@/lib/money";
+import { transferCashSchema } from "@/lib/validations";
 import type { TransferCashDialogProps } from "@/types";
 
 export function TransferCashDialog({ open, onOpenChange, cashboxes, onConfirm }: TransferCashDialogProps) {
@@ -15,14 +17,15 @@ export function TransferCashDialog({ open, onOpenChange, cashboxes, onConfirm }:
   const tCommon = useTranslations("common");
   const [fromCashboxId, setFromCashboxId] = useState<string | undefined>(undefined);
   const [toCashboxId, setToCashboxId] = useState<string | undefined>(undefined);
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | undefined>(undefined);
+  const [pending, setPending] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setFromCashboxId(undefined);
       setToCashboxId(undefined);
-      setAmount(0);
+      setAmount("");
       setError(undefined);
     }
   }, [open]);
@@ -31,29 +34,21 @@ export function TransferCashDialog({ open, onOpenChange, cashboxes, onConfirm }:
   const fromOptions = cashboxes.map((c) => ({ value: c.id, label: c.name }));
   const toOptions = cashboxes.filter((c) => c.id !== fromCashboxId).map((c) => ({ value: c.id, label: c.name }));
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    if (!fromCashboxId || !toCashboxId || amount <= 0) {
-      setError(t("errorRequired"));
-      return;
-    }
-    if (fromCashboxId === toCashboxId) {
-      setError(t("errorSameCashbox"));
-      return;
-    }
-    if (amount <= 0) {
-      setError(t("errorAmountPositive"));
-      return;
-    }
-    if (fromCashbox && amount > Number(fromCashbox.balance)) {
+    const parsed = transferCashSchema.safeParse({ fromCashboxId, toCashboxId, amount });
+    if (!parsed.success) return setError(parsed.error.issues[0]?.message ?? t("errorRequired"));
+    if (fromCashbox && decimal(amount).gt(fromCashbox.balance)) {
       setError(t("errorInsufficientBalance"));
       return;
     }
-
     setError(undefined);
-    onConfirm({ fromCashboxId, toCashboxId, amount });
-    onOpenChange(false);
+    setPending(true);
+    try {
+      if (await onConfirm(parsed.data)) onOpenChange(false);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -100,7 +95,7 @@ export function TransferCashDialog({ open, onOpenChange, cashboxes, onConfirm }:
               min={0}
               step="any"
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="٠٫٠٠"
               className="text-end tabular-nums"
             />
@@ -110,7 +105,7 @@ export function TransferCashDialog({ open, onOpenChange, cashboxes, onConfirm }:
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" variant="accent">
+            <Button type="submit" variant="accent" disabled={pending}>
               {t("confirmAction")}
             </Button>
           </DialogFooter>

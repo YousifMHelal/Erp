@@ -76,6 +76,7 @@
 | 2026-09-22 | **Inventory grid stays client-side-filtered over the full product list** (as Phase 2 built it) rather than converted to URL-driven server pagination like the invoice lists. | A single shop's catalogue (tens to low hundreds of products) loads and filters instantly client-side; the URL-driven pattern exists for invoice lists specifically because those grow unbounded over time. Revisit only if a shop's catalogue size becomes a real problem. |
 | 2026-09-22 | **Product price history has no dedicated table — it's derived from `AuditLog` rows** where `action = "product.edit"`, diffing `beforeJson`/`afterJson` for `sellPricePerBase`/`purchasePricePerBase`. | `writeAudit` already stores only the changed fields on every product edit; a separate `PriceHistory` table would duplicate data the audit log already captures durably. |
 | 2026-09-22 | **Stocktake has no draft-save path.** Confirming directly creates the `Stocktake` row as `CONFIRMED` and posts all `StockMovement` adjustments in one transaction; the static form's "save as draft" button was removed rather than wired to a stub. | `StocktakeStatus.DRAFT` exists in the schema for future use, but no task in BUILD_PLAN specified what a saved draft should do (resume later? lock counted lines?) and inventing that behavior wasn't asked for. A button that silently did nothing would mislead users worse than not having it. |
+| 2026-09-22 | **No customer credit limit in v1.** | The owner chose no limit at P6-1; the party schema and sale posting therefore gain no limit field, warning, or block. |
 
 ## Open questions / to revisit
 
@@ -83,7 +84,7 @@
 |---|----------|----------------|----------------|
 | 1 | ~~Does the shop need **multi-warehouse**~~ — **Resolved 2026-09-22: no**, see Locked decisions. | — | Decided |
 | 2 | ~~Should the **cashbox-to-cashbox transfer** exist~~ — **Resolved 2026-09-21**, see Locked decisions. | — | Decided |
-| 3 | Is a **customer credit limit** (Sahl's أعلى دين مسموح) wanted? | Would add a field plus a block or warning in the sale action. | Before P6-1 |
+  | 3 | ~~Customer credit limit~~ — **Resolved 2026-09-22: no credit limit**. | — | Decided |
 | 4 | ~~**Tax / VAT**~~ — **Resolved 2026-09-22: no**, see Locked decisions. | — | Decided |
 | 5 | Who **hosts Postgres** when this moves to Vercel — Neon, Supabase, or something else? | Affects connection pooling and whether Prisma needs an adapter. | Before deployment |
 | 6 | Should **per-user permission overrides** be added on top of roles? | Deferred from v1. | After Phase 7 |

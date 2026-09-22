@@ -1024,35 +1024,38 @@ export type StocktakeDetailPageProps = {
 
 export type PartyType = "CUSTOMER" | "SUPPLIER";
 
-export type PartyListRow = {
+  export type PartyListRow = {
   id: string;
   name: string;
   phone?: string;
   balance: string;
-  isActive: boolean;
-};
+    isActive: boolean;
+  };
 
-export type PartyFormDialogProps = {
-  partyType: PartyType;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  party?: PartyListRow & {
+  export type PartyRecord = PartyListRow & {
     address?: string;
-    openingBalance?: string;
+    openingBalance: string;
     notes?: string;
   };
-  onSave?: (party: {
+  export type PartyFormValues = {
     name: string;
     phone: string;
     address: string;
     openingBalance: string;
     notes: string;
-  }) => void;
+  };
+
+export type PartyFormDialogProps = {
+  partyType: PartyType;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+    party?: PartyRecord;
+    onSave: (party: PartyFormValues) => Promise<boolean>;
 };
 
 export type PartyListProps = {
   partyType: PartyType;
-  parties: PartyListRow[];
+    parties: PartyRecord[];
 };
 
 export type PartyRowActionsProps = {
@@ -1074,7 +1077,7 @@ export type BalanceBadgeProps = {
   balance: string;
 };
 
-export type PartyDetail = {
+  export type PartyDetail = {
   id: string;
   name: string;
   phone?: string;
@@ -1083,8 +1086,20 @@ export type PartyDetail = {
   openingBalance: string;
   totalInvoiced: string;
   notes?: string;
-  createdAt: string;
-};
+    createdAt: string;
+    isActive: boolean;
+  };
+  export type PartyDetailData = {
+    party: PartyDetail;
+    invoices: PartyInvoiceRow[];
+    payments: PartyPaymentRow[];
+    statement: StatementLine[];
+  };
+  export type PartyDetailPageProps = { params: Promise<{ id: string }> };
+  export type StatementPrintPageProps = {
+    params: Promise<{ partyType: string; id: string }>;
+    searchParams: Promise<{ size?: string }>;
+  };
 
 export type PartyInvoiceRow = {
   id: string;
@@ -1103,14 +1118,24 @@ export type PartyPaymentRow = {
   occurredAt: string;
 };
 
-export type StatementLine = {
+  export type StatementLine = {
   id: string;
   date: string;
   description: string;
   debit: string;
   credit: string;
-  balanceAfter: string;
-};
+    balanceAfter: string;
+  };
+  export type PartyStatementEntry = {
+    id: string;
+    date: string;
+    type: "OPENING" | "INVOICE" | "PAYMENT" | "RETURN";
+    debit: string;
+    credit: string;
+    invoiceNumber?: number;
+    referenceNumber?: number;
+    referenceType?: "COLLECTION" | "PAYMENT";
+  };
 
 export type PartyDetailViewProps = {
   partyType: PartyType;
@@ -1120,10 +1145,11 @@ export type PartyDetailViewProps = {
   statement: StatementLine[];
 };
 
-export type PartySummaryCardProps = {
-  party: PartyDetail;
-  partyType: PartyType;
-  onEdit: () => void;
+  export type PartySummaryCardProps = {
+    party: PartyDetail;
+    partyType: PartyType;
+    statement: StatementLine[];
+    onEdit: () => void;
   onDelete: () => void;
 };
 
@@ -1165,11 +1191,12 @@ export type CashMovementType =
 export type CashMovementRefType =
   "SALE" | "PURCHASE" | "COLLECTION" | "PAYMENT";
 
-export type CashMovementRow = {
-  id: string;
-  cashboxName: string;
-  type: CashMovementType;
-  amount: number;
+  export type CashMovementRow = {
+    id: string;
+    cashboxId: string;
+    cashboxName: string;
+    type: CashMovementType;
+    amount: string;
   balanceAfter: string;
   partyName?: string;
   refLabel: string;
@@ -1200,16 +1227,16 @@ export type CashboxesViewProps = {
   movements: CashMovementRow[];
 };
 
-export type TransferCashDialogProps = {
+  export type TransferCashDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   cashboxes: CashboxSummary[];
-  onConfirm: (input: {
-    fromCashboxId: string;
-    toCashboxId: string;
-    amount: number;
-  }) => void;
-};
+    onConfirm: (input: {
+      fromCashboxId: string;
+      toCashboxId: string;
+      amount: string;
+    }) => Promise<boolean>;
+  };
 
 // --- Collections/payments (P2-17) ---
 
@@ -1233,8 +1260,15 @@ export type MoneyDocumentListProps = {
 export type MoneyDocumentRowActionsProps = {
   documentType: MoneyDocumentType;
   document: MoneyDocumentRow;
-  onEdit: (document: MoneyDocumentRow) => void;
-  onDelete: (document: MoneyDocumentRow) => void;
+  onCancel: (document: MoneyDocumentRow) => void;
+};
+export type MoneyDocumentMobileCardProps = MoneyDocumentRowActionsProps;
+export type CancelMoneyDocumentDialogProps = {
+  documentType: MoneyDocumentType;
+  document?: MoneyDocumentRow;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (reason: string) => Promise<void>;
+  isPending: boolean;
 };
 
 export type MoneyDocumentEditDialogProps = {
@@ -1249,7 +1283,7 @@ export type PartyBalancePreviewProps = {
   documentType: MoneyDocumentType;
   partyName: string;
   currentBalance: string;
-  amount: number;
+  amount: string;
 };
 
 export type PartyWithBalanceOption = EntityComboboxOption & { balance: string };

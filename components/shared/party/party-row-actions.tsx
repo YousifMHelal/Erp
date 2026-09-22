@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Archive, MoreHorizontal, Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import type { PartyRowActionsProps } from "@/types";
 
 export function PartyRowActions({ party, onEdit, onDelete }: PartyRowActionsProps) {
   const t = useTranslations("common");
+  const tParties = useTranslations("parties");
 
   return (
     <DropdownMenu>
@@ -35,7 +36,7 @@ export function PartyRowActions({ party, onEdit, onDelete }: PartyRowActionsProp
           <Pencil /> {t("edit")}
         </DropdownMenuItem>
         <DropdownMenuItem variant="destructive" onClick={() => onDelete(party)}>
-          <Trash2 /> {t("delete")}
+          <Archive /> {tParties("archive")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

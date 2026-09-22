@@ -131,14 +131,14 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P6-1 | Customer/supplier schemas + actions | TODO | |
-| P6-2 | Wire party lists | TODO | |
-| P6-3 | Wire party detail + statement | TODO | |
-| P6-4 | Cashbox actions + wiring | TODO | |
-| P6-5 | Collections action | TODO | |
-| P6-6 | Payments action | TODO | |
-| P6-7 | Wire collection/payment screens | TODO | |
-| P6-8 | Reconciliation check | TODO | |
+| P6-1 | Customer/supplier schemas + actions | DONE | Create/edit/list/archive actions; opening balance creates an `OPENING` ledger row atomically. No credit limit, per owner decision. |
+| P6-2 | Wire party lists | DONE | Lists and form/archive controls now call Server Actions; no client-generated records. |
+| P6-3 | Wire party detail + statement | DONE | Real invoices/payments/ledger; running balance, A4/A5 print route, WhatsApp summary. |
+| P6-4 | Cashbox actions + wiring | DONE | Aggregate/per-box balances and real movements; atomic linked cashbox transfers. |
+| P6-5 | Collections action | DONE | Cashbox ↑ and customer balance ↓ with both ledger rows + audit in one transaction; cancellation reverses. |
+| P6-6 | Payments action | DONE | Cashbox ↓ and supplier balance ↓ with both ledger rows + audit in one transaction; cancellation reverses. |
+| P6-7 | Wire collection/payment screens | DONE | Forms have live balance preview; list screens use real rows and cancel/reverse flow. |
+| P6-8 | Reconciliation check | DONE | `npm run db:reconcile`: 3 cashboxes, 20 customers, 10 suppliers reconciled. |
 
 ## Phase 7 — Reports, notifications & audit
 
@@ -188,6 +188,10 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 ## Changelog
 
 *Newest first. One entry per meaningful change — task completions, decision reversals, blockers hit and cleared.*
+
+### 2026-09-22 (Phase 6 complete)
+- **Phase 6 complete (P6-1…P6-8).** Party lists/profiles, statements, cashboxes, transfers, collections, and supplier payments now run against Prisma. Financial documents cancel by compensating cash and party ledger rows; no hard deletes or amount edits. `npm run db:reconcile` passed for all 3 cashboxes, 20 customers, and 10 suppliers. Typecheck and lint pass.
+- **P6-1 complete.** Added shared party validation and customer/supplier Server Actions for listing, creating, editing, and archiving. Creation writes the opening ledger row and audit entry in the same transaction; edits leave the opening balance immutable; archive keeps history and requires a zero balance. The owner resolved the credit-limit question: no credit limit in v1.
 
 ### 2026-09-22 (Phase 5 complete)
 - **Phase 5 complete (P5-1…P5-9).** Purchases, inventory, returns, and stocktake all wired end-to-end against Prisma, copying the Phase 4 sales pattern. `typecheck`/`lint` clean; `next build` not run this session (Prisma's query-engine DLL was locked by another process and couldn't be released).

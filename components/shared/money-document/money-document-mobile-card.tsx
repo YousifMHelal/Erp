@@ -3,16 +3,9 @@ import { Money } from "@/components/shared/money";
 import { MoneyDocumentRowActions } from "@/components/shared/money-document/money-document-row-actions";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { MoneyDocumentRow, MoneyDocumentType } from "@/types";
+import type { MoneyDocumentMobileCardProps } from "@/types";
 
-export type MoneyDocumentMobileCardProps = {
-  document: MoneyDocumentRow;
-  documentType: MoneyDocumentType;
-  onEdit: (document: MoneyDocumentRow) => void;
-  onDelete: (document: MoneyDocumentRow) => void;
-};
-
-export function MoneyDocumentMobileCard({ document, documentType, onEdit, onDelete }: MoneyDocumentMobileCardProps) {
+export function MoneyDocumentMobileCard({ document, documentType, onCancel }: MoneyDocumentMobileCardProps) {
   return (
     <Card className={document.status === "CANCELLED" ? "opacity-60" : undefined}>
       <CardContent className="flex flex-col gap-2">
@@ -22,7 +15,7 @@ export function MoneyDocumentMobileCard({ document, documentType, onEdit, onDele
           </span>
           <div className="flex items-center gap-1">
             <Money value={document.amount} className="font-medium" />
-            <MoneyDocumentRowActions documentType={documentType} document={document} onEdit={onEdit} onDelete={onDelete} />
+            <MoneyDocumentRowActions documentType={documentType} document={document} onCancel={onCancel} />
           </div>
         </div>
         <span className="text-body-sm text-muted-foreground">{document.partyName}</span>

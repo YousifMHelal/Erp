@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { createPartySchema, updatePartySchema } from "@/lib/validations";
 import type { PartyFormDialogProps } from "@/types";
 
 export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }: PartyFormDialogProps) {
@@ -22,6 +23,7 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
   const [address, setAddress] = useState(party?.address ?? "");
   const [openingBalance, setOpeningBalance] = useState(party?.openingBalance ?? "0");
   const [notes, setNotes] = useState(party?.notes ?? "");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -34,16 +36,20 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
 
   const titleKey = isEdit ? (partyType === "CUSTOMER" ? "editCustomerTitle" : "editSupplierTitle") : partyType === "CUSTOMER" ? "createCustomerTitle" : "createSupplierTitle";
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error(t("errorRequired"));
-      return;
+    const values = { name, phone, address, openingBalance, notes };
+    const parsed = isEdit ? updatePartySchema.safeParse(values) : createPartySchema.safeParse(values);
+    if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? t("errorRequired"));
+    setSaving(true);
+    try {
+      if (await onSave(values)) {
+        toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
+        onOpenChange(false);
+      }
+    } finally {
+      setSaving(false);
     }
-    onSave?.({ name: name.trim(), phone, address, openingBalance, notes });
-    toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
-    onOpenChange(false);
-    // P6-1 wires this to the real customers.actions.ts/suppliers.actions.ts.
   }
 
   const title = t(titleKey);
@@ -96,13 +102,13 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
-          <Button type="submit" variant="accent">
+          <Button type="submit" variant="accent" disabled={saving}>
             {t("save")}
           </Button>
         </DialogFooter>
       ) : (
         <SheetFooter>
-          <Button type="submit" variant="accent">
+          <Button type="submit" variant="accent" disabled={saving}>
             {t("save")}
           </Button>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

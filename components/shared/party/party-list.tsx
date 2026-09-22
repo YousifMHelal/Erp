@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -10,24 +11,30 @@ import { DataTableToolbar } from "@/components/shared/data-table/data-table-tool
 import { DataTableDensityToggle } from "@/components/shared/data-table/data-table-density-toggle";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PartyFormDialog } from "@/components/shared/party/party-form-dialog";
 import { PartyMobileCard } from "@/components/shared/party/party-mobile-card";
 import { usePartyColumns } from "@/components/shared/party/party-columns";
-import type { PartyListRow, PartyListProps } from "@/types";
+import { decimal } from "@/lib/money";
+import { createCustomer, updateCustomer, archiveCustomer } from "@/actions/customers.actions";
+import { createSupplier, updateSupplier, archiveSupplier } from "@/actions/suppliers.actions";
+import type { PartyFormValues, PartyListRow, PartyListProps, PartyRecord } from "@/types";
 
 const PAGE_SIZE = 10;
 
-export function PartyList({ partyType, parties: initialParties }: PartyListProps) {
+export function PartyList({ partyType, parties }: PartyListProps) {
   const t = useTranslations("parties");
-  const [parties, setParties] = useState(initialParties);
+  const router = useRouter();
   const [search, setSearch] = useState("");
+  const [balanceFilter, setBalanceFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingParty, setEditingParty] = useState<PartyListRow | undefined>(undefined);
+  const [editingParty, setEditingParty] = useState<PartyRecord | undefined>(undefined);
   const [deletingParty, setDeletingParty] = useState<PartyListRow | undefined>(undefined);
+  const [archiving, setArchiving] = useState(false);
 
   function handleEdit(party: PartyListRow) {
-    setEditingParty(party);
+    setEditingParty(parties.find((candidate) => candidate.id === party.id));
     setDialogOpen(true);
   }
 
@@ -36,37 +43,49 @@ export function PartyList({ partyType, parties: initialParties }: PartyListProps
     if (!open) setEditingParty(undefined);
   }
 
-  function handleSave(values: { name: string; phone: string; address: string; openingBalance: string; notes: string }) {
-    if (editingParty) {
-      setParties((prev) =>
-        prev.map((p) => (p.id === editingParty.id ? { ...p, name: values.name, phone: values.phone } : p)),
-      );
-    } else {
-      setParties((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), name: values.name, phone: values.phone, balance: values.openingBalance, isActive: true },
-      ]);
+  async function handleSave(values: PartyFormValues): Promise<boolean> {
+    const response = partyType === "CUSTOMER"
+      ? editingParty ? await updateCustomer(editingParty.id, values) : await createCustomer(values)
+      : editingParty ? await updateSupplier(editingParty.id, values) : await createSupplier(values);
+    if (!response.success) {
+      toast.error(response.error);
+      return false;
     }
+    router.refresh();
+    return true;
   }
 
   function handleDelete(party: PartyListRow) {
     setDeletingParty(party);
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deletingParty) return;
-    setParties((prev) => prev.filter((p) => p.id !== deletingParty.id));
-    toast.success(t("deleteSuccess"));
-    setDeletingParty(undefined);
-    // P6-1 wires this to the real customers.actions.ts/suppliers.actions.ts,
-    // which should block/warn on deleting a party with a non-zero balance or existing transaction history.
+    setArchiving(true);
+    try {
+      const response = partyType === "CUSTOMER"
+        ? await archiveCustomer(deletingParty.id)
+        : await archiveSupplier(deletingParty.id);
+      if (!response.success) return toast.error(response.error);
+      toast.success(t("deleteSuccess"));
+      setDeletingParty(undefined);
+      router.refresh();
+    } finally {
+      setArchiving(false);
+    }
   }
 
   const columns = usePartyColumns(partyType, t, handleEdit, handleDelete);
 
   const filtered = useMemo(
-    () => parties.filter((p) => !search || p.name.includes(search) || (p.phone ?? "").includes(search)),
-    [parties, search],
+    () => parties.filter((party) => {
+      if (!party.isActive) return false;
+      if (search && !party.name.includes(search) && !(party.phone ?? "").includes(search)) return false;
+      if (balanceFilter === "outstanding") return !decimal(party.balance).isZero();
+      if (balanceFilter === "settled") return decimal(party.balance).isZero();
+      return true;
+    }),
+    [parties, search, balanceFilter],
   );
 
   const pageCount = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
@@ -108,6 +127,18 @@ export function PartyList({ partyType, parties: initialParties }: PartyListProps
               setPage(1);
             }}
             searchPlaceholder={searchPlaceholder}
+            filters={
+              <Select value={balanceFilter} onValueChange={(value) => { setBalanceFilter(value); setPage(1); }}>
+                <SelectTrigger className="min-w-36 max-md:min-h-11" aria-label={t("balanceFilterLabel")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("balanceFilterAll")}</SelectItem>
+                  <SelectItem value="outstanding">{t("balanceFilterOutstanding")}</SelectItem>
+                  <SelectItem value="settled">{t("balanceFilterSettled")}</SelectItem>
+                </SelectContent>
+              </Select>
+            }
             actions={
               <>
                 <DataTableDensityToggle />
@@ -134,6 +165,7 @@ export function PartyList({ partyType, parties: initialParties }: PartyListProps
         confirmLabel={t("deleteConfirm")}
         variant="destructive"
         onConfirm={confirmDelete}
+        isPending={archiving}
       />
     </div>
   );

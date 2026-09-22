@@ -1,20 +1,14 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { getCollections } from "@/actions/collections.actions";
 import { PageHeader } from "@/components/shared/page-header";
 import { MoneyDocumentList } from "@/components/shared/money-document/money-document-list";
-import type { MoneyDocumentRow } from "@/types";
-
-const COLLECTIONS: MoneyDocumentRow[] = [
-  { id: "1", number: 12, partyName: "بقالة النور", cashboxName: "نقدي", amount: "500.00", status: "CONFIRMED", occurredAt: "2026-09-15" },
-  { id: "2", number: 11, partyName: "سوبر ماركت الأمانة", cashboxName: "فودافون كاش", amount: "300.00", status: "CONFIRMED", occurredAt: "2026-08-30" },
-];
-
-export default function CollectionsListPage() {
-  const t = useTranslations("moneyDocuments.list");
+export default async function CollectionsListPage() {
+  const [t, collections] = await Promise.all([getTranslations("moneyDocuments.list"), getCollections()]);
 
   return (
     <>
       <PageHeader title={t("collectionsTitle")} breadcrumbs={[{ labelKey: "nav.collections" }]} />
-      <MoneyDocumentList documentType="COLLECTION" documents={COLLECTIONS} />
+      {collections.success ? <MoneyDocumentList documentType="COLLECTION" documents={collections.data} /> : <p role="alert">{collections.error}</p>}
     </>
   );
 }

@@ -300,6 +300,48 @@ export const confirmStocktakeSchema = z.object({
 
 export const stocktakeIdSchema = z.string().trim().min(1, v.required).max(80, v.long);
 
+export const partyIdSchema = z.string().trim().min(1, v.required).max(80, v.long);
+
+const partyFieldsSchema = z.object({
+  name: z.string().trim().min(2, v.short).max(200, v.long),
+  phone: egyptPhoneSchema.optional().or(z.literal("")),
+  address: z.string().trim().max(500, v.long).optional(),
+  notes: optionalNote,
+});
+
+export const createPartySchema = partyFieldsSchema.extend({
+  openingBalance: moneyText,
+});
+
+export const updatePartySchema = partyFieldsSchema;
+
+export const transferCashSchema = z.object({
+  fromCashboxId: partyIdSchema,
+  toCashboxId: partyIdSchema,
+  amount: positiveMoney,
+}).refine((transfer) => transfer.fromCashboxId !== transfer.toCashboxId, {
+  path: ["toCashboxId"], message: messages.cashboxes.transferDialog.errorSameCashbox,
+});
+
+export const createCollectionSchema = z.object({
+  customerId: partyIdSchema,
+  cashboxId: partyIdSchema,
+  amount: positiveMoney,
+  note: optionalNote,
+});
+
+export const createPaymentSchema = z.object({
+  supplierId: partyIdSchema,
+  cashboxId: partyIdSchema,
+  amount: positiveMoney,
+  note: optionalNote,
+});
+
+export const cancelMoneyDocumentSchema = z.object({
+  id: partyIdSchema,
+  reason: z.string().trim().min(3, v.short).max(500, v.long),
+});
+
 // Define every Zod schema here as each domain is implemented.
 
 /** Demo-only schema for the /design-system form anatomy preview. Delete at P8-11. */

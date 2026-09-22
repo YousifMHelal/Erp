@@ -64,7 +64,7 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
                   <RefLabel movement={movement} />
                 </TableCell>
                 <TableCell className="text-end">
-                  <Money value={String(movement.amount)} sign />
+                  <Money value={movement.amount} sign />
                 </TableCell>
                 <TableCell className="text-end font-medium tabular-nums">
                   <Money value={movement.balanceAfter} />
@@ -80,7 +80,7 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
           <div key={movement.id} className="flex flex-col gap-1.5 p-4">
             <div className="flex items-center justify-between">
               <span className="font-medium">{tType(movement.type)}</span>
-              <Money value={String(movement.amount)} sign className="font-medium" />
+              <Money value={movement.amount} sign className="font-medium" />
             </div>
             <div className="flex items-center justify-between text-body-sm text-muted-foreground">
               <span>{movement.cashboxName}</span>

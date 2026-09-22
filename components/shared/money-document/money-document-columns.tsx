@@ -10,8 +10,7 @@ import type { MoneyDocumentRow, MoneyDocumentType } from "@/types";
 export function useMoneyDocumentColumns(
   documentType: MoneyDocumentType,
   t: (key: string) => string,
-  onEdit: (document: MoneyDocumentRow) => void,
-  onDelete: (document: MoneyDocumentRow) => void,
+  onCancel: (document: MoneyDocumentRow) => void,
 ): ColumnDef<MoneyDocumentRow, unknown>[] {
   return [
     {
@@ -40,7 +39,7 @@ export function useMoneyDocumentColumns(
       header: t("columnActions"),
       enableSorting: false,
       cell: ({ row }) => (
-        <MoneyDocumentRowActions documentType={documentType} document={row.original} onEdit={onEdit} onDelete={onDelete} />
+        <MoneyDocumentRowActions documentType={documentType} document={row.original} onCancel={onCancel} />
       ),
     },
   ];

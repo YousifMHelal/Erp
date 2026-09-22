@@ -3,11 +3,12 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Money } from "@/components/shared/money";
 import { cn } from "@/lib/utils";
+import { decimal } from "@/lib/money";
 import type { CashboxSummaryStripProps } from "@/types";
 
 export function CashboxSummaryStrip({ cashboxes, selectedId, onSelectCashbox }: CashboxSummaryStripProps) {
   const t = useTranslations("cashboxes");
-  const total = cashboxes.reduce((sum, c) => sum + Number(c.balance), 0);
+  const total = cashboxes.reduce((sum, c) => sum.plus(c.balance), decimal(0));
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -23,7 +24,7 @@ export function CashboxSummaryStrip({ cashboxes, selectedId, onSelectCashbox }: 
               <Wallet className="size-4" aria-hidden="true" />
               {t("allCashboxes")}
             </span>
-            <Money value={String(total)} className="text-h2" />
+            <Money value={total.toString()} className="text-h2" />
           </CardContent>
         </Card>
       </button>

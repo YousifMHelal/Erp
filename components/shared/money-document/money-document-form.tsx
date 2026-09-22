@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,26 +11,42 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
 import { PartyBalancePreview } from "@/components/shared/money-document/party-balance-preview";
+import { createCollection } from "@/actions/collections.actions";
+import { createPayment } from "@/actions/payments.actions";
+import { createCollectionSchema, createPaymentSchema } from "@/lib/validations";
 import type { MoneyDocumentFormProps } from "@/types";
 
 export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions }: MoneyDocumentFormProps) {
   const t = useTranslations("moneyDocuments.form");
+  const router = useRouter();
   const [partyId, setPartyId] = useState<string | undefined>(undefined);
   const [cashboxId, setCashboxId] = useState<string | undefined>(cashboxOptions[0]?.value);
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const selectedParty = partyOptions.find((p) => p.value === partyId);
   const currentBalance = selectedParty?.balance ?? "0";
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!partyId || amount <= 0) {
-      toast.error(t("errorRequired"));
-      return;
+    const input = documentType === "COLLECTION"
+      ? { customerId: partyId, cashboxId, amount, note }
+      : { supplierId: partyId, cashboxId, amount, note };
+    const parsed = documentType === "COLLECTION"
+      ? createCollectionSchema.safeParse(input)
+      : createPaymentSchema.safeParse(input);
+    if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? t("errorRequired"));
+    setSaving(true);
+    try {
+      const result = documentType === "COLLECTION"
+        ? await createCollection(input) : await createPayment(input);
+      if (!result.success) return toast.error(result.error);
+    } finally {
+      setSaving(false);
     }
     toast.success(documentType === "COLLECTION" ? t("collectionSaved") : t("paymentSaved"));
-    // P6-5/P6-6 wires this to the real collections.actions.ts/payments.actions.ts.
+    router.push(documentType === "COLLECTION" ? "/collections" : "/payments");
   }
 
   const title = documentType === "COLLECTION" ? t("newCollectionTitle") : t("newPaymentTitle");
@@ -67,7 +84,7 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions }
               min={0}
               step="any"
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="٠٫٠٠"
               className="text-end tabular-nums"
             />
@@ -86,7 +103,7 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions }
           currentBalance={currentBalance}
           amount={amount}
         />
-        <Button type="submit" variant="accent" size="lg">
+        <Button type="submit" variant="accent" size="lg" disabled={saving}>
           {submitLabel}
         </Button>
       </div>

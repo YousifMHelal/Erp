@@ -13,7 +13,9 @@ import { CustomerInvoicesTab } from "@/components/shared/party/customer-invoices
 import { CustomerPaymentsTab } from "@/components/shared/party/customer-payments-tab";
 import { AccountStatementTab } from "@/components/shared/party/account-statement-tab";
 import { StatementPrintDialog } from "@/components/shared/party/statement-print-dialog";
-import type { PartyDetailViewProps } from "@/types";
+import { updateCustomer, archiveCustomer } from "@/actions/customers.actions";
+import { updateSupplier, archiveSupplier } from "@/actions/suppliers.actions";
+import type { PartyDetailViewProps, PartyFormValues } from "@/types";
 
 export function PartyDetailView({ partyType, party, invoices, payments, statement }: PartyDetailViewProps) {
   const t = useTranslations("parties.detail");
@@ -25,16 +27,29 @@ export function PartyDetailView({ partyType, party, invoices, payments, statemen
 
   function handlePrintSelect(size: "A4" | "A5") {
     setPrintOpen(false);
-    toast.success(t("printStarted", { size }));
-    // P6-3 wires this to the real statement print/PDF generation.
+    window.open(`/statements/${partyType.toLowerCase()}/${party.id}/print?size=${size}`, "_blank", "noopener,noreferrer");
   }
 
-  function handleDeleteConfirm() {
+  async function handleSave(values: PartyFormValues): Promise<boolean> {
+    const response = partyType === "CUSTOMER"
+      ? await updateCustomer(party.id, values)
+      : await updateSupplier(party.id, values);
+    if (!response.success) {
+      toast.error(response.error);
+      return false;
+    }
+    router.refresh();
+    return true;
+  }
+
+  async function handleDeleteConfirm() {
+    const response = partyType === "CUSTOMER"
+      ? await archiveCustomer(party.id)
+      : await archiveSupplier(party.id);
+    if (!response.success) return toast.error(response.error);
     setDeleteOpen(false);
     toast.success(tParties("deleteSuccess"));
     router.push(partyType === "CUSTOMER" ? "/customers" : "/suppliers");
-    // P6-1 wires this to the real customers.actions.ts/suppliers.actions.ts,
-    // which should block/warn on deleting a party with a non-zero balance or existing transaction history.
   }
 
   return (
@@ -42,6 +57,7 @@ export function PartyDetailView({ partyType, party, invoices, payments, statemen
       <PartySummaryCard
         party={party}
         partyType={partyType}
+        statement={statement}
         onEdit={() => setEditOpen(true)}
         onDelete={() => setDeleteOpen(true)}
       />
@@ -70,7 +86,8 @@ export function PartyDetailView({ partyType, party, invoices, payments, statemen
         partyType={partyType}
         open={editOpen}
         onOpenChange={setEditOpen}
-        party={{ ...party, isActive: true }}
+        party={party}
+        onSave={handleSave}
       />
       <ConfirmDialog
         open={deleteOpen}

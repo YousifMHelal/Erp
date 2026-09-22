@@ -138,14 +138,14 @@ Goal: the rest of the inventory-affecting flows, copying the Phase 4 pattern.
 
 ## Phase 6 — Parties, cashboxes & money movement
 
-- [ ] **P6-1** — Customer/supplier Zod schemas + `actions/customers.actions.ts`, `actions/suppliers.actions.ts` (CRUD, opening balance).
-- [ ] **P6-2** — Wire `/customers` and `/suppliers` lists with balance columns and filters.
-- [ ] **P6-3** — Wire `/customers/[id]` and `/suppliers/[id]`: invoices tab, payments tab, **running-balance account statement** from `PartyTransaction`, total purchases, statement print + `wa.me` share.
-- [ ] **P6-4** — `actions/cashboxes.actions.ts` + wire `/cashboxes`: aggregate balance by default, per-box on filter, movements with running balance.
-- [ ] **P6-5** — `actions/collections.actions.ts` (قبض): cashbox ↑, customer balance ↓, party transaction, audit — one transaction.
-- [ ] **P6-6** — `actions/payments.actions.ts` (صرف): cashbox ↓, supplier balance ↓, party transaction, audit.
-- [ ] **P6-7** — Wire both forms with live party-balance preview, and both list screens.
-- [ ] **P6-8** — **Reconciliation check:** write a script or test asserting that for every party and every cashbox, the stored balance equals `opening + Σ(ledger)`. Run it against the seeded data.
+- [x] **P6-1** — Customer/supplier Zod schemas + `actions/customers.actions.ts`, `actions/suppliers.actions.ts` (CRUD, opening balance).
+- [x] **P6-2** — Wire `/customers` and `/suppliers` lists with balance columns and filters.
+- [x] **P6-3** — Wire `/customers/[id]` and `/suppliers/[id]`: invoices tab, payments tab, **running-balance account statement** from `PartyTransaction`, total purchases, statement print + `wa.me` share.
+- [x] **P6-4** — `actions/cashboxes.actions.ts` + wire `/cashboxes`: aggregate balance by default, per-box on filter, movements with running balance.
+- [x] **P6-5** — `actions/collections.actions.ts` (قبض): cashbox ↑, customer balance ↓, party transaction, audit — one transaction.
+- [x] **P6-6** — `actions/payments.actions.ts` (صرف): cashbox ↓, supplier balance ↓, party transaction, audit.
+- [x] **P6-7** — Wire both forms with live party-balance preview, and both list screens.
+- [x] **P6-8** — **Reconciliation check:** write a script or test asserting that for every party and every cashbox, the stored balance equals `opening + Σ(ledger)`. Run it against the seeded data.
 
 **Exit:** money moves only through documented, party-linked transactions; every balance reconciles against its ledger; statements are printable and shareable.
 

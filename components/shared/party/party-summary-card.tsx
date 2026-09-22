@@ -1,16 +1,28 @@
-import { MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { Archive, MessageCircle, Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Money } from "@/components/shared/money";
 import { AppTooltip } from "@/components/shared/app-tooltip";
 import { BalanceBadge } from "@/components/shared/party/balance-badge";
+import { formatMoney } from "@/lib/format";
 import type { PartySummaryCardProps } from "@/types";
 
-export function PartySummaryCard({ party, partyType, onEdit, onDelete }: PartySummaryCardProps) {
+export function PartySummaryCard({ party, partyType, statement, onEdit, onDelete }: PartySummaryCardProps) {
   const t = useTranslations("parties.detail");
   const tCommon = useTranslations("common");
-  const whatsappText = encodeURIComponent(t("whatsappGreeting", { name: party.name }));
+  const tParties = useTranslations("parties");
+  function shareStatement() {
+    if (!party.phone) return;
+    const statementUrl = new URL(`/statements/${partyType.toLowerCase()}/${party.id}/print`, window.location.origin);
+    const text = [
+      t("whatsappGreeting", { name: party.name }),
+      `${t("currentBalance")}: ${formatMoney(party.balance)}`,
+      ...statement.slice(-10).map((line) => `${line.description}: ${formatMoney(line.balanceAfter)}`),
+      statementUrl.toString(),
+    ].join("\n");
+    window.open(`https://wa.me/2${party.phone}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  }
 
   return (
     <Card>
@@ -32,7 +44,7 @@ export function PartySummaryCard({ party, partyType, onEdit, onDelete }: PartySu
                 <Pencil />
               </Button>
             </AppTooltip>
-            <AppTooltip content={tCommon("delete")}>
+            <AppTooltip content={tParties("archive")}>
               <Button
                 type="button"
                 variant="outline"
@@ -40,7 +52,7 @@ export function PartySummaryCard({ party, partyType, onEdit, onDelete }: PartySu
                 className="max-md:min-h-11 max-md:min-w-11 text-destructive hover:text-destructive"
                 onClick={onDelete}
               >
-                <Trash2 />
+                <Archive />
               </Button>
             </AppTooltip>
           </div>
@@ -54,10 +66,8 @@ export function PartySummaryCard({ party, partyType, onEdit, onDelete }: PartySu
 
         {party.phone && (
           <div className="flex justify-end border-t border-border pt-3">
-            <Button asChild variant="outline" size="sm">
-              <a href={`https://wa.me/2${party.phone}?text=${whatsappText}`} target="_blank" rel="noopener noreferrer">
-                <MessageCircle /> {t("sendWhatsapp")}
-              </a>
+            <Button type="button" variant="outline" size="sm" onClick={shareStatement}>
+              <MessageCircle /> {t("sendWhatsapp")}
             </Button>
           </div>
         )}
