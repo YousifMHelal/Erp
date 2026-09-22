@@ -5,9 +5,31 @@ import {
   formatMoneyInWords,
   formatNumber,
 } from "@/lib/format";
-import type { PrintLayoutProps } from "@/types";
+import { DEFAULT_TOTALS_ROWS, resolveSystemFieldValue } from "@/lib/print-fields";
+import type { PrintFieldItem, PrintInvoiceData, PrintLayoutProps, PrintTotalsRowKey } from "@/types";
 
-export function PrintLayoutA4({ data }: PrintLayoutProps) {
+function resolveFieldValue(item: PrintFieldItem, data: PrintInvoiceData): string | undefined {
+  return item.source.kind === "system" ? resolveSystemFieldValue(item.source.fieldKey, data) : item.source.value;
+}
+
+function resolveTotalsRowValue(key: PrintTotalsRowKey, data: PrintInvoiceData): string | undefined {
+  switch (key) {
+    case "total":
+      return formatMoney(data.total);
+    case "discount":
+      return Number(data.discountAmount) > 0 ? `-${formatMoney(data.discountAmount)}` : undefined;
+    case "previousBalance":
+      return data.previousBalance !== undefined ? formatMoney(data.previousBalance) : undefined;
+    case "paid":
+      return formatMoney(data.paidAmount);
+    case "remaining":
+      return formatMoney(data.currentBalance ?? data.remainingAmount);
+    default:
+      return undefined;
+  }
+}
+
+export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProps) {
   const t = useTranslations("print");
 
   return (
@@ -35,78 +57,100 @@ export function PrintLayoutA4({ data }: PrintLayoutProps) {
       </header>
 
       {/* =========================================================
-          LOGO + CUSTOMER + INVOICE INFO
+          LOGO + CUSTOMER + INVOICE INFO — 3 columns, RTL order:
+          col 1 (right) invoice meta, col 2 (middle) customer, col 3 (left) logo
       ========================================================== */}
-      <section className="relative h-[40.5mm]">
-        {/* Logo */}
-        {data.shop.logoDataUrl && (
-          <div
-            className="absolute top-[4mm] left-[3mm] flex h-[29mm] w-[64mm] items-center justify-start"
-            dir="ltr"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+      <section
+        className="flex h-[36mm] items-start justify-between px-[5mm] pt-[5.5mm]"
+        dir="rtl"
+      >
+        {/* Col 1: invoice meta + staff phones, or the configured field list */}
+        <div className="w-[54mm] text-[16px] leading-[1.45]">
+          {infoColumns ? (
+            <ConfiguredFieldColumn items={infoColumns.col1} data={data} />
+          ) : (
+            <>
+              <InfoRow label={t("number")} value={String(data.number)} />
+
+              <InfoRow label={t("date")} value={formatDate(data.issuedAt)} />
+
+              <div className="mt-[1mm] space-y-[0.5mm]">
+                {data.staffContacts?.map((staff, index) => (
+                  <div
+                    key={index}
+                    className="flex items-baseline justify-end text-[15.5px] whitespace-nowrap"
+                    dir="rtl"
+                  >
+                    <span className="font-bold">أ/{staff.name}</span>
+
+                    <span className="mx-[1.2mm]">:</span>
+
+                    <span dir="ltr" className="font-medium">
+                      {staff.phone}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Col 2: customer name, phone, address, company name, shop address, or the configured field list */}
+        <div className="w-[55mm] text-[16px] leading-[1.5]">
+          {infoColumns ? (
+            <>
+              <div className="mb-[1mm] text-right text-[18px] font-bold">
+                {data.partyLabel}
+              </div>
+              <ConfiguredFieldColumn items={infoColumns.col2} data={data} />
+            </>
+          ) : (
+            <>
+              <div className="mb-[1mm] text-right text-[18px] font-bold">
+                {data.partyLabel}
+              </div>
+
+              <div className="text-right">
+                {data.partyCompanyName && (
+                  <div className="whitespace-nowrap">
+                    أ/ {data.partyCompanyName}
+                  </div>
+                )}
+
+                <div className="whitespace-nowrap">{data.partyName}</div>
+
+                {data.partyPhone && (
+                  <div className="whitespace-nowrap" dir="ltr">
+                    {data.partyPhone}
+                  </div>
+                )}
+
+                {data.partyAddress && (
+                  <div className="whitespace-nowrap">{data.partyAddress}</div>
+                )}
+              </div>
+
+              <div className="mt-[1mm] text-right text-[15.5px] whitespace-nowrap">
+                <span className="font-bold">{t("shopAddress")} :</span>{" "}
+                <span className="font-medium">{data.shop.address}</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Col 3: logo only */}
+        <div
+          className="flex h-[29mm] w-[64mm] items-center justify-start"
+          dir="ltr"
+        >
+          {data.shop.logoDataUrl && (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={data.shop.logoDataUrl}
               alt={data.shop.name}
               className="max-h-full max-w-full object-contain object-left"
             />
-          </div>
-        )}
-
-        {/* Customer */}
-        <div className="absolute top-[5.5mm] left-[67mm] w-[55mm] text-[16px] leading-[1.5]">
-          <div className="mb-[1mm] text-center text-[18px] font-bold">
-            {data.partyLabel}
-          </div>
-
-          <div className="text-right">
-            {data.partyCompanyName && (
-              <div className="whitespace-nowrap">
-                أ/ {data.partyCompanyName}
-              </div>
-            )}
-
-            <div className="whitespace-nowrap">{data.partyName}</div>
-
-            {data.partyAddress && (
-              <div className="whitespace-nowrap">{data.partyAddress}</div>
-            )}
-          </div>
-        </div>
-
-        {/* Invoice meta */}
-        <div className="absolute top-[5.5mm] right-[5mm] w-[54mm] text-[16px] leading-[1.45]">
-          <InfoRow label={t("number")} value={String(data.number)} />
-
-          <InfoRow label={t("date")} value={formatDate(data.issuedAt)} />
-
-          {data.issuedTime && (
-            <InfoRow label={t("time")} value={data.issuedTime} />
           )}
-
-          <div className="mt-[1mm] space-y-[0.5mm]">
-            {data.staffContacts?.map((staff, index) => (
-              <div
-                key={index}
-                className="flex items-baseline justify-end text-[15.5px] whitespace-nowrap"
-                dir="rtl"
-              >
-                <span className="font-bold">أ/{staff.name}</span>
-
-                <span className="mx-[1.2mm]">:</span>
-
-                <span dir="ltr" className="font-medium">
-                  {staff.phone}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Shop address */}
-        <div className="absolute bottom-[1.3mm] left-[57mm] w-[69mm] text-right text-[15.5px] whitespace-nowrap">
-          <span className="font-bold">{t("shopAddress")} :</span>{" "}
-          <span className="font-medium">{data.shop.address}</span>
         </div>
       </section>
 
@@ -216,32 +260,25 @@ export function PrintLayoutA4({ data }: PrintLayoutProps) {
       <section className="relative mx-[1.5mm] h-[36mm] w-[207mm]">
         {/* LEFT TOTALS */}
         <div className="absolute top-0 left-0 w-[61mm]" dir="ltr">
-          <TotalsRow label={t("total")} value={formatMoney(data.total)} first />
+          {(() => {
+            const rows = totalsRows ?? DEFAULT_TOTALS_ROWS;
+            const visibleRows = rows
+              .filter((row) => row.visible)
+              .map((row) => ({ ...row, value: resolveTotalsRowValue(row.key, data) }))
+              .filter((row): row is (typeof rows)[number] & { value: string } => row.value !== undefined);
 
-          {Number(data.discountAmount) > 0 && (
-            <TotalsRow
-              label={t("discount")}
-              value={`-${formatMoney(data.discountAmount)}`}
-            />
-          )}
-
-          {data.previousBalance !== undefined && (
-            <TotalsRow
-              label={t("previousBalance")}
-              value={formatMoney(data.previousBalance)}
-            />
-          )}
-
-          <TotalsRow label={t("paid")} value={formatMoney(data.paidAmount)} />
-
-          <TotalsRow
-            label={
-              data.currentBalance !== undefined
-                ? t("currentBalance")
-                : t("remaining")
-            }
-            value={formatMoney(data.currentBalance ?? data.remainingAmount)}
-          />
+            return visibleRows.map((row, index) => {
+              const defaultLabel = row.key === "remaining" && data.currentBalance !== undefined ? t("currentBalance") : t(row.key);
+              return (
+                <TotalsRow
+                  key={row.key}
+                  label={row.label.trim() || defaultLabel}
+                  value={row.value}
+                  first={index === 0}
+                />
+              );
+            });
+          })()}
         </div>
 
         {/* AMOUNT IN WORDS */}
@@ -250,7 +287,7 @@ export function PrintLayoutA4({ data }: PrintLayoutProps) {
           dir="rtl"
         >
           <span className="font-medium">{t("amountInWords")} :</span>{" "}
-          <span className="font-medium underline decoration-[1px] underline-offset-[2px]">
+          <span className="font-bold font-medium underline decoration-[1px] underline-offset-[2px]">
             {formatMoneyInWords(data.total)}
           </span>
         </div>
@@ -271,7 +308,7 @@ export function PrintLayoutA4({ data }: PrintLayoutProps) {
       {/* Reference image has no footer.
           This will appear only if invoiceFooter exists. */}
       {data.shop.invoiceFooter && (
-        <footer className="mx-[1.5mm] border-t border-black px-[4mm] py-[2mm] text-center text-[12px]">
+        <footer className="mx-[1.5mm] mt-2 border-t border-black px-[4mm] py-[2mm] text-center text-[12px]">
           {data.shop.invoiceFooter}
         </footer>
       )}
@@ -286,14 +323,27 @@ export function PrintLayoutA4({ data }: PrintLayoutProps) {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="flex h-[7mm] items-center justify-between whitespace-nowrap"
+      className="flex h-[7mm] items-center justify-start gap-[2mm] whitespace-nowrap"
       dir="rtl"
     >
-      <span className="font-bold">{label}</span>
+      {label && <span className="font-bold">{label + " :"}</span>}
 
       <span className="font-medium" dir="ltr">
         {value}
       </span>
+    </div>
+  );
+}
+
+/** Renders a settings-configured field list, skipping any row whose resolved value is empty. */
+function ConfiguredFieldColumn({ items, data }: { items: PrintFieldItem[]; data: PrintInvoiceData }) {
+  return (
+    <div className="space-y-[0.5mm]">
+      {items.map((item) => {
+        const value = resolveFieldValue(item, data);
+        if (!value) return null;
+        return <InfoRow key={item.id} label={item.label} value={value} />;
+      })}
     </div>
   );
 }
@@ -328,10 +378,7 @@ function TotalsRow({
         {value}
       </div>
 
-      <div
-        dir="rtl"
-        className="flex items-center px-[1.5mm] text-right text-[18px] font-bold whitespace-nowrap"
-      >
+      <div className="flex items-center justify-start px-[1.5mm] text-[18px] font-bold whitespace-nowrap">
         {label}
       </div>
     </div>

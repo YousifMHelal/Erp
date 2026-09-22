@@ -12,8 +12,19 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { PrintLineColumnList } from "@/components/settings/print-line-column-list";
+import { PrintFieldEditorList } from "@/components/settings/print-field-editor-list";
+import { PrintTotalsRowList } from "@/components/settings/print-totals-row-list";
 import { PrintTemplatePreview } from "@/components/settings/print-template-preview";
-import type { PrintLineColumnKey, PrintTemplateFormProps, PrintTemplateSettings } from "@/types";
+import { PRINT_SYSTEM_FIELD_OPTIONS, createFieldId, moveFieldItem, moveTotalsRow, updateInfoColumn } from "@/lib/print-fields";
+import type {
+  PrintFieldItem,
+  PrintInfoColumnKey,
+  PrintLineColumnKey,
+  PrintSystemFieldKey,
+  PrintTemplateFormProps,
+  PrintTemplateSettings,
+  PrintTotalsRowKey,
+} from "@/types";
 
 function moveColumn(
   columns: PrintTemplateSettings["lineColumns"],
@@ -44,6 +55,8 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
   const [invoiceFooter, setInvoiceFooter] = useState(template.shop.invoiceFooter ?? "");
   const [logoDataUrl, setLogoDataUrl] = useState<string | undefined>(template.shop.logoDataUrl);
   const [lineColumns, setLineColumns] = useState(template.lineColumns);
+  const [infoColumns, setInfoColumns] = useState(template.infoColumns);
+  const [totalsRows, setTotalsRows] = useState(template.totalsRows);
   const [previewSize, setPreviewSize] = useState<"A4" | "A5" | "80mm">("A4");
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -63,6 +76,52 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
     setLineColumns((prev) => moveColumn(prev, key, direction));
   }
 
+  function handleToggleTotalsRow(key: PrintTotalsRowKey) {
+    setTotalsRows((prev) => prev.map((row) => (row.key === key ? { ...row, visible: !row.visible } : row)));
+  }
+
+  function handleMoveTotalsRow(key: PrintTotalsRowKey, direction: "up" | "down") {
+    setTotalsRows((prev) => moveTotalsRow(prev, key, direction));
+  }
+
+  function handleUpdateTotalsRowLabel(key: PrintTotalsRowKey, label: string) {
+    setTotalsRows((prev) => prev.map((row) => (row.key === key ? { ...row, label } : row)));
+  }
+
+  function handleAddSystemField(column: PrintInfoColumnKey, fieldKey: PrintSystemFieldKey, label: string) {
+    const item: PrintFieldItem = { id: createFieldId(), label, source: { kind: "system", fieldKey } };
+    setInfoColumns((prev) => updateInfoColumn(prev, column, (items) => [...items, item]));
+  }
+
+  function handleAddCustomField(column: PrintInfoColumnKey, label: string, value: string) {
+    const item: PrintFieldItem = { id: createFieldId(), label, source: { kind: "custom", value } };
+    setInfoColumns((prev) => updateInfoColumn(prev, column, (items) => [...items, item]));
+  }
+
+  function handleEditSystemField(column: PrintInfoColumnKey, id: string, fieldKey: PrintSystemFieldKey, label: string) {
+    setInfoColumns((prev) =>
+      updateInfoColumn(prev, column, (items) =>
+        items.map((i) => (i.id === id ? { ...i, label, source: { kind: "system", fieldKey } } : i)),
+      ),
+    );
+  }
+
+  function handleEditCustomField(column: PrintInfoColumnKey, id: string, label: string, value: string) {
+    setInfoColumns((prev) =>
+      updateInfoColumn(prev, column, (items) =>
+        items.map((i) => (i.id === id ? { ...i, label, source: { kind: "custom", value } } : i)),
+      ),
+    );
+  }
+
+  function handleRemoveField(column: PrintInfoColumnKey, id: string) {
+    setInfoColumns((prev) => updateInfoColumn(prev, column, (items) => items.filter((i) => i.id !== id)));
+  }
+
+  function handleMoveField(column: PrintInfoColumnKey, id: string, direction: "up" | "down") {
+    setInfoColumns((prev) => updateInfoColumn(prev, column, (items) => moveFieldItem(items, id, direction)));
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     toast.success(t("saved"));
@@ -73,6 +132,8 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
     templateName,
     shop: { name, phone, phone2: phone2 || undefined, address, invoiceFooter, logoDataUrl },
     lineColumns,
+    infoColumns,
+    totalsRows,
   };
 
   return (
@@ -187,6 +248,60 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
           <CardContent className="flex flex-col gap-3">
             <p className="text-body-sm text-muted-foreground">{t("columnsHint")}</p>
             <PrintLineColumnList columns={lineColumns} onToggle={handleToggleColumn} onMove={handleMoveColumn} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("infoColumnsTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <p className="text-body-sm text-muted-foreground">{t("infoColumnsHint")}</p>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <span className="text-label font-medium text-foreground">{t("infoColumn1")}</span>
+                <PrintFieldEditorList
+                  column="col1"
+                  items={infoColumns.col1}
+                  systemFieldOptions={PRINT_SYSTEM_FIELD_OPTIONS}
+                  onAddSystemField={handleAddSystemField}
+                  onAddCustomField={handleAddCustomField}
+                  onEditSystemField={handleEditSystemField}
+                  onEditCustomField={handleEditCustomField}
+                  onRemove={handleRemoveField}
+                  onMove={handleMoveField}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-label font-medium text-foreground">{t("infoColumn2")}</span>
+                <PrintFieldEditorList
+                  column="col2"
+                  items={infoColumns.col2}
+                  systemFieldOptions={PRINT_SYSTEM_FIELD_OPTIONS}
+                  onAddSystemField={handleAddSystemField}
+                  onAddCustomField={handleAddCustomField}
+                  onEditSystemField={handleEditSystemField}
+                  onEditCustomField={handleEditCustomField}
+                  onRemove={handleRemoveField}
+                  onMove={handleMoveField}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("totalsRowsTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-body-sm text-muted-foreground">{t("totalsRowsHint")}</p>
+            <PrintTotalsRowList
+              rows={totalsRows}
+              onToggle={handleToggleTotalsRow}
+              onMove={handleMoveTotalsRow}
+              onUpdateLabel={handleUpdateTotalsRowLabel}
+            />
           </CardContent>
         </Card>
 

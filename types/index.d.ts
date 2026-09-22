@@ -929,7 +929,13 @@ export type PrintInvoiceData = {
   currentBalance?: string;
 };
 
-export type PrintLayoutProps = { data: PrintInvoiceData };
+export type PrintLayoutProps = {
+  data: PrintInvoiceData;
+  /** Configurable info-section columns (col1/col2). Falls back to the built-in default arrangement when omitted. */
+  infoColumns?: PrintInfoColumns;
+  /** Visibility + order for the totals block. Falls back to all rows visible, in the built-in default order, when omitted. */
+  totalsRows?: PrintTotalsRowConfig[];
+};
 
 // --- Sales/purchases list (P2-7/9) ---
 
@@ -1070,10 +1076,59 @@ export type PrintLineColumnConfig = {
   visible: boolean;
 };
 
+/** The totals-block rows (subtotal/discount/paid/etc.) — always real computed values, never free text. Visibility, order, and label are configurable. */
+export type PrintTotalsRowKey = "total" | "discount" | "previousBalance" | "paid" | "remaining";
+
+export type PrintTotalsRowConfig = {
+  key: PrintTotalsRowKey;
+  /** Default label, resolved from this i18n key when `label` hasn't been customized. */
+  labelKey: string;
+  /** User-edited label. Falls back to the `labelKey` translation when empty. */
+  label: string;
+  visible: boolean;
+};
+
+/**
+ * A field the system knows how to fill in from real invoice data at print time —
+ * e.g. "invoiceNumber" resolves to `data.number`. The renderer (print-layout-a4.tsx)
+ * owns the actual key -> value lookup; this key is just the stable identifier stored
+ * in settings.
+ */
+export type PrintSystemFieldKey =
+  | "invoiceNumber"
+  | "invoiceDate"
+  | "invoiceTime"
+  | "cashierName"
+  | "customerName"
+  | "customerCompanyName"
+  | "customerPhone"
+  | "customerAddress"
+  | "shopName"
+  | "shopPhone"
+  | "shopPhone2"
+  | "shopAddress";
+
+/** One row in an editable info column: either a system field (real data at print time) or free text the user typed. */
+export type PrintFieldSource = { kind: "system"; fieldKey: PrintSystemFieldKey } | { kind: "custom"; value: string };
+
+export type PrintFieldItem = {
+  id: string;
+  /** Optional — an empty label prints the value alone, with no "label :" prefix. Always editable, even for a system field. */
+  label: string;
+  source: PrintFieldSource;
+};
+
+/** The two editable info-section columns; column 3 is the fixed logo slot and isn't configurable. */
+export type PrintInfoColumnKey = "col1" | "col2";
+
+export type PrintInfoColumns = Record<PrintInfoColumnKey, PrintFieldItem[]>;
+
 export type PrintTemplateSettings = {
   templateName: string;
   shop: PrintShopInfo;
   lineColumns: PrintLineColumnConfig[];
+  infoColumns: PrintInfoColumns;
+  totalsRows: PrintTotalsRowConfig[];
 };
 
 export type PrintTemplateFormProps = {
@@ -1089,4 +1144,37 @@ export type PrintLineColumnListProps = {
   columns: PrintLineColumnConfig[];
   onToggle: (key: PrintLineColumnKey) => void;
   onMove: (key: PrintLineColumnKey, direction: "up" | "down") => void;
+};
+
+export type PrintTotalsRowListProps = {
+  rows: PrintTotalsRowConfig[];
+  onToggle: (key: PrintTotalsRowKey) => void;
+  onMove: (key: PrintTotalsRowKey, direction: "up" | "down") => void;
+  onUpdateLabel: (key: PrintTotalsRowKey, label: string) => void;
+};
+
+export type PrintSystemFieldOption = { key: PrintSystemFieldKey; labelKey: string };
+
+export type PrintFieldEditorListProps = {
+  column: PrintInfoColumnKey;
+  items: PrintFieldItem[];
+  systemFieldOptions: PrintSystemFieldOption[];
+  onAddSystemField: (column: PrintInfoColumnKey, fieldKey: PrintSystemFieldKey, label: string) => void;
+  onAddCustomField: (column: PrintInfoColumnKey, label: string, value: string) => void;
+  onEditSystemField: (column: PrintInfoColumnKey, id: string, fieldKey: PrintSystemFieldKey, label: string) => void;
+  onEditCustomField: (column: PrintInfoColumnKey, id: string, label: string, value: string) => void;
+  onRemove: (column: PrintInfoColumnKey, id: string) => void;
+  onMove: (column: PrintInfoColumnKey, id: string, direction: "up" | "down") => void;
+};
+
+/** Add mode (no `editingItem`) creates a new field; edit mode opens pre-filled with that field's current tab/label/value. */
+export type PrintFieldFormDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  systemFieldOptions: PrintSystemFieldOption[];
+  editingItem?: PrintFieldItem;
+  onAddSystemField: (fieldKey: PrintSystemFieldKey, label: string) => void;
+  onAddCustomField: (label: string, value: string) => void;
+  onEditSystemField: (fieldKey: PrintSystemFieldKey, label: string) => void;
+  onEditCustomField: (label: string, value: string) => void;
 };

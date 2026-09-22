@@ -59,7 +59,7 @@ export function PrintTemplatePreview({ template, size }: PrintTemplatePreviewPro
             ) : size === "80mm" ? (
               <PrintLayout80mm data={sampleData} />
             ) : (
-              <PrintLayoutA4 data={sampleData} />
+              <PrintLayoutA4 data={sampleData} infoColumns={template.infoColumns} totalsRows={template.totalsRows} />
             )}
           </div>
         </div>
