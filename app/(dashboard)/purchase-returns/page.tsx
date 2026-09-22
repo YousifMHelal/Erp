@@ -1,30 +1,34 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
-import { InvoiceList } from "@/components/shared/invoice/invoice-list";
-import type { EntityComboboxOption, InvoiceListRow } from "@/types";
+import { ReturnsListView } from "@/components/shared/invoice/returns-list-view";
+import { getPurchaseReturnListFilterOptions, getPurchaseReturns } from "@/actions/returns.actions";
+import { returnsSearchParamsToFilter } from "@/lib/returns-filters";
+import type { ReturnsListPageProps } from "@/types";
 
-const RETURNS: InvoiceListRow[] = [
-  { id: "1", number: 12, partyName: "شركة الدلتا للمواد الغذائية", cashboxName: "نقدي", userName: "أحمد سعيد", total: "500.00", paymentStatus: "PAID", status: "CONFIRMED", issuedAt: "2026-09-19" },
-];
+export default async function PurchaseReturnsListPage({ searchParams }: ReturnsListPageProps) {
+  const t = await getTranslations("returns");
+  const params = await searchParams;
+  const filter = returnsSearchParamsToFilter(params);
 
-const SUPPLIERS: EntityComboboxOption[] = [
-  { value: "1", label: "شركة الدلتا للمواد الغذائية" },
-  { value: "2", label: "مؤسسة النيل للتوزيع" },
-];
+  const [result, optionsResult] = await Promise.all([
+    getPurchaseReturns(filter),
+    getPurchaseReturnListFilterOptions(),
+  ]);
 
-export default function PurchaseReturnsListPage() {
-  const t = useTranslations("returns");
+  const partyOptions = optionsResult.success
+    ? optionsResult.data.map((party) => ({ value: party.id, label: party.name }))
+    : [];
 
   return (
     <>
       <PageHeader title={t("listPurchaseTitle")} breadcrumbs={[{ labelKey: "nav.purchaseReturns" }]} />
-      <InvoiceList
+      <ReturnsListView
         documentType="PURCHASE"
-        invoices={RETURNS}
-        partyOptions={SUPPLIERS}
-        newInvoiceHref="/purchase-returns/new"
+        result={result}
+        partyOptions={partyOptions}
+        filter={filter}
         detailBasePath="/purchase-returns"
-        newInvoiceLabel={t("newReturnLabel")}
+        newInvoiceHref="/purchase-returns/new"
       />
     </>
   );

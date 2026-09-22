@@ -13,53 +13,64 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
 import { UnitConversionPreview } from "@/components/inventory/unit-conversion-preview";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import type { InventoryProductRow, ProductFormDialogProps } from "@/types";
+import { createProduct, updateProduct } from "@/actions/inventory.actions";
+import type { ProductFormDialogProps } from "@/types";
 
 export function ProductFormDialog({ open, onOpenChange, categoryOptions, product, onSave }: ProductFormDialogProps) {
   const t = useTranslations("inventory.form");
   const isEdit = !!product;
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [name, setName] = useState(product?.name ?? "");
   const [sku, setSku] = useState(product?.sku ?? "");
   const [barcode, setBarcode] = useState(product?.barcode ?? "");
-  const [categoryId, setCategoryId] = useState<string | undefined>(product?.categoryName);
+  const [categoryId, setCategoryId] = useState<string | undefined>(
+    categoryOptions.find((o) => o.label === product?.categoryName)?.value,
+  );
   const [baseUnitName, setBaseUnitName] = useState(product?.baseUnitName ?? "كرتونة");
   const [subUnitName, setSubUnitName] = useState(product?.subUnitName ?? "قطعة");
   const [unitsPerBase, setUnitsPerBase] = useState(product?.unitsPerBase ?? 1);
   const [purchasePricePerBase, setPurchasePricePerBase] = useState(Number(product?.purchasePricePerBase ?? 0));
   const [sellPricePerBase, setSellPricePerBase] = useState(Number(product?.sellPricePerBase ?? 0));
   const [minStockQty, setMinStockQty] = useState(product?.minStockQty ?? 0);
+  const [notes, setNotes] = useState(product?.notes ?? "");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !sku.trim()) {
       toast.error(t("errorRequired"));
       return;
     }
 
-    const categoryLabel = categoryOptions.find((o) => o.value === categoryId)?.label ?? categoryId ?? "";
-    const saved: InventoryProductRow = {
-      id: product?.id ?? crypto.randomUUID(),
-      name: name.trim(),
+    const payload = {
       sku: sku.trim(),
-      barcode: barcode.trim() || undefined,
-      categoryName: categoryLabel,
-      stockQty: product?.stockQty ?? 0,
-      baseUnitName: baseUnitName.trim() || t("baseUnitLabel"),
-      subUnitName: subUnitName.trim() || t("subUnitLabel"),
-      unitsPerBase,
+      barcode: barcode.trim(),
+      name: name.trim(),
+      categoryId,
+      baseUnitName: baseUnitName.trim(),
+      subUnitName: subUnitName.trim(),
+      unitsPerBase: String(unitsPerBase),
       purchasePricePerBase: purchasePricePerBase.toFixed(2),
       sellPricePerBase: sellPricePerBase.toFixed(2),
-      avgCostPerSub: product?.avgCostPerSub ?? (purchasePricePerBase / (unitsPerBase || 1)).toFixed(2),
-      minStockQty,
+      minStockQty: String(minStockQty),
+      notes: notes.trim(),
       isActive: product?.isActive ?? true,
     };
 
-    onSave(saved);
+    setIsSubmitting(true);
+    const result = isEdit ? await updateProduct(product.id, payload) : await createProduct(payload);
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      const fieldError = Object.values(result.fieldErrors ?? {}).flat().find(Boolean);
+      toast.error(fieldError ?? result.error);
+      return;
+    }
+
+    onSave(result.data);
     toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
     onOpenChange(false);
-    // P5-3 wires this to the real inventory.actions.ts create/update.
   }
 
   const title = isEdit ? t("editTitle") : t("createTitle");
@@ -119,7 +130,13 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="product-notes">{t("notesLabel")}</Label>
-            <Textarea id="product-notes" placeholder={t("notesPlaceholder")} rows={2} />
+            <Textarea
+              id="product-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={t("notesPlaceholder")}
+              rows={2}
+            />
           </div>
         </TabsContent>
 
@@ -198,19 +215,19 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
 
       {isDesktop ? (
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             {t("cancel")}
           </Button>
-          <Button type="submit" variant="accent">
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
             {t("save")}
           </Button>
         </DialogFooter>
       ) : (
         <SheetFooter>
-          <Button type="submit" variant="accent">
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
             {t("save")}
           </Button>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             {t("cancel")}
           </Button>
         </SheetFooter>

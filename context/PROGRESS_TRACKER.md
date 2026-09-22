@@ -17,13 +17,13 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 2 | App shell & static UI | DONE | 22 screens; responsive/theme audit pass complete. |
 | 3 | Database schema | DONE | Schema, migration, and seed reconciled against Neon. |
 | 4 | Auth, permissions & sales slice | DONE | Full vertical slice verified end-to-end against Neon + browser. |
-| 5 | Purchases, inventory & returns | TODO | |
+| 5 | Purchases, inventory & returns | DONE | All 9 tasks wired against Prisma; `typecheck`/`lint` clean. `next build` not verified this session (Prisma query-engine DLL locked by another process). |
 | 6 | Parties, cashboxes & money | TODO | |
 | 7 | Reports, notifications & audit | TODO | |
 | 8 | Polish, motion & edge cases | TODO | |
 | 9 | Testing | TODO | Final pass |
 
-**Overall: 61 / 96 tasks done.**
+**Overall: 70 / 96 tasks done.**
 
 ---
 
@@ -117,15 +117,15 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P5-1 | Inventory schemas + actions | TODO | |
-| P5-2 | Wire inventory grid | TODO | |
-| P5-3 | Wire product dialog | TODO | |
-| P5-4 | Wire product detail | TODO | |
-| P5-5 | `purchases.actions.ts` + avg cost | TODO | |
-| P5-6 | Wire purchase screens | TODO | |
-| P5-7 | `returns.actions.ts` | TODO | |
-| P5-8 | Wire return screens | TODO | |
-| P5-9 | Stocktake actions + wiring | TODO | |
+| P5-1 | Inventory schemas + actions | DONE | `actions/inventory.actions.ts`: CRUD with SKU/barcode uniqueness checks, delete blocked on stock or movement history, audit on create/edit/delete. |
+| P5-2 | Wire inventory grid | DONE | `/inventory` fetches real products + categories; filtering/pagination stay client-side over the full (single-shop-scale) list, as already built in Phase 2. |
+| P5-3 | Wire product dialog | DONE | `ProductFormDialog` now calls `createProduct`/`updateProduct` and surfaces field errors. |
+| P5-4 | Wire product detail | DONE | Movement history from `StockMovement`, price history derived from `AuditLog` `product.edit` before/after diffs (no separate price-history table). |
+| P5-5 | `purchases.actions.ts` + avg cost | DONE | `lib/purchase-ledger.ts` mirrors `sales-ledger.ts`; weighted-avg cost recomputed on incoming stock only, never on the reversing leg. |
+| P5-6 | Wire purchase screens | DONE | `components/purchases/*`, all 3 routes wired to real Prisma data. |
+| P5-7 | `returns.actions.ts` | DONE | `lib/returns-ledger.ts` + `actions/returns.actions.ts`; caps return qty against `qtyInvoiced - Σ(prior confirmed returns)` per product, not just the current invoice line. |
+| P5-8 | Wire return screens | DONE | New `ReturnFormView`/`ReturnDetailView`/`ReturnsListView` (URL-filtered, mirrors sales) wired for both sale and purchase returns; settlement toggle (cashbox vs party balance). |
+| P5-9 | Stocktake actions + wiring | DONE | `actions/stocktake.actions.ts`: confirm writes one `STOCKTAKE` `StockMovement` per non-zero difference and sets `stockQty` directly to the counted qty. Added `/inventory/stocktake/[id]` detail route (list already linked there but it never existed in Phase 2). |
 
 ## Phase 6 — Parties, cashboxes & money
 
@@ -188,6 +188,14 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 ## Changelog
 
 *Newest first. One entry per meaningful change — task completions, decision reversals, blockers hit and cleared.*
+
+### 2026-09-22 (Phase 5 complete)
+- **Phase 5 complete (P5-1…P5-9).** Purchases, inventory, returns, and stocktake all wired end-to-end against Prisma, copying the Phase 4 sales pattern. `typecheck`/`lint` clean; `next build` not run this session (Prisma's query-engine DLL was locked by another process and couldn't be released).
+  - **P5-1…P5-4 (inventory).** `actions/inventory.actions.ts`: CRUD with SKU/barcode uniqueness checks, delete blocked when stock > 0 or any `StockMovement` exists, audit on create/edit/delete. `/inventory` and `/inventory/[id]` wired; filtering/pagination stay client-side over the full product list (as Phase 2 built it) rather than URL-driven — acceptable at single-shop scale, unlike the invoice lists which can grow unbounded. Price history has no dedicated table; it's derived by diffing `product.edit` `AuditLog` rows' `beforeJson`/`afterJson` for `sellPricePerBase`/`purchasePricePerBase`.
+  - **P5-5/6 (purchases).** `lib/purchase-ledger.ts` mirrors `lib/sales-ledger.ts`: stock increases instead of decreases, and weighted-average cost recomputes only on the incoming (positive) leg — a cancellation's reversing (negative) leg must not re-derive a cost from a negative quantity. `components/purchases/*` and all three routes wired.
+  - **P5-7/8 (returns).** New `lib/returns-ledger.ts` + `actions/returns.actions.ts` cover both sale and purchase returns from one module (`documentType`-parametrized, like the existing shared invoice UI layer). Return quantity is capped against `qtyInvoiced − Σ(qty across all prior CONFIRMED returns of that invoice)` per product — capping against the invoice's own lines alone would let two partial returns together exceed what was actually sold/bought. Added a settlement toggle (`settleFromCashbox`): true moves cash immediately, false adjusts the customer/supplier balance instead — the two are mutually exclusive per return, matching the static form's original refund-hint copy. New `ReturnFormView`/`ReturnDetailView`/`ReturnsListView` components wired for both `/sales-returns/*` and `/purchase-returns/*`; the list is URL-filtered like sales/purchases (`lib/returns-filters.ts`), superseding the original static `originalInvoiceLines` prop shape with a per-invoice server fetch (`getSaleOriginalInvoiceLines`/`getPurchaseOriginalInvoiceLines`) since loading every invoice's lines upfront doesn't scale.
+  - **P5-9 (stocktake).** `actions/stocktake.actions.ts`: confirming sets `Product.stockQty` directly to the counted quantity and writes one `STOCKTAKE` `StockMovement` per product whose counted qty differs from system qty (zero-difference lines are recorded on the `StocktakeLine` but produce no movement). Added `/inventory/stocktake/[id]`, a detail route the static list already linked to but that never existed in Phase 2. The static form's "save as draft" button was removed rather than wired to a stub — no draft-persistence action was in scope, and a button that silently did nothing would be worse than not having it.
+  - **`/print/[id]`** now dispatches by the invoice's actual `type` (looks it up first) instead of being hardwired to `getSalePrintData`, so purchases and returns print through the same route.
 
 ### 2026-09-22 (Phase 4 complete)
 - **Phase 4 complete (P4-5, P4-10, P4-11, P4-12).** Wired the four deferred UI tasks and verified the whole slice end-to-end against the seeded Neon database in a real browser: logged in by tile + password, created a sale, saw it in the list, opened the detail, edited it, printed it, and cancelled it — checking the database after each step.

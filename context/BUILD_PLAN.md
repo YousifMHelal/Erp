@@ -122,15 +122,15 @@ Goal: prove the full end-to-end pattern — auth → permission → validated ac
 
 Goal: the rest of the inventory-affecting flows, copying the Phase 4 pattern.
 
-- [ ] **P5-1** — Product/inventory Zod schemas + `actions/inventory.actions.ts` (CRUD, price update with audit, category management).
-- [ ] **P5-2** — Wire `/inventory`: real grid, server-side filters, computed columns (avg cost, both stock values, status), value summary.
-- [ ] **P5-3** — Wire the product dialog: create/edit, unit conversion preview, barcode uniqueness, price derivation.
-- [ ] **P5-4** — Wire `/inventory/[id]`: movement history and price history from `StockMovement` + `AuditLog`.
-- [ ] **P5-5** — `actions/purchases.actions.ts`: confirm → stock up, **weighted-average cost recompute**, cashbox down, supplier balance up. Plus edit and cancel.
-- [ ] **P5-6** — Wire `/purchases/new`, `/purchases`, `/purchases/[id]`.
-- [ ] **P5-7** — `actions/returns.actions.ts`: sale return (stock up, refund from cashbox or reduce customer balance) and purchase return (stock down, cash back or reduce supplier balance). Validate return quantities against the original invoice.
-- [ ] **P5-8** — Wire both return screens.
-- [ ] **P5-9** — `actions/stocktake.actions.ts` + wire the stocktake sheet: draft → confirm writes `STOCKTAKE` movements for every difference and adjusts stock.
+- [x] **P5-1** — Product/inventory Zod schemas + `actions/inventory.actions.ts` (CRUD, price update with audit, category management).
+- [x] **P5-2** — Wire `/inventory`: real grid, server-side filters, computed columns (avg cost, both stock values, status), value summary.
+- [x] **P5-3** — Wire the product dialog: create/edit, unit conversion preview, barcode uniqueness, price derivation.
+- [x] **P5-4** — Wire `/inventory/[id]`: movement history and price history from `StockMovement` + `AuditLog`.
+- [x] **P5-5** — `actions/purchases.actions.ts`: confirm → stock up, **weighted-average cost recompute**, cashbox down, supplier balance up. Plus edit and cancel.
+- [x] **P5-6** — Wire `/purchases/new`, `/purchases`, `/purchases/[id]`.
+- [x] **P5-7** — `actions/returns.actions.ts`: sale return (stock up, refund from cashbox or reduce customer balance) and purchase return (stock down, cash back or reduce supplier balance). Validate return quantities against the original invoice.
+- [x] **P5-8** — Wire both return screens.
+- [x] **P5-9** — `actions/stocktake.actions.ts` + wire the stocktake sheet: draft → confirm writes `STOCKTAKE` movements for every difference and adjusts stock.
 
 **Exit:** buying, selling, returning, and stocktaking all move stock and money correctly; average cost recomputes on purchase; every movement is traceable to a document.
 

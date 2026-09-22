@@ -1,31 +1,34 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
-import { InvoiceList } from "@/components/shared/invoice/invoice-list";
-import type { EntityComboboxOption, InvoiceListRow } from "@/types";
+import { ReturnsListView } from "@/components/shared/invoice/returns-list-view";
+import { getSaleReturnListFilterOptions, getSaleReturns } from "@/actions/returns.actions";
+import { returnsSearchParamsToFilter } from "@/lib/returns-filters";
+import type { ReturnsListPageProps } from "@/types";
 
-const RETURNS: InvoiceListRow[] = [
-  { id: "1", number: 34, partyName: "بقالة النور", cashboxName: "نقدي", userName: "أحمد سعيد", total: "180.00", paymentStatus: "PAID", status: "CONFIRMED", issuedAt: "2026-09-20" },
-  { id: "2", number: 33, partyName: "عميل نقدي", cashboxName: "نقدي", userName: "كريم عادل", total: "60.00", paymentStatus: "PAID", status: "CONFIRMED", issuedAt: "2026-09-18" },
-];
+export default async function SalesReturnsListPage({ searchParams }: ReturnsListPageProps) {
+  const t = await getTranslations("returns");
+  const params = await searchParams;
+  const filter = returnsSearchParamsToFilter(params);
 
-const CUSTOMERS: EntityComboboxOption[] = [
-  { value: "1", label: "بقالة النور" },
-  { value: "2", label: "سوبر ماركت الأمانة" },
-];
+  const [result, optionsResult] = await Promise.all([
+    getSaleReturns(filter),
+    getSaleReturnListFilterOptions(),
+  ]);
 
-export default function SalesReturnsListPage() {
-  const t = useTranslations("returns");
+  const partyOptions = optionsResult.success
+    ? optionsResult.data.map((party) => ({ value: party.id, label: party.name }))
+    : [];
 
   return (
     <>
       <PageHeader title={t("listSaleTitle")} breadcrumbs={[{ labelKey: "nav.salesReturns" }]} />
-      <InvoiceList
+      <ReturnsListView
         documentType="SALE"
-        invoices={RETURNS}
-        partyOptions={CUSTOMERS}
-        newInvoiceHref="/sales-returns/new"
+        result={result}
+        partyOptions={partyOptions}
+        filter={filter}
         detailBasePath="/sales-returns"
-        newInvoiceLabel={t("newReturnLabel")}
+        newInvoiceHref="/sales-returns/new"
       />
     </>
   );

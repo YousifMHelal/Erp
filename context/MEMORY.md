@@ -71,6 +71,12 @@
 
 ---
 
+| 2026-09-22 | **Return quantity cap checks all prior CONFIRMED returns of the original invoice, not just its current lines.** `lib/returns-ledger.ts` sums `qtyInSub` across every confirmed return referencing an invoice, per product, before allowing a new return. | Capping only against the invoice's own line quantity would let two separate partial returns together exceed what was actually sold/bought — a real double-return bug, not a hypothetical. |
+| 2026-09-22 | **A return settles one of two ways, never split: `settleFromCashbox` (cash moves immediately) or a party-balance adjustment (no cash movement).** User picks per return via a toggle in the form. | Matches the static Phase 2 form's original refund-hint copy ("سيتم رد المبلغ من الخزينة... أو خصمه من رصيد العميل"), which already implied an either/or. Splitting one return's settlement across both would need a second amount field the PRD never asked for. |
+| 2026-09-22 | **Inventory grid stays client-side-filtered over the full product list** (as Phase 2 built it) rather than converted to URL-driven server pagination like the invoice lists. | A single shop's catalogue (tens to low hundreds of products) loads and filters instantly client-side; the URL-driven pattern exists for invoice lists specifically because those grow unbounded over time. Revisit only if a shop's catalogue size becomes a real problem. |
+| 2026-09-22 | **Product price history has no dedicated table — it's derived from `AuditLog` rows** where `action = "product.edit"`, diffing `beforeJson`/`afterJson` for `sellPricePerBase`/`purchasePricePerBase`. | `writeAudit` already stores only the changed fields on every product edit; a separate `PriceHistory` table would duplicate data the audit log already captures durably. |
+| 2026-09-22 | **Stocktake has no draft-save path.** Confirming directly creates the `Stocktake` row as `CONFIRMED` and posts all `StockMovement` adjustments in one transaction; the static form's "save as draft" button was removed rather than wired to a stub. | `StocktakeStatus.DRAFT` exists in the schema for future use, but no task in BUILD_PLAN specified what a saved draft should do (resume later? lock counted lines?) and inventing that behavior wasn't asked for. A button that silently did nothing would mislead users worse than not having it. |
+
 ## Open questions / to revisit
 
 | # | Question | Why it matters | When to decide |

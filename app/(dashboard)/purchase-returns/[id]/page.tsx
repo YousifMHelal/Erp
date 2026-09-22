@@ -1,42 +1,27 @@
-import { useTranslations } from "next-intl";
+import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
-import { InvoiceDetailView } from "@/components/shared/invoice/invoice-detail-view";
-import type { InvoiceDetail } from "@/types";
+import { ReturnDetailView } from "@/components/shared/returns/return-detail-view";
+import { getPurchaseReturnById } from "@/actions/returns.actions";
+import { getCurrentUser } from "@/lib/auth-guard";
+import { hasPermission } from "@/lib/permissions";
 
-const RETURN: InvoiceDetail = {
-  id: "1",
-  number: 12,
-  type: "PURCHASE_RETURN",
-  status: "CONFIRMED",
-  paymentStatus: "PAID",
-  partyName: "شركة الدلتا للمواد الغذائية",
-  partyPhone: "01098765432",
-  partyBalance: "8400.00",
-  cashboxName: "نقدي",
-  userName: "أحمد سعيد",
-  issuedAt: "2026-09-19",
-  subtotal: "500.00",
-  discountAmount: "0.00",
-  total: "500.00",
-  paidAmount: "500.00",
-  remainingAmount: "0.00",
-  notes: "مرتجع للفاتورة #000512",
-  lines: [{ id: "1", productName: "سكر ٢ كجم", unitName: "كرتونة", qty: 1.25, unitPrice: "400.00", lineTotal: "500.00" }],
-};
+export default async function PurchaseReturnDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getTranslations("invoices.detail");
+  const { id } = await params;
 
-export default function PurchaseReturnDetailPage() {
-  const t = useTranslations("invoices.detail");
+  const [result, user] = await Promise.all([getPurchaseReturnById(id), getCurrentUser()]);
+  if (!result.success) notFound();
+
+  const permissions = user?.role.permissions ?? [];
 
   return (
     <>
       <PageHeader
-        title={t("title", { number: String(RETURN.number).padStart(6, "0") })}
-        breadcrumbs={[
-          { labelKey: "nav.purchaseReturns", href: "/purchase-returns" },
-          { labelKey: "invoices.detail.breadcrumbPurchase" },
-        ]}
+        title={t("title", { number: String(result.data.number).padStart(6, "0") })}
+        breadcrumbs={[{ labelKey: "nav.purchaseReturns", href: "/purchase-returns" }, { labelKey: "invoices.detail.breadcrumbPurchase" }]}
       />
-      <InvoiceDetailView invoice={RETURN} />
+      <ReturnDetailView invoice={result.data} canCancel={hasPermission(permissions, "return.cancel")} />
     </>
   );
 }

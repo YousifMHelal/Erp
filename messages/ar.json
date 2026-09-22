@@ -215,7 +215,9 @@
     },
     "print": {
       "documentTypeSale": "فاتورة بيع",
-      "documentTypePurchase": "فاتورة شراء"
+      "documentTypePurchase": "فاتورة شراء",
+      "documentTypeSaleReturn": "مرتجع بيع",
+      "documentTypePurchaseReturn": "مرتجع شراء"
     }
   },
   "inventory": {
@@ -257,6 +259,10 @@
       "STOCKTAKE": "جرد",
       "OPENING": "رصيد افتتاحي"
     },
+    "priceHistoryFields": {
+      "sellPrice": "سعر البيع",
+      "purchasePrice": "سعر الشراء"
+    },
     "stocktake": {
       "listTitle": "الجرد",
       "newTitle": "جرد جديد",
@@ -277,6 +283,9 @@
       "confirmDialogTitle": "اعتماد الجرد؟",
       "confirmDialogDescription": "سيتم تعديل كميات المخزون لتطابق الكميات المجرودة وتسجيل حركة لكل فرق. هذا الإجراء لا يمكن التراجع عنه.",
       "confirmSuccess": "تم اعتماد الجرد",
+      "detailTitle": "جرد #{number}",
+      "detailBreadcrumb": "تفاصيل الجرد",
+      "noteLabel": "ملاحظات",
       "status": {
         "DRAFT": "مسودة",
         "CONFIRMED": "معتمد",
@@ -895,6 +904,7 @@
     "newSaleTitle": "مرتجع بيع جديد",
     "newPurchaseTitle": "مرتجع شراء جديد",
     "newReturnLabel": "مرتجع جديد",
+    "listEmpty": "لا توجد مرتجعات بعد",
     "form": {
       "originalInvoiceTitle": "الفاتورة الأصلية",
       "originalInvoiceLabel": "اختر الفاتورة",
@@ -913,8 +923,11 @@
       "totalLabel": "إجمالي المرتجع",
       "settlementTitle": "التسوية",
       "cashboxLabel": "الخزينة",
-      "refundHintSale": "سيتم رد المبلغ من الخزينة المختارة أو خصمه من رصيد العميل.",
-      "refundHintPurchase": "سيتم استرداد المبلغ إلى الخزينة المختارة أو خصمه من رصيد المورد.",
+      "settleFromCashboxLabel": "التسوية نقداً من الخزينة",
+      "refundHintSale": "سيتم رد المبلغ نقداً من الخزينة المختارة.",
+      "refundHintPurchase": "سيتم استرداد المبلغ نقداً إلى الخزينة المختارة.",
+      "balanceHintSale": "سيتم خصم المبلغ من رصيد العميل بدلاً من الخزينة.",
+      "balanceHintPurchase": "سيتم خصم المبلغ من رصيد المورد بدلاً من الخزينة.",
       "saveReturn": "حفظ المرتجع",
       "errorNoLines": "اختر فاتورة وحدد كمية مرتجع لصنف واحد على الأقل",
       "saveSuccess": "تم حفظ المرتجع"
@@ -956,7 +969,8 @@
     "date": "أدخل تاريخاً صحيحاً",
     "dateRange": "تاريخ البداية يجب أن يسبق تاريخ النهاية",
     "lines": "أضف صنفاً واحداً على الأقل",
-    "customerCredit": "اختر عميلاً للبيع الآجل"
+    "customerCredit": "اختر عميلاً للبيع الآجل",
+    "supplierCredit": "اختر مورداً للشراء الآجل"
   },
   "salesAction": {
     "unauthorized": "سجل الدخول للمتابعة",
@@ -978,6 +992,70 @@
     "updated": "تم تعديل الفاتورة #{number}",
     "cancelledOk": "تم إلغاء الفاتورة #{number}",
     "searchFailed": "تعذر البحث عن الأصناف",
+    "loadFailed": "تعذر تحميل البيانات"
+  },
+  "purchasesAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية لتنفيذ هذا الإجراء",
+    "invalid": "بيانات الفاتورة غير صالحة",
+    "notFound": "الفاتورة غير موجودة",
+    "inactiveProduct": "الصنف غير نشط",
+    "stock": "الكمية المطلوبة غير متوفرة في المخزون",
+    "invalidQuantity": "الكمية المحولة تتجاوز دقة المخزون المسموحة",
+    "discount": "الخصم أكبر من إجمالي الفاتورة",
+    "paid": "المبلغ المدفوع أكبر من إجمالي الفاتورة",
+    "supplier": "اختر مورداً للشراء الآجل",
+    "cashbox": "الخزنة غير متاحة",
+    "cancelled": "الفاتورة ملغاة بالفعل",
+    "hasReturns": "لا يمكن إلغاء فاتورة لها مرتجعات مؤكدة",
+    "conflict": "تغيرت بيانات الفاتورة. أعد المحاولة",
+    "failed": "تعذر حفظ الفاتورة. أعد المحاولة",
+    "created": "تم حفظ الفاتورة #{number}",
+    "updated": "تم تعديل الفاتورة #{number}",
+    "cancelledOk": "تم إلغاء الفاتورة #{number}",
+    "searchFailed": "تعذر البحث عن الأصناف",
+    "loadFailed": "تعذر تحميل البيانات"
+  },
+  "inventoryAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية لتنفيذ هذا الإجراء",
+    "invalid": "بيانات الصنف غير صالحة",
+    "notFound": "الصنف غير موجود",
+    "skuTaken": "رقم الصنف (SKU) مستخدم بالفعل",
+    "barcodeTaken": "الباركود مستخدم بالفعل",
+    "hasStock": "لا يمكن حذف صنف له رصيد مخزون",
+    "hasMovements": "لا يمكن حذف صنف له حركات مخزون سابقة",
+    "failed": "تعذر حفظ الصنف. أعد المحاولة",
+    "created": "تم إضافة الصنف",
+    "updated": "تم تحديث الصنف",
+    "deleted": "تم حذف الصنف",
+    "loadFailed": "تعذر تحميل البيانات"
+  },
+  "returnsAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية لتنفيذ هذا الإجراء",
+    "invalid": "بيانات المرتجع غير صالحة",
+    "notFound": "الفاتورة الأصلية غير موجودة",
+    "originalCancelled": "لا يمكن إرجاع فاتورة ملغاة",
+    "exceedsOriginal": "الكمية المرتجعة تتجاوز الكمية المتاحة للإرجاع",
+    "inactiveProduct": "الصنف غير نشط",
+    "cashbox": "الخزنة غير متاحة",
+    "cancelled": "المرتجع ملغى بالفعل",
+    "conflict": "تغيرت بيانات المرتجع. أعد المحاولة",
+    "failed": "تعذر حفظ المرتجع. أعد المحاولة",
+    "created": "تم حفظ المرتجع #{number}",
+    "cancelledOk": "تم إلغاء المرتجع #{number}",
+    "loadFailed": "تعذر تحميل البيانات"
+  },
+  "stocktakeAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية لتنفيذ هذا الإجراء",
+    "invalid": "بيانات الجرد غير صالحة",
+    "notFound": "الجرد غير موجود",
+    "alreadyConfirmed": "الجرد مؤكد بالفعل",
+    "failed": "تعذر حفظ الجرد. أعد المحاولة",
+    "created": "تم حفظ مسودة الجرد",
+    "confirmedOk": "تم تأكيد الجرد #{number}",
     "loadFailed": "تعذر تحميل البيانات"
   },
   "invoicePdf": {

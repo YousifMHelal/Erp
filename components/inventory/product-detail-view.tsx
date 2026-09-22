@@ -13,6 +13,7 @@ import { ProductFormDialog } from "@/components/inventory/product-form-dialog";
 import { ProductSummaryCard } from "@/components/inventory/product-summary-card";
 import { StockMovementTable } from "@/components/inventory/stock-movement-table";
 import { ProductPriceHistory } from "@/components/inventory/product-price-history";
+import { deleteProduct } from "@/actions/inventory.actions";
 import type { InventoryProductRow, ProductDetail, ProductDetailViewProps } from "@/types";
 
 export function ProductDetailView({ product: initialProduct, movements, priceHistory, categoryOptions }: ProductDetailViewProps) {
@@ -30,11 +31,15 @@ export function ProductDetailView({ product: initialProduct, movements, priceHis
     setProduct((prev) => ({ ...prev, ...saved }));
   }
 
-  function handleDeleteConfirm() {
+  async function handleDeleteConfirm() {
+    const result = await deleteProduct(product.id);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
     setDeleteOpen(false);
     toast.success(t("deleteSuccess"));
     router.push("/inventory");
-    // Phase 2: local-only. P5-3 wires this to the real inventory.actions.ts delete.
   }
 
   return (

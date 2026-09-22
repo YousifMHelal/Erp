@@ -16,6 +16,7 @@ import { InventoryValueSummary } from "@/components/inventory/inventory-value-su
 import { ProductFormDialog } from "@/components/inventory/product-form-dialog";
 import { useInventoryColumns } from "@/components/inventory/inventory-columns";
 import { stockStatusFor } from "@/components/inventory/stock-status-badge";
+import { deleteProduct } from "@/actions/inventory.actions";
 import type { InventoryGridProps, InventoryProductRow, StockStatus } from "@/types";
 
 const PAGE_SIZE = 10;
@@ -50,8 +51,13 @@ export function InventoryGrid({ products: initialProducts, categoryOptions }: In
     setDeleteOpen(true);
   }
 
-  function handleDeleteConfirm() {
+  async function handleDeleteConfirm() {
     if (!deleteTarget) return;
+    const result = await deleteProduct(deleteTarget.id);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
     setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
     setDeleteOpen(false);
     toast.success(t("deleteSuccess"));

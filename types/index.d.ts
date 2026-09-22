@@ -226,6 +226,211 @@ export type SalesListViewProps = {
   options: SaleFormOptions;
   filter: SalesListFilter;
 };
+
+// --- Purchases (P5-5/6) — mirrors the Sale types above, supplier-bound ---
+
+export type PurchaseInput = import("zod").infer<
+  typeof import("@/lib/validations").createPurchaseSchema
+>;
+export type PurchaseLineSnapshot = SaleLineSnapshot;
+export type PreparedPurchase = PreparedSale;
+export type PurchaseWithLines = import("@prisma/client").Prisma.InvoiceGetPayload<{
+  include: { lines: true; returns: true };
+}>;
+export type PurchaseErrorCode =
+  | "notFound"
+  | "inactiveProduct"
+  | "stock"
+  | "invalidQuantity"
+  | "discount"
+  | "paid"
+  | "supplier"
+  | "cashbox"
+  | "cancelled"
+  | "hasReturns"
+  | "conflict";
+export type PurchaseListRow = {
+  id: string;
+  number: number;
+  status: string;
+  paymentStatus: string;
+  issuedAt: string;
+  supplierName: string | null;
+  userName: string;
+  cashboxName: string;
+  total: string;
+  paidAmount: string;
+  remainingAmount: string;
+};
+export type PurchasesPage = {
+  rows: PurchaseListRow[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+};
+export type PurchaseDetail = PurchaseListRow & {
+  supplierId: string | null;
+  supplierPhone: string | null;
+  supplierBalance: string | null;
+  cashboxId: string;
+  notes: string | null;
+  cancelledAt: string | null;
+  cancelledByName: string | null;
+  updatedAt: string;
+  subtotal: string;
+  discountAmount: string;
+  cancelReason: string | null;
+  lines: {
+    id: string;
+    productId: string;
+    productName: string;
+    sku: string;
+    unitName: string;
+    unitType: UnitType;
+    qtyInUnit: string;
+    qtyInSub: string;
+    unitPrice: string;
+    lineTotal: string;
+  }[];
+};
+export type PurchaseFormOptions = {
+  suppliers: { id: string; name: string }[];
+  cashboxes: { id: string; name: string }[];
+};
+export type PurchaseListFilterOptions = PurchaseFormOptions & {
+  users: { id: string; name: string }[];
+};
+export type PurchaseFormInitialData = {
+  id: string;
+  number: number;
+  updatedAt: string;
+  supplierId: string | null;
+  cashboxId: string;
+  discountAmount: string;
+  paidAmount: string;
+  lines: InvoiceLineDraft[];
+};
+export type PurchaseFormProps = {
+  options: PurchaseFormOptions;
+  initialPurchase?: PurchaseFormInitialData;
+};
+export type EditPurchasePageProps = {
+  params: Promise<{ id: string }>;
+};
+export type PurchaseEditData = {
+  options: PurchaseFormOptions;
+  purchase: PurchaseFormInitialData;
+};
+export type PurchasesSearchParams = Record<string, string | string[] | undefined>;
+export type PurchasesListFilter = {
+  q?: string;
+  from?: string;
+  to?: string;
+  supplierId?: string;
+  cashboxId?: string;
+  paymentStatus?: "PAID" | "PARTIAL" | "UNPAID";
+  userId?: string;
+  sortBy: "issuedAt" | "number" | "total";
+  sortDirection: "asc" | "desc";
+  page: number;
+  pageSize: number;
+};
+export type PurchasesListPageProps = {
+  searchParams: Promise<PurchasesSearchParams>;
+};
+export type PurchasesListViewProps = {
+  result: ActionResult<PurchasesPage>;
+  options: PurchaseFormOptions;
+  filter: PurchasesListFilter;
+};
+export type PurchaseDetailPageProps = {
+  params: Promise<{ id: string }>;
+};
+export type PurchaseDetailViewProps = {
+  purchase: PurchaseDetail;
+  canEdit: boolean;
+  canCancel: boolean;
+};
+
+// --- Returns actions (P5-7/8) ---
+
+export type ReturnInput = import("zod").infer<
+  typeof import("@/lib/validations").createReturnSchema
+>;
+export type ReturnLineSnapshot = {
+  productId: string;
+  productName: string;
+  unitName: string;
+  unitType: UnitType;
+  unitsPerBaseSnapshot: import("@prisma/client").Prisma.Decimal;
+  qtyInUnit: import("@prisma/client").Prisma.Decimal;
+  qtyInSub: import("@prisma/client").Prisma.Decimal;
+  unitPrice: import("@prisma/client").Prisma.Decimal;
+  lineTotal: import("@prisma/client").Prisma.Decimal;
+  costPerSubAtSale: import("@prisma/client").Prisma.Decimal;
+  sortOrder: number;
+};
+export type PreparedReturn = {
+  lines: ReturnLineSnapshot[];
+  subtotal: import("@prisma/client").Prisma.Decimal;
+  discountAmount: import("@prisma/client").Prisma.Decimal;
+  total: import("@prisma/client").Prisma.Decimal;
+};
+export type OriginalInvoiceForReturn = import("@prisma/client").Prisma.InvoiceGetPayload<{
+  include: {
+    lines: true;
+    returns: { include: { lines: true } };
+  };
+}>;
+export type ReturnErrorCode =
+  | "notFound"
+  | "originalCancelled"
+  | "exceedsOriginal"
+  | "inactiveProduct"
+  | "cashbox"
+  | "cancelled"
+  | "conflict";
+export type ReturnListRow = InvoiceListRow;
+export type ReturnsPage = {
+  rows: ReturnListRow[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+};
+export type ReturnFormOptions = {
+  originalInvoices: OriginalInvoiceOption[];
+  cashboxes: EntityComboboxOption[];
+};
+export type ReturnOriginalLinesResult = {
+  partyId: string | null;
+  partyName: string;
+  lines: OriginalInvoiceLine[];
+};
+
+export type ReturnsSearchParams = Record<string, string | string[] | undefined>;
+export type ReturnsListFilter = {
+  q?: string;
+  from?: string;
+  to?: string;
+  partyId?: string;
+  cashboxId?: string;
+  sortBy: "issuedAt" | "number" | "total";
+  sortDirection: "asc" | "desc";
+  page: number;
+  pageSize: number;
+};
+export type ReturnsListPageProps = {
+  searchParams: Promise<ReturnsSearchParams>;
+};
+export type ReturnsListViewProps = {
+  documentType: "SALE" | "PURCHASE";
+  result: ActionResult<ReturnsPage>;
+  partyOptions: EntityComboboxOption[];
+  filter: ReturnsListFilter;
+  detailBasePath: string;
+  newInvoiceHref: string;
+};
+
 export type PdfInvoiceData = {
   number: number;
   issuedAt: Date;
@@ -600,6 +805,8 @@ export type OriginalInvoiceLine = {
   productId: string;
   productName: string;
   unitName: string;
+  unitType: UnitType;
+  unitsPerBase: number;
   qtyInvoiced: number;
   qtyAlreadyReturned: number;
   unitPrice: string;
@@ -615,6 +822,7 @@ export type ReturnLineDraft = {
   unitPrice: number;
   lineTotal: number;
 };
+
 
 export type OriginalInvoicePickerProps = {
   options: OriginalInvoiceOption[];
@@ -632,6 +840,13 @@ export type ReturnFormProps = {
   originalInvoices: OriginalInvoiceOption[];
   originalInvoiceLines: Record<string, OriginalInvoiceLine[]>;
   cashboxOptions: EntityComboboxOption[];
+};
+
+// --- Returns wiring (P5-7/8) ---
+
+export type ReturnFormViewProps = {
+  documentType: ReturnDocumentType;
+  options: ReturnFormOptions;
 };
 
 // --- Inventory (P2-11/12/13) ---
@@ -689,7 +904,7 @@ export type ProductFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoryOptions: EntityComboboxOption[];
-  product?: InventoryProductRow;
+  product?: InventoryProductRow & { notes?: string };
   onSave: (product: InventoryProductRow) => void;
 };
 
@@ -785,6 +1000,24 @@ export type StocktakeDiffSummaryProps = {
 
 export type NewStocktakeViewProps = {
   initialLines: StocktakeLineDraft[];
+};
+
+// --- Stocktake wiring (P5-9) ---
+
+export type StocktakeDetail = StocktakeListRow & {
+  note?: string;
+  lines: {
+    id: string;
+    productName: string;
+    unitName: string;
+    systemQty: number;
+    countedQty: number;
+    difference: number;
+  }[];
+};
+
+export type StocktakeDetailPageProps = {
+  params: Promise<{ id: string }>;
 };
 
 // --- Parties: customers/suppliers (P2-14/15) ---

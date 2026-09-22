@@ -1,27 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { StocktakeSheet } from "@/components/inventory/stocktake/stocktake-sheet";
 import { StocktakeDiffSummary } from "@/components/inventory/stocktake/stocktake-diff-summary";
+import { confirmStocktake } from "@/actions/stocktake.actions";
 import type { NewStocktakeViewProps, StocktakeLineDraft } from "@/types";
 
 export function NewStocktakeView({ initialLines }: NewStocktakeViewProps) {
   const t = useTranslations("inventory.stocktake");
+  const tAction = useTranslations("stocktakeAction");
+  const router = useRouter();
   const [lines, setLines] = useState<StocktakeLineDraft[]>(initialLines);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   function updateCounted(lineId: string, countedQty: number | null) {
     setLines((prev) => prev.map((l) => (l.id === lineId ? { ...l, countedQty } : l)));
   }
 
   function handleConfirm() {
-    setConfirmOpen(false);
-    toast.success(t("confirmSuccess"));
-    // P5-9 wires this to the real stocktake.actions.ts confirm action.
+    startTransition(async () => {
+      const result = await confirmStocktake({
+        lines: lines
+          .filter((line) => line.countedQty !== null)
+          .map((line) => ({ productId: line.productId, countedQty: String(line.countedQty) })),
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      setConfirmOpen(false);
+      toast.success(tAction("confirmedOk", { number: String(result.data.number).padStart(4, "0") }));
+      router.push(`/inventory/stocktake/${result.data.id}`);
+    });
   }
 
   const allCounted = lines.every((l) => l.countedQty !== null);
@@ -31,10 +47,7 @@ export function NewStocktakeView({ initialLines }: NewStocktakeViewProps) {
       <StocktakeDiffSummary lines={lines} />
       <StocktakeSheet lines={lines} onUpdateCounted={updateCounted} />
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline">
-          {t("saveDraft")}
-        </Button>
-        <Button type="button" variant="accent" disabled={!allCounted} onClick={() => setConfirmOpen(true)}>
+        <Button type="button" variant="accent" disabled={!allCounted || isPending} onClick={() => setConfirmOpen(true)}>
           {t("confirmStocktake")}
         </Button>
       </div>
