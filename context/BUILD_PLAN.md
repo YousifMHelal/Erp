@@ -85,12 +85,12 @@ Goal: every screen exists and looks finished, driven by static props. No databas
 
 Goal: a schema that serves the UI actually built, with a seed that fills every screen.
 
-- [ ] **P3-1** — Write `prisma/schema.prisma` in full: every entity, enum, relation, and index from [ARCHITECTURE.md §4](./ARCHITECTURE.md). `Decimal` for all money and quantity. `cuid` IDs.
-- [ ] **P3-2** — Indexes and constraints: `@@unique([type, number])` on Invoice, unique `sku`/`barcode`, `dedupeKey` on Notification, indexes on every FK, on `createdAt` for ledgers, and on `[entityType, entityId]` for AuditLog.
-- [ ] **P3-3** — **Get the schema reviewed and approved before migrating.** Present entities, relations, and the sub-unit storage decision explicitly.
-- [ ] **P3-4** — Run the initial migration. Verify in Prisma Studio.
-- [ ] **P3-5** — `prisma/seed.ts`: shop settings, 3 roles (مدير / محاسب / كاشير) with real permission sets, 4 users, 3 cashboxes (نقدي / فودافون كاش / إنستاباي), ~8 categories, ~60 products with varied units and stock states (healthy / low / out), 20 customers, 10 suppliers with opening balances, ~80 invoices across all four types spread over 90 days, matching stock/cash/party ledger rows, collections and payments, one confirmed stocktake, audit entries, notifications. **Seeded data must be internally consistent** — every balance must equal the sum of its ledger.
-- [ ] **P3-6** — `db:reset` script (drop → migrate → seed). Confirm it runs clean from scratch.
+- [x] **P3-1** — Write `prisma/schema.prisma` in full: every entity, enum, relation, and index from [ARCHITECTURE.md §4](./ARCHITECTURE.md). `Decimal` for all money and quantity. `cuid` IDs.
+- [x] **P3-2** — Indexes and constraints: `@@unique([type, number])` on Invoice, unique `sku`/`barcode`, `dedupeKey` on Notification, indexes on every FK, on `createdAt` for ledgers, and on `[entityType, entityId]` for AuditLog.
+- [x] **P3-3** — **Get the schema reviewed and approved before migrating.** Present entities, relations, and the sub-unit storage decision explicitly.
+- [x] **P3-4** — Run the initial migration. Verify in Prisma Studio.
+- [x] **P3-5** — `prisma/seed.ts`: shop settings, 3 roles (مدير / محاسب / كاشير) with real permission sets, 4 users, 3 cashboxes (نقدي / فودافون كاش / إنستاباي), ~8 categories, ~60 products with varied units and stock states (healthy / low / out), 20 customers, 10 suppliers with opening balances, ~80 invoices across all four types spread over 90 days, matching stock/cash/party ledger rows, collections and payments, one confirmed stocktake, audit entries, notifications. **Seeded data must be internally consistent** — every balance must equal the sum of its ledger.
+- [x] **P3-6** — `db:reset` script (drop → migrate → seed). Confirm it runs clean from scratch.
 
 **Exit:** schema approved and migrated; `npm run db:reset` produces a realistic dataset where every balance reconciles against its ledger.
 

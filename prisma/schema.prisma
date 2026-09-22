@@ -6,3 +6,575 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum InvoiceType {
+  SALE
+  PURCHASE
+  SALE_RETURN
+  PURCHASE_RETURN
+}
+
+enum InvoiceStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PAID
+  PARTIAL
+  UNPAID
+}
+
+enum UnitType {
+  BASE
+  SUB
+}
+
+enum StockMovementType {
+  PURCHASE
+  SALE
+  SALE_RETURN
+  PURCHASE_RETURN
+  STOCKTAKE
+  OPENING
+}
+
+enum CashMovementType {
+  SALE_PAYMENT
+  PURCHASE_PAYMENT
+  CUSTOMER_COLLECTION
+  SUPPLIER_PAYMENT
+  SALE_RETURN_REFUND
+  PURCHASE_RETURN_REFUND
+  TRANSFER_IN
+  TRANSFER_OUT
+  OPENING
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+}
+
+enum PartyTransactionType {
+  INVOICE
+  PAYMENT
+  RETURN
+  OPENING
+}
+
+enum DocumentStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum StocktakeStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum NotificationType {
+  LOW_STOCK
+  OUT_OF_STOCK
+  CUSTOMER_BALANCE
+  SUPPLIER_BALANCE
+  SYSTEM
+}
+
+enum NotificationSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ---------------------------------------------------------------------------
+// Users, roles
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  displayName  String
+  passwordHash String
+  avatarColor  String
+  roleId       String
+  role         Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  createdSales           Invoice[]        @relation("InvoiceCreatedBy")
+  cancelledSales          Invoice[]        @relation("InvoiceCancelledBy")
+  stockMovements          StockMovement[]
+  cashMovements           CashMovement[]
+  partyTransactions       PartyTransaction[]
+  collections             Collection[]     @relation("CollectionCreatedBy")
+  cancelledCollections     Collection[]     @relation("CollectionCancelledBy")
+  payments                Payment[]        @relation("PaymentCreatedBy")
+  cancelledPayments        Payment[]        @relation("PaymentCancelledBy")
+  stocktakes              Stocktake[]
+  auditLogs                AuditLog[]
+
+  @@index([roleId])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  permissions String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+}
+
+// ---------------------------------------------------------------------------
+// Catalogue
+// ---------------------------------------------------------------------------
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  products Product[]
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  sku         String    @unique
+  barcode     String?   @unique
+  name        String
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  baseUnitName  String
+  subUnitName   String
+  unitsPerBase  Decimal @db.Decimal(18, 4)
+
+  purchasePricePerBase Decimal @db.Decimal(14, 2)
+  sellPricePerBase     Decimal @db.Decimal(14, 2)
+  avgCostPerSub        Decimal @db.Decimal(14, 4)
+
+  stockQty    Decimal @db.Decimal(18, 4)
+  minStockQty Decimal @db.Decimal(18, 4)
+
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoiceLines    InvoiceLine[]
+  stockMovements  StockMovement[]
+  stocktakeLines  StocktakeLine[]
+
+  @@index([categoryId])
+  @@index([name])
+}
+
+// ---------------------------------------------------------------------------
+// Parties
+// ---------------------------------------------------------------------------
+
+model Customer {
+  id             String   @id @default(cuid())
+  name           String
+  phone          String?
+  address        String?
+  openingBalance Decimal  @db.Decimal(14, 2)
+  balance        Decimal  @db.Decimal(14, 2)
+  notes          String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  invoices           Invoice[]
+  cashMovements       CashMovement[]
+  partyTransactions   PartyTransaction[]
+  collections         Collection[]
+
+  @@index([name])
+}
+
+model Supplier {
+  id             String   @id @default(cuid())
+  name           String
+  phone          String?
+  address        String?
+  openingBalance Decimal  @db.Decimal(14, 2)
+  balance        Decimal  @db.Decimal(14, 2)
+  notes          String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  invoices           Invoice[]
+  cashMovements       CashMovement[]
+  partyTransactions   PartyTransaction[]
+  payments            Payment[]
+
+  @@index([name])
+}
+
+// ---------------------------------------------------------------------------
+// Cashboxes
+// ---------------------------------------------------------------------------
+
+model Cashbox {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  openingBalance Decimal  @db.Decimal(14, 2)
+  balance        Decimal  @db.Decimal(14, 2)
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  invoices     Invoice[]
+  cashMovements CashMovement[]
+  collections   Collection[]
+  payments      Payment[]
+}
+
+// ---------------------------------------------------------------------------
+// Invoices
+// ---------------------------------------------------------------------------
+
+model Invoice {
+  id     String        @id @default(cuid())
+  number Int
+  type   InvoiceType
+  status InvoiceStatus @default(CONFIRMED)
+
+  paymentStatus PaymentStatus
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  cashboxId  String
+  cashbox    Cashbox   @relation(fields: [cashboxId], references: [id], onDelete: Restrict)
+
+  subtotal        Decimal @db.Decimal(14, 2)
+  discountAmount  Decimal @db.Decimal(14, 2)
+  total           Decimal @db.Decimal(14, 2)
+  paidAmount      Decimal @db.Decimal(14, 2)
+  remainingAmount Decimal @db.Decimal(14, 2)
+
+  notes    String?
+  issuedAt DateTime @default(now())
+
+  createdById   String
+  createdBy     User      @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  cancelledAt   DateTime?
+  cancelledById String?
+  cancelledBy   User?     @relation("InvoiceCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
+  cancelReason  String?
+
+  originalInvoiceId String?
+  originalInvoice   Invoice?  @relation("InvoiceReturns", fields: [originalInvoiceId], references: [id], onDelete: SetNull)
+  returns           Invoice[] @relation("InvoiceReturns")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lines             InvoiceLine[]
+  stockMovements    StockMovement[]
+  cashMovements     CashMovement[]
+  partyTransactions PartyTransaction[]
+
+  @@unique([type, number])
+  @@index([customerId])
+  @@index([supplierId])
+  @@index([cashboxId])
+  @@index([status])
+  @@index([issuedAt])
+  @@index([createdAt])
+}
+
+model InvoiceLine {
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  productName String
+  unitName    String
+
+  unitType             UnitType
+  unitsPerBaseSnapshot Decimal  @db.Decimal(18, 4)
+
+  qtyInUnit Decimal @db.Decimal(18, 4)
+  qtyInSub  Decimal @db.Decimal(18, 4)
+
+  unitPrice Decimal @db.Decimal(14, 4)
+  lineTotal Decimal @db.Decimal(14, 2)
+
+  costPerSubAtSale Decimal @db.Decimal(14, 4)
+
+  sortOrder Int @default(0)
+
+  @@index([invoiceId])
+  @@index([productId])
+}
+
+// ---------------------------------------------------------------------------
+// Ledgers
+// ---------------------------------------------------------------------------
+
+model StockMovement {
+  id        String            @id @default(cuid())
+  productId String
+  product   Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  type      StockMovementType
+
+  qtyInSub      Decimal @db.Decimal(18, 4)
+  balanceAfter  Decimal @db.Decimal(18, 4)
+  unitCostPerSub Decimal @db.Decimal(14, 4)
+
+  refType String
+  refId   String
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  note String?
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+
+  @@index([productId])
+  @@index([refType, refId])
+  @@index([invoiceId])
+  @@index([createdAt])
+}
+
+model CashMovement {
+  id        String           @id @default(cuid())
+  cashboxId String
+  cashbox   Cashbox          @relation(fields: [cashboxId], references: [id], onDelete: Restrict)
+  type      CashMovementType
+
+  amount       Decimal @db.Decimal(14, 2)
+  balanceAfter Decimal @db.Decimal(14, 2)
+
+  refType String
+  refId   String
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  transferId String?
+  note       String?
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+
+  @@index([cashboxId])
+  @@index([refType, refId])
+  @@index([invoiceId])
+  @@index([customerId])
+  @@index([supplierId])
+  @@index([transferId])
+  @@index([createdAt])
+}
+
+model PartyTransaction {
+  id        String    @id @default(cuid())
+  partyType PartyType
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  type         PartyTransactionType
+  debit        Decimal              @db.Decimal(14, 2)
+  credit       Decimal              @db.Decimal(14, 2)
+  balanceAfter Decimal              @db.Decimal(14, 2)
+
+  refType String
+  refId   String
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  note       String?
+  occurredAt DateTime @default(now())
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@index([supplierId])
+  @@index([refType, refId])
+  @@index([invoiceId])
+  @@index([occurredAt])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Collections (قبض) / Payments (صرف)
+// ---------------------------------------------------------------------------
+
+model Collection {
+  id     String         @id @default(cuid())
+  number Int            @unique
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  cashboxId  String
+  cashbox    Cashbox  @relation(fields: [cashboxId], references: [id], onDelete: Restrict)
+
+  amount     Decimal        @db.Decimal(14, 2)
+  note       String?
+  occurredAt DateTime       @default(now())
+  status     DocumentStatus @default(CONFIRMED)
+
+  createdById   String
+  createdBy     User      @relation("CollectionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  cancelledAt   DateTime?
+  cancelledById String?
+  cancelledBy   User?     @relation("CollectionCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId])
+  @@index([cashboxId])
+  @@index([occurredAt])
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  number Int    @unique
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  cashboxId  String
+  cashbox    Cashbox  @relation(fields: [cashboxId], references: [id], onDelete: Restrict)
+
+  amount     Decimal        @db.Decimal(14, 2)
+  note       String?
+  occurredAt DateTime       @default(now())
+  status     DocumentStatus @default(CONFIRMED)
+
+  createdById   String
+  createdBy     User      @relation("PaymentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  cancelledAt   DateTime?
+  cancelledById String?
+  cancelledBy   User?     @relation("PaymentCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([supplierId])
+  @@index([cashboxId])
+  @@index([occurredAt])
+}
+
+// ---------------------------------------------------------------------------
+// Stocktaking
+// ---------------------------------------------------------------------------
+
+model Stocktake {
+  id     String          @id @default(cuid())
+  number Int             @unique
+  status StocktakeStatus @default(DRAFT)
+  note   String?
+
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  lines StocktakeLine[]
+}
+
+model StocktakeLine {
+  id          String    @id @default(cuid())
+  stocktakeId String
+  stocktake   Stocktake @relation(fields: [stocktakeId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  systemQtyInSub  Decimal @db.Decimal(18, 4)
+  countedQtyInSub Decimal @db.Decimal(18, 4)
+  differenceInSub Decimal @db.Decimal(18, 4)
+  note            String?
+
+  @@index([stocktakeId])
+  @@index([productId])
+}
+
+// ---------------------------------------------------------------------------
+// Audit, notifications, settings
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  action String
+
+  entityType  String
+  entityId    String
+  entityLabel String
+
+  beforeJson Json?
+  afterJson  Json?
+
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  type      NotificationType
+  severity  NotificationSeverity
+
+  titleKey   String
+  bodyParams Json
+
+  entityType String?
+  entityId   String?
+
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  dedupeKey String    @unique
+  createdAt DateTime  @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model DocumentCounter {
+  type       String @id
+  lastNumber Int    @default(0)
+}

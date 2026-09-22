@@ -15,7 +15,7 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 0 | Scaffold & foundations | DONE | RTL app, theme toggle, database connection verified. |
 | 1 | Design system | DONE | Full token set, restyled primitives, Money/StatusBadge/Kbd, hotkeys, `/design-system` preview verified both themes × 4 widths. |
 | 2 | App shell & static UI | DONE | 22 screens; responsive/theme audit pass complete. |
-| 3 | Database schema | TODO | Needs approval at P3-3 before migrating |
+| 3 | Database schema | DONE | Schema, migration, and seed reconciled against Neon. |
 | 4 | Auth, permissions & sales slice | TODO | Proves the end-to-end pattern |
 | 5 | Purchases, inventory & returns | TODO | |
 | 6 | Parties, cashboxes & money | TODO | |
@@ -23,7 +23,7 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 8 | Polish, motion & edge cases | TODO | |
 | 9 | Testing | TODO | Final pass |
 
-**Overall: 42 / 96 tasks done.**
+**Overall: 48 / 96 tasks done.**
 
 ---
 
@@ -88,12 +88,12 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P3-1 | Write `schema.prisma` | TODO | |
-| P3-2 | Indexes + constraints | TODO | |
-| P3-3 | **Schema approval** | TODO | Blocking — do not migrate before approval |
-| P3-4 | Initial migration | TODO | |
-| P3-5 | `prisma/seed.ts` | TODO | Balances must reconcile |
-| P3-6 | `db:reset` script | TODO | |
+| P3-1 | Write `schema.prisma` | DONE | 20 models, full ARCHITECTURE.md §4.2 coverage. |
+| P3-2 | Indexes + constraints | DONE | Written inline with P3-1. |
+| P3-3 | **Schema approval** | DONE | Approved after resolving open questions #1 (no warehouse) and #4 (no VAT). |
+| P3-4 | Initial migration | DONE | Applied to Neon (`ep-empty-cloud-awx3l5l5-pooler`), verified via Prisma Client queries. |
+| P3-5 | `prisma/seed.ts` | DONE | Reconciles: 3 roles, 4 users, 3 cashboxes, 8 categories, 61 products, 20 customers, 10 suppliers, 28 purchases, 44 sales, 6 returns, collections/payments, 1 stocktake. Self-verifying — throws if any balance doesn't equal its ledger sum. |
+| P3-6 | `db:reset` script | DONE | Verified clean-slate run end-to-end. |
 
 ## Phase 4 — Auth, permissions & sales slice
 
@@ -188,6 +188,9 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 ## Changelog
 
 *Newest first. One entry per meaningful change — task completions, decision reversals, blockers hit and cleared.*
+
+### 2026-09-22 (Phase 3 complete)
+- **Phase 3 complete (P3-1…P3-6).** Full `prisma/schema.prisma` written — 20 models covering every entity in ARCHITECTURE.md §4.2, all FKs indexed, `@@unique([type, number])` on Invoice, `dedupeKey` unique on Notification. Two open questions resolved with the project owner ahead of P3-3 approval: no multi-warehouse, no VAT (both logged in MEMORY.md). Migrated against Neon (the project owner chose cloud Postgres over local Docker for this session — Docker Desktop wasn't running; `.env.example`/`docker-compose.yml` remain the local-dev fallback). `prisma/seed.ts` seeds a fully reconciled dataset (3 roles, 4 users, 3 cashboxes, 8 categories, 61 products, 20 customers, 10 suppliers, 28 purchases, 44 sales, 6 returns, 8 collections, 7 payments, 1 stocktake) and ends with a self-check that throws if any cashbox/customer/supplier/product balance doesn't equal its ledger sum — this caught two real bugs during the build: (1) the reconciliation formula itself double-counted the opening balance (both the `balance` column and an OPENING ledger row carried it — fixed to sum the ledger alone, since the OPENING row already includes it); (2) supplier `PartyTransaction` debit/credit were inverted (a purchase should debit — increase what we owe — and a payment should credit — decrease it — but both were backwards). Also fixed a fragile placeholder-refId-then-backfill pattern in the purchase/sale seed loops (StockMovement rows now get their real `invoiceId` at write time, after the invoice row exists, instead of via a same-transaction `updateMany` sweep). Added `bcryptjs` + `ts-node`, `db:migrate`/`db:seed`/`db:reset` npm scripts, and `package.json#prisma.seed` config. `typecheck`/`lint` clean; `npm run db:reset` verified to run clean from scratch.
 
 ### 2026-09-22 (Phase 2 complete)
 - **Phase 2 complete (P2-1…P2-22).** Closed the P2-22 responsive/theme audit gate with parallel audit passes across all 33 static routes at 375/768/1024/1440px in both themes. Fixed real bugs surfaced along the way: (1) the density toggle button did nothing because `data-density` was never written to the DOM — `DataTable` now reads the Zustand store and sets it, fixing every table in the app at once; (2) Radix UI primitives (Tabs, etc.) default their internal `dir` to `"ltr"` unless told otherwise, which silently flipped every tabbed dialog (e.g. the product-create form) to LTR layout — fixed once, app-wide, with a `Direction.Provider` in `components/providers.tsx` rather than patching each primitive; (3) dashboard/report charts wrapped in `dir="ltr"` so Recharts' internally-LTR rendering stops fighting the page's RTL context; (4) audit log showed raw permission-style keys (`product.price.update`) instead of Arabic — added an `auditLog.actions`/`fields` label map (next-intl forbids literal `.` in JSON keys, so action keys are looked up with `.` replaced by `_`); (5) the user-create/edit form was missing a password field entirely — added with the same show/hide pattern as login. Also: dashboard KPI row and quick-actions now match the owner's requested set (مبيعات اليوم / مشتريات اليوم / عدد الفواتير / إجمالي المستحقات; فاتورة شراء / فاتورة بيع / المخزن / الخزنة / تحصيل / دفع), notifications got a delete action, returns list's "Create New" button now resolves its Arabic label. `typecheck` and `lint` clean.
