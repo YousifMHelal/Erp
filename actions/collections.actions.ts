@@ -7,6 +7,7 @@ import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
+import { syncNotifications } from "@/lib/notifications";
 import { cancelMoneyDocumentSchema, createCollectionSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
 import type { ActionResult, EntityComboboxOption, MoneyDocumentRow, PartyWithBalanceOption } from "@/types";
@@ -96,6 +97,7 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
         balanceAfter: updatedCustomer.balance, refType: "COLLECTION", refId: collection.id,
         note, occurredAt, createdById: user.id,
       } });
+      await syncNotifications(tx, { customerIds: [customerId] });
       await writeAudit(tx, {
         userId: user.id, action: "collection.create", entityType: "Collection",
         entityId: collection.id, entityLabel: `#${String(number).padStart(6, "0")}`,
@@ -147,6 +149,7 @@ export async function cancelCollection(input: unknown): Promise<ActionResult<{ i
         debit: collection.amount, credit: new Prisma.Decimal(0), balanceAfter: updatedCustomer.balance,
         refType: "COLLECTION", refId: id, note: reason, occurredAt, createdById: user.id,
       } });
+      await syncNotifications(tx, { customerIds: [collection.customerId] });
       await writeAudit(tx, {
         userId: user.id, action: "collection.cancel", entityType: "Collection",
         entityId: id, entityLabel: `#${String(collection.number).padStart(6, "0")}`,

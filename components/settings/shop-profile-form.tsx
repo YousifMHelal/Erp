@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ShopProfile } from "@/types";
+import { saveShopProfile } from "@/actions/settings.actions";
 
 export function ShopProfileForm({ profile }: { profile: ShopProfile }) {
   const t = useTranslations("settings.profile");
@@ -18,10 +19,11 @@ export function ShopProfileForm({ profile }: { profile: ShopProfile }) {
   const [taxNote, setTaxNote] = useState(profile.taxNote ?? "");
   const [invoiceFooter, setInvoiceFooter] = useState(profile.invoiceFooter ?? "");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const result = await saveShopProfile({ name, phone, address, taxNote, invoiceFooter });
+    if (!result.success) return toast.error(result.error);
     toast.success(t("saved"));
-    // P7-9 wires this to settings.actions.ts.
   }
 
   return (

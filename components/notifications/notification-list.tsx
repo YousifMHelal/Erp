@@ -8,20 +8,27 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NotificationListItem } from "@/components/notifications/notification-list-item";
 import type { NotificationItem } from "@/types";
+import { deleteNotification, markAllNotificationsRead, markNotificationRead } from "@/actions/notifications.actions";
 
 export function NotificationList({ notifications: initial }: { notifications: NotificationItem[] }) {
   const t = useTranslations("notifications");
   const [notifications, setNotifications] = useState(initial);
 
-  function markRead(id: string) {
+  async function markRead(id: string) {
+    const result = await markNotificationRead(id);
+    if (!result.success) return;
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   }
 
-  function markAllRead() {
+  async function markAllRead() {
+    const result = await markAllNotificationsRead();
+    if (!result.success) return;
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   }
 
-  function deleteNotification(id: string) {
+  async function removeNotification(id: string) {
+    const result = await deleteNotification(id);
+    if (!result.success) return;
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }
 
@@ -45,7 +52,7 @@ export function NotificationList({ notifications: initial }: { notifications: No
               key={notification.id}
               notification={notification}
               onMarkRead={markRead}
-              onDelete={deleteNotification}
+              onDelete={removeNotification}
             />
           ))}
         </Card>

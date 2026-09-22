@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { lineAmount, paymentStatus, decimal } from "@/lib/money";
 import { toSubUnits } from "@/lib/units";
 import { weightedAverageCost } from "@/lib/costing";
+import { syncNotifications } from "@/lib/notifications";
 import type {
   PreparedPurchase,
   PurchaseErrorCode,
@@ -218,6 +219,7 @@ async function moveSupplierBalance(
       note: input.note,
     },
   });
+  await syncNotifications(tx, { supplierIds: [input.supplierId] });
 }
 
 export async function postPurchase(
@@ -253,6 +255,7 @@ export async function postPurchase(
     invoiceId: input.invoiceId,
     userId: input.userId,
   });
+  await syncNotifications(tx, { productIds: input.purchase.lines.map((line) => line.productId) });
 }
 
 export async function reversePurchase(
@@ -286,5 +289,8 @@ export async function reversePurchase(
     invoiceId: invoice.id,
     userId,
     note: reason,
+  });
+  await syncNotifications(tx, {
+    productIds: invoice.lines.filter((entry) => entry.isCurrent).map((entry) => entry.productId),
   });
 }

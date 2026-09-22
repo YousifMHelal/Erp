@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CategoryFormDialogProps, CategoryRow } from "@/types";
+import type { CategoryFormDialogProps } from "@/types";
+import { saveCategory } from "@/actions/settings.actions";
 
 export function CategoryFormDialog({ open, onOpenChange, category, onSave }: CategoryFormDialogProps) {
   const t = useTranslations("settings.categories.form");
@@ -16,22 +17,17 @@ export function CategoryFormDialog({ open, onOpenChange, category, onSave }: Cat
   const [name, setName] = useState(category?.name ?? "");
   const [description, setDescription] = useState(category?.description ?? "");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
       toast.error(t("errorRequired"));
       return;
     }
-    const saved: CategoryRow = {
-      id: category?.id ?? crypto.randomUUID(),
-      name: name.trim(),
-      description: description.trim() || undefined,
-      productCount: category?.productCount ?? 0,
-    };
-    onSave(saved);
+    const saved = await saveCategory(category?.id, { name, description });
+    if (!saved.success) return toast.error(saved.error);
+    onSave(saved.data);
     toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
     onOpenChange(false);
-    // P7-9 wires this to categories.actions.ts create/update.
   }
 
   return (

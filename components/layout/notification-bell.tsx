@@ -11,10 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { NotificationBellProps } from "@/types";
 
-const UNREAD_COUNT = 0;
-
-export function NotificationBell() {
+export function NotificationBell({ unreadCount }: NotificationBellProps) {
   const t = useTranslations("layout");
 
   return (
@@ -28,12 +27,12 @@ export function NotificationBell() {
           className="relative min-h-11 min-w-11"
         >
           <Bell className="size-5" />
-          {UNREAD_COUNT > 0 && (
+          {unreadCount > 0 && (
             <span
               className="absolute end-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-danger text-[10px] font-semibold text-white"
               aria-hidden="true"
             >
-              {UNREAD_COUNT}
+              {unreadCount}
             </span>
           )}
         </Button>
@@ -41,7 +40,9 @@ export function NotificationBell() {
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>{t("notificationsLabel")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <p className="px-2 py-6 text-center text-body-sm text-muted-foreground">{t("noNotifications")}</p>
+        <p className="px-2 py-6 text-center text-body-sm text-muted-foreground">
+          {unreadCount > 0 ? t("unreadNotifications", { count: unreadCount }) : t("noNotifications")}
+        </p>
         <DropdownMenuSeparator />
         <Link
           href="/notifications"

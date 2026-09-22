@@ -153,15 +153,15 @@ Goal: the rest of the inventory-affecting flows, copying the Phase 4 pattern.
 
 ## Phase 7 — Reports, notifications & audit
 
-- [ ] **P7-1** — `actions/reports.actions.ts`: shared date-range + filter handling, aggregate queries.
-- [ ] **P7-2** — Sales, purchases, and inventory reports (with valuation).
-- [ ] **P7-3** — Customer, supplier, collection, and payment reports.
-- [ ] **P7-4** — Cashbox report.
-- [ ] **P7-5** — **Profit & Loss**: revenue − COGS (from `costPerSubAtSale`, not current average) − discounts + returns handling. Show gross margin and per-period breakdown. This is the report most likely to be subtly wrong — verify against hand-calculated seed data.
-- [ ] **P7-6** — Report charts (Recharts, RTL axis config) + CSV export (UTF-8 **with BOM**) + A4 PDF where a document makes sense.
-- [ ] **P7-7** — `lib/notifications.ts`: generation on stock and balance changes, `dedupeKey`, severity. Wire the bell and `/notifications`.
-- [ ] **P7-8** — Wire `/audit-log`: filters by user, action, entity, date; before/after diff dialog.
-- [ ] **P7-9** — Settings wiring: shop profile, print prefs, categories, cashboxes, users CRUD, **roles permission matrix**.
+- [x] **P7-1** — `actions/reports.actions.ts`: shared date-range + filter handling, aggregate queries.
+- [x] **P7-2** — Sales, purchases, and inventory reports (with valuation).
+- [x] **P7-3** — Customer, supplier, collection, and payment reports.
+- [x] **P7-4** — Cashbox report.
+- [x] **P7-5** — **Profit & Loss**: revenue − COGS (from `costPerSubAtSale`, not current average) − discounts + returns handling. Show gross margin and per-period breakdown. This is the report most likely to be subtly wrong — verify against hand-calculated seed data.
+- [x] **P7-6** — Report charts (Recharts, RTL axis config) + CSV export (UTF-8 **with BOM**) + A4 PDF where a document makes sense.
+- [x] **P7-7** — `lib/notifications.ts`: generation on stock and balance changes, `dedupeKey`, severity. Wire the bell and `/notifications`.
+- [x] **P7-8** — Wire `/audit-log`: filters by user, action, entity, date; before/after diff dialog.
+- [x] **P7-9** — Settings wiring: shop profile, print prefs, categories, cashboxes, users CRUD, **roles permission matrix**.
 
 **Exit:** all 9 reports return correct figures against the seeded data (P&L verified by hand), notifications fire without duplicating, the audit log shows a complete before/after history, and an admin can create a custom role that actually gates the UI and the actions.
 

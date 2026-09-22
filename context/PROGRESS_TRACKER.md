@@ -18,12 +18,12 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 3 | Database schema | DONE | Schema, migration, and seed reconciled against Neon. |
 | 4 | Auth, permissions & sales slice | DONE | Full vertical slice verified end-to-end against Neon + browser. |
 | 5 | Purchases, inventory & returns | DONE | All 9 tasks wired against Prisma; `typecheck`/`lint` clean. `next build` not verified this session (Prisma query-engine DLL locked by another process). |
-| 6 | Parties, cashboxes & money | TODO | |
-| 7 | Reports, notifications & audit | TODO | |
+| 6 | Parties, cashboxes & money | DONE | Party lists/profiles, statements, cashboxes, transfers, collections, payments wired against Prisma; `db:reconcile` passes. |
+| 7 | Reports, notifications & audit | DONE | All 9 reports, notifications, audit log, and settings incl. roles permission matrix wired against Prisma. |
 | 8 | Polish, motion & edge cases | TODO | |
 | 9 | Testing | TODO | Final pass |
 
-**Overall: 70 / 96 tasks done.**
+**Overall: 87 / 96 tasks done.**
 
 ---
 
@@ -144,15 +144,15 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P7-1 | Reports action foundation | TODO | |
-| P7-2 | Sales/purchases/inventory reports | TODO | |
-| P7-3 | Party + collection/payment reports | TODO | |
-| P7-4 | Cashbox report | TODO | |
-| P7-5 | **Profit & Loss** | TODO | Verify by hand against seed |
-| P7-6 | Charts + CSV/PDF export | TODO | CSV needs UTF-8 BOM |
-| P7-7 | Notifications | TODO | |
-| P7-8 | Wire audit log | TODO | |
-| P7-9 | Settings wiring + role matrix | TODO | |
+| P7-1 | Reports action foundation | DONE | Shared validated filters, half-open date ranges, report-specific option queries, and matching date-bound aggregates. |
+| P7-2 | Sales/purchases/inventory reports | DONE | `lib/report-queries.ts`: daily-grouped sales/purchases with totals, inventory valuation at cost and sale price. |
+| P7-3 | Party + collection/payment reports | DONE | Customer/supplier invoiced-vs-settled-vs-balance; collections/payments listing reports. |
+| P7-4 | Cashbox report | DONE | Per-cashbox inflow/outflow/net/balance. |
+| P7-5 | **Profit & Loss** | DONE | Revenue − discounts − returns − COGS from `costPerSubAtSale` (not current avg), gross margin per period. |
+| P7-6 | Charts + CSV/PDF export | DONE | Recharts trend charts; CSV with UTF-8 BOM; PDF via browser print (matches existing A4/A5/80mm print pattern). |
+| P7-7 | Notifications | DONE | `lib/notifications.ts` dedupe-keyed low/out-of-stock and party-balance notifications synced from every sale/purchase/return/stocktake/collection/payment mutation; bell + `/notifications` wired. |
+| P7-8 | Wire audit log | DONE | `/audit-log` filtered by user/action/entity/date with before/after diff dialog. |
+| P7-9 | Settings wiring + role matrix | DONE | Shop profile, print prefs, users, categories, cashboxes CRUD; roles permission matrix now reads/writes real `Role.permissions` via `saveRole` (was a static mock — fixed this session) and gates live via `requirePermission` reading DB role on every call. |
 
 ## Phase 8 — Polish, motion & edge cases
 
@@ -188,6 +188,16 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 ## Changelog
 
 *Newest first. One entry per meaningful change — task completions, decision reversals, blockers hit and cleared.*
+
+### 2026-09-22 (Phase 7 complete)
+- **Phase 7 complete (P7-1…P7-9).** All 9 reports, notifications, audit log, and settings incl. the roles permission matrix now run against Prisma. Reviewed and fixed after the implementation pass:
+  - **Correctness bugs fixed:** `confirmStocktake` passed every submitted line's `productId` to `syncNotifications` including ids the confirm loop had already skipped as not found, so a stale/deleted-product submission threw inside `syncProduct`'s `findUniqueOrThrow` and rolled back an otherwise-valid confirmed stocktake — now filtered to only found products. The reports `[report]/page.tsx` and `settings/page.tsx` collapsed every `ActionResult` failure (including a real `report.profitLoss` permission denial) into a bare `notFound()`/blank page — now shows the actual Arabic error via `EmptyState`. `getUnreadNotificationCount` swallowed all errors (including real DB failures) into a silent `0`, indistinguishable from "no unread" — now only defaults to `0` on the expected auth/permission cases. Notification mark-read/mark-all/delete only revalidated `/notifications`, leaving the topbar bell's unread count stale after navigating away — now also revalidates the root layout.
+  - **P7-9's core deliverable was incomplete:** `RolesView` was still the Phase-2 static stub — hardcoded mock permission sets keyed by fake role ids `"1"/"2"/"3"`, and `handleSave` just showed a success toast with a `// P7-9 wires this to roles.actions.ts` comment, never calling any action. Rewired to use the real `RoleRow.permissions` from `getRoles()` and call `saveRole` on save, which required also fixing `saveRole` itself: editing a system role silently returned the unchanged row as a success instead of rejecting the edit, so a direct action call (bypassing the UI's `readOnly` gate) could look like it worked while doing nothing.
+  - **Money-document bugs from the Phase 6 review (found last session, fixed this session):** `cancelPayment`/`cancelCollection` read a document's status then unconditionally incremented cashbox/party balances with no status-guarded update and no `Serializable` isolation — concurrent/double-clicked cancels could double-credit. Now both guard the status transition with `updateMany({ where: { status: "CONFIRMED" } })` and check `count === 1` before touching any balance. The new cancel-money-document i18n strings were pasted into `invoices.detail` instead of `moneyDocuments.list`, leaving the new cancel dialog's keys undefined and corrupting the existing invoice cancel button's label via a duplicate JSON key — moved to the correct namespace. `PARTIAL` payment status was mistranslated from "مدفوعة جزئياً" (partially paid) to "أجل" (credit/deferred sale, a different concept) — reverted.
+  - **Perf:** `syncNotifications` was called once per invoice/return line inside the per-line stock-move loop of `postSale`/`postPurchase`/`postReturn` (and their reversals), turning a 200-line invoice into 200 sequential notification round-trips inside one DB transaction. Moved to a single call per posting/reversal with the full set of touched product ids.
+  - **Consistency:** report filter dropdowns (customer/supplier/product/user) didn't filter `isActive`, unlike every other party-option query in the app — now consistent. `audit.actions.ts` reimplemented the report date-range math inline instead of reusing `reportDateRange` from `lib/report-queries.ts` — now shared.
+  - **Known issue, not fixed:** `reportDateRange` (and the older per-action copies in sales/purchases/returns) build day boundaries at UTC midnight while the UI picks/displays local (Egypt, UTC+2/+3) dates, so a "today" filter can be off by 2–3 hours near midnight. Pre-existing across the codebase, not new to this phase; needs a project-wide timezone decision (fixed offset vs. a stored shop timezone), not a local patch — logged here rather than half-fixed in just the newest call sites.
+  - `typecheck` and `lint` clean throughout.
 
 ### 2026-09-22 (Phase 6 complete)
 - **Phase 6 complete (P6-1…P6-8).** Party lists/profiles, statements, cashboxes, transfers, collections, and supplier payments now run against Prisma. Financial documents cancel by compensating cash and party ledger rows; no hard deletes or amount edits. `npm run db:reconcile` passed for all 3 cashboxes, 20 customers, and 10 suppliers. Typecheck and lint pass.

@@ -56,6 +56,7 @@
 | 2026-09-20 | **Server Actions for everything. Exactly two route handlers: NextAuth and the invoice PDF stream.** | Per the brief. The PDF needs to stream a binary response, which an action can't do. |
 | 2026-09-20 | **Zustand limited to two stores** — `ui.store` (sidebar, density) and `invoice-draft.store` (unsaved sale lines). | Zustand is in the stack, but server data belongs on the server. Using it as a cache would reintroduce the stale-data problems Server Components exist to remove. |
 | 2026-09-20 | **Single `Invoice` table with a `type` enum** covering sale, purchase, sale return, purchase return. | The four share ~90 % of their columns and all of their list/detail UI. Four near-identical tables would mean four sets of queries, components, and reports. |
+| 2026-09-22 | **No separate daily closing / shift report in v1.** The cashbox report remains the operational movement report. | The owner was unsure; the conservative default avoids adding a non-PRD accounting workflow and keeps Phase 7 within the locked v1 scope. |
 | 2026-09-20 | **Separate `Customer` and `Supplier` tables** rather than one polymorphic `Party`. | Sahl unifies them under "الحسابات" with a type flag, but they diverge in reporting and in balance meaning (owed *to* us vs owed *by* us). Separate tables keep the queries and the type system honest. |
 | 2026-09-20 | **Out of scope for v1:** multi-tenancy, multi-warehouse, multi-currency, full double-entry GL, sales-rep commissions, instalments, cheques, product images, expiry/serial tracking, email, offline/PWA, native mobile. | Not in the PRD. Sahl has several of them, which is exactly why they need naming — otherwise they creep in from the screenshots. |
 | 2026-09-20 | **Added to the stack beyond the brief:** next-intl, TanStack Table, Recharts, @react-pdf/renderer, bcryptjs, date-fns, next-themes, Docker Compose. | Each justified in [ARCHITECTURE.md §2](./ARCHITECTURE.md). Called out rather than adopted silently. |
@@ -89,13 +90,14 @@
 | 5 | Who **hosts Postgres** when this moves to Vercel — Neon, Supabase, or something else? | Affects connection pooling and whether Prisma needs an adapter. | Before deployment |
 | 6 | Should **per-user permission overrides** be added on top of roles? | Deferred from v1. | After Phase 7 |
 | 7 | Should cancelled invoices be **visible to all users** or only to those with an audit permission? | Affects default list filters. | Before P4-11 |
-| 8 | Does the shop want a **daily closing / shift report** (Sahl's الحركة اليومية)? | A natural fit for the reports hub; not in the PRD. | Before P7-4 |
 
 ---
 
 ## Technical discoveries
 
 *Populate as the build hits surprises — Prisma Decimal quirks, Arabic font shaping in PDFs, RTL chart behaviour, Next.js caching gotchas. Each entry: what broke, why, and the fix.*
+
+- **2026-09-22 — Date-range filters use UTC midnight, not shop-local time — known bug, not yet fixed.** `reportDateRange()` (`lib/report-queries.ts`, shared by reports and the audit log) and the older inline copies in `actions/sales.actions.ts`/`purchases.actions.ts`/`returns.actions.ts` build a day's `[from, to)` window as `${date}T00:00:00Z`. The UI picks and displays dates in the browser's local time (Egypt, UTC+2/+3), so a "today" filter can be off by 2–3 hours — invoices from the first hours of the local day can fall outside the intended bucket. Found during the Phase 7 review; not fixed, because a correct fix is a project-wide decision (a fixed UTC+2/+3 offset vs. a stored shop timezone setting) and patching only the newest call sites would leave the app inconsistent. Needs an explicit decision before P8 or P9 touch date filtering again.
 
 - **2026-09-22 — Arabic PDF font format:** `@react-pdf/renderer` 4.9.0 failed embedding the project's WOFF2 font with a FontKit `RangeError` during PDF finalization. IBM's official complete TTF registered successfully; an authenticated A4 invoice PDF rendered with correctly shaped Arabic when inspected as an image. The WOFF2 files remain for the web UI.
 

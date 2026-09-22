@@ -1,43 +1,24 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { getAuditLog } from "@/actions/audit.actions";
 import { PageHeader } from "@/components/shared/page-header";
 import { AuditLogList } from "@/components/audit/audit-log-list";
-import type { AuditLogRow } from "@/types";
+import { AuditLogFiltersBar } from "@/components/audit/audit-log-filters";
+import type { AuditLogFilters } from "@/types";
 
-const ENTRIES: AuditLogRow[] = [
-  {
-    id: "1",
-    userName: "أحمد سعيد",
-    action: "product.price.update",
-    entityLabel: "أرز أبو كاس ٥ كجم",
-    createdAt: "2026-09-15",
-    beforeJson: { sellPricePerBase: "1150.00" },
-    afterJson: { sellPricePerBase: "1200.00" },
-  },
-  {
-    id: "2",
-    userName: "أحمد سعيد",
-    action: "sale.cancel",
-    entityLabel: "فاتورة #000998",
-    createdAt: "2026-08-28",
-    beforeJson: { status: "CONFIRMED" },
-    afterJson: { status: "CANCELLED", cancelReason: "خطأ في الكمية" },
-  },
-  {
-    id: "3",
-    userName: "منى فتحي",
-    action: "customer.create",
-    entityLabel: "محمد عبد الرحمن",
-    createdAt: "2026-08-20",
-  },
-];
-
-export default function AuditLogPage() {
-  const t = useTranslations("auditLog");
-
+export default async function AuditLogPage({ searchParams }: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
+  const filters: AuditLogFilters = Object.fromEntries(
+    Object.entries(query).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+  );
+  const [t, audit] = await Promise.all([getTranslations("auditLog"), getAuditLog(filters)]);
+  const data = audit.success ? audit.data : { entries: [], users: [], actions: [], entityTypes: [] };
   return (
     <>
       <PageHeader title={t("title")} breadcrumbs={[{ labelKey: "nav.auditLog" }]} />
-      <AuditLogList entries={ENTRIES} />
+      <AuditLogFiltersBar filters={filters} users={data.users} actions={data.actions} entityTypes={data.entityTypes} />
+      <AuditLogList entries={data.entries} />
     </>
   );
 }

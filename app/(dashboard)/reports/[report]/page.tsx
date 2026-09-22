@@ -1,36 +1,34 @@
+import { ShieldAlert } from "lucide-react";
 import { notFound } from "next/navigation";
+import { getReportData, getReportFoundation } from "@/actions/reports.actions";
+import { EmptyState } from "@/components/shared/empty-state";
 import { ReportShell } from "@/components/reports/report-shell";
-import { ReportChart } from "@/components/reports/report-chart";
-import { ReportTable } from "@/components/reports/report-table";
-import { getReportDefinition } from "@/components/reports/report-data";
-import type { ReportKey } from "@/types";
+import messages from "@/messages/ar.json";
+import type { ReportFilters, ReportKey } from "@/types";
 
-const VALID_REPORTS: ReportKey[] = [
-  "sales",
-  "purchases",
-  "inventory",
-  "customers",
-  "suppliers",
-  "cashboxes",
-  "collections",
-  "payments",
-  "profit-loss",
-];
+const VALID_REPORTS = new Set<ReportKey>([
+  "sales", "purchases", "inventory", "customers", "suppliers",
+  "cashboxes", "collections", "payments", "profit-loss",
+]);
 
-export default async function ReportPage({ params }: { params: Promise<{ report: string }> }) {
-  const { report } = await params;
-
-  if (!VALID_REPORTS.includes(report as ReportKey)) {
-    notFound();
-  }
-
+export default async function ReportPage({ params, searchParams }: {
+  params: Promise<{ report: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [{ report }, query] = await Promise.all([params, searchParams]);
+  if (!VALID_REPORTS.has(report as ReportKey)) notFound();
   const reportKey = report as ReportKey;
-  const definition = getReportDefinition(reportKey);
-
-  return (
-    <ReportShell reportKey={reportKey}>
-      {definition.chart && <ReportChart title={definition.chart.title} data={definition.chart.data} />}
-      <ReportTable columns={definition.columns} rows={definition.rows} footerRow={definition.footerRow} />
-    </ReportShell>
+  const filters: ReportFilters = Object.fromEntries(
+    Object.entries(query).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
   );
+  const input = { reportKey, ...filters };
+  const [foundation, dataset] = await Promise.all([
+    getReportFoundation(input),
+    getReportData(input),
+  ]);
+  if (!foundation.success || !dataset.success) {
+    const error = !foundation.success ? foundation.error : !dataset.success ? dataset.error : messages.reportAction.failed;
+    return <EmptyState icon={<ShieldAlert className="size-6" />} title={error} />;
+  }
+  return <ReportShell reportKey={reportKey} filters={foundation.data.filters} options={foundation.data.options} report={dataset.data} />;
 }

@@ -6,6 +6,7 @@ import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/l
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
 import { prisma } from "@/lib/prisma";
+import { syncNotifications } from "@/lib/notifications";
 import { buildPartyStatement } from "@/lib/party-statement";
 import { createPartySchema, partyIdSchema, updatePartySchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
@@ -123,6 +124,7 @@ export async function createCustomer(input: unknown): Promise<ActionResult<Party
           },
         });
       }
+      await syncNotifications(tx, { customerIds: [created.id] });
       await writeAudit(tx, {
         userId: user.id, action: "customer.create", entityType: "Customer",
         entityId: created.id, entityLabel: created.name,

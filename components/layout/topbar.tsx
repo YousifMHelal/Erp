@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { getBreadcrumbs } from "@/lib/breadcrumbs";
 import type { TopbarProps } from "@/types";
 
-export function Topbar({ className }: TopbarProps) {
+export function Topbar({ className, unreadNotificationCount }: TopbarProps) {
   const pathname = usePathname();
   const items = getBreadcrumbs(pathname);
 
@@ -26,7 +26,7 @@ export function Topbar({ className }: TopbarProps) {
       <Breadcrumb items={items} />
       <div className="ms-auto flex items-center gap-1.5">
         <GlobalSearch />
-        <NotificationBell />
+        <NotificationBell unreadCount={unreadNotificationCount} />
         <ThemeToggle />
         <UserMenu />
       </div>

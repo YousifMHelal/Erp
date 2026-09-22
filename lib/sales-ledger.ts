@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { lineAmount, paymentStatus, decimal } from "@/lib/money";
 import { toSubUnits } from "@/lib/units";
+import { syncNotifications } from "@/lib/notifications";
 import type {
   PreparedSale,
   SaleErrorCode,
@@ -190,6 +191,7 @@ async function moveCustomerBalance(
       note: input.note,
     },
   });
+  await syncNotifications(tx, { customerIds: [input.customerId] });
 }
 
 export async function postSale(
@@ -224,6 +226,7 @@ export async function postSale(
     invoiceId: input.invoiceId,
     userId: input.userId,
   });
+  await syncNotifications(tx, { productIds: input.sale.lines.map((line) => line.productId) });
 }
 
 export async function reverseSale(
@@ -256,5 +259,8 @@ export async function reverseSale(
     invoiceId: invoice.id,
     userId,
     note: reason,
+  });
+  await syncNotifications(tx, {
+    productIds: invoice.lines.filter((entry) => entry.isCurrent).map((entry) => entry.productId),
   });
 }

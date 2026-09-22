@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import type { AppShellProps } from "@/types";
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, unreadNotificationCount }: AppShellProps) {
   const t = useTranslations("layout");
 
   return (
@@ -18,7 +18,7 @@ export function AppShell({ children }: AppShellProps) {
       </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
+        <Topbar unreadNotificationCount={unreadNotificationCount} />
         <main id="main-content" className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 md:px-6">
           {children}
         </main>

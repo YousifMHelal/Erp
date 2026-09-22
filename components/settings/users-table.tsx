@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, UserPlus, Users } from "lucide-react";
+import { Pencil, UserPlus, UserX, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -15,14 +15,9 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { UserFormDialog } from "@/components/settings/user-form-dialog";
 import { formatDate } from "@/lib/format";
 import type { EntityComboboxOption, SettingsUserRow } from "@/types";
+import { deactivateUser } from "@/actions/settings.actions";
 
-const ROLE_OPTIONS: EntityComboboxOption[] = [
-  { value: "1", label: "مدير" },
-  { value: "2", label: "محاسب" },
-  { value: "3", label: "كاشير" },
-];
-
-export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }) {
+export function UsersTable({ users: initialUsers, roleOptions }: { users: SettingsUserRow[]; roleOptions: EntityComboboxOption[] }) {
   const t = useTranslations("settings.users");
   const tCommon = useTranslations("common");
 
@@ -35,12 +30,13 @@ export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }
     setUsers((prev) => (prev.some((u) => u.id === user.id) ? prev.map((u) => (u.id === user.id ? user : u)) : [...prev, user]));
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deletingUser) return;
-    setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+    const result = await deactivateUser(deletingUser.id);
+    if (!result.success) return toast.error(result.error);
+    setUsers((prev) => prev.map((u) => (u.id === deletingUser.id ? { ...u, isActive: false } : u)));
     toast.success(t("deleteSuccess"));
     setDeletingUser(undefined);
-    // P7-9 wires this to users.actions.ts delete.
   }
 
   const columns: ColumnDef<SettingsUserRow, unknown>[] = [
@@ -93,7 +89,7 @@ export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }
               className="text-danger-fg hover:bg-danger-bg"
               onClick={() => setDeletingUser(row.original)}
             >
-              <Trash2 className="size-4" />
+              <UserX className="size-4" />
             </Button>
           </AppTooltip>
         </div>
@@ -144,7 +140,7 @@ export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }
                     className="text-danger-fg max-md:min-h-11 max-md:min-w-11 hover:bg-danger-bg"
                     onClick={() => setDeletingUser(row)}
                   >
-                    <Trash2 className="size-4" />
+                    <UserX className="size-4" />
                   </Button>
                 </AppTooltip>
               </div>
@@ -169,9 +165,10 @@ export function UsersTable({ users: initialUsers }: { users: SettingsUserRow[] }
       />
 
       <UserFormDialog
+        key={editingUser?.id ?? "new"}
         open={formOpen}
         onOpenChange={setFormOpen}
-        roleOptions={ROLE_OPTIONS}
+        roleOptions={roleOptions}
         user={editingUser}
         onSave={handleSave}
       />

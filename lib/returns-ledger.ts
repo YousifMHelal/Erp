@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { lineAmount, decimal } from "@/lib/money";
+import { syncNotifications } from "@/lib/notifications";
 import type {
   OriginalInvoiceForReturn,
   PreparedReturn,
@@ -216,6 +217,7 @@ async function movePartyBalance(
         note: input.note,
       },
     });
+    await syncNotifications(tx, { customerIds: [input.customerId] });
   } else {
     if (!input.supplierId) return;
     const supplier = await tx.supplier.update({
@@ -237,6 +239,7 @@ async function movePartyBalance(
         note: input.note,
       },
     });
+    await syncNotifications(tx, { supplierIds: [input.supplierId] });
   }
 }
 
@@ -295,4 +298,6 @@ export async function postReturn(
       userId: input.userId,
     });
   }
+
+  await syncNotifications(tx, { productIds: input.prepared.lines.map((line) => line.productId) });
 }

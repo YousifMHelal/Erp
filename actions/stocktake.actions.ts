@@ -10,6 +10,7 @@ import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
+import { syncNotifications } from "@/lib/notifications";
 import { decimal } from "@/lib/money";
 import { confirmStocktakeSchema, stocktakeIdSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
@@ -122,6 +123,8 @@ export async function confirmStocktake(
             },
           });
         }
+
+        await syncNotifications(tx, { productIds: parsed.data.lines.map((line) => line.productId).filter((id) => byId.has(id)) });
 
         await writeAudit(tx, {
           userId: user.id,

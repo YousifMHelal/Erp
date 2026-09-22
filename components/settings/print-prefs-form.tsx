@@ -9,16 +9,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
 import type { EntityComboboxOption, PrintPreferences } from "@/types";
+import { savePrintPreferences } from "@/actions/settings.actions";
 
 export function PrintPrefsForm({ preferences, cashboxOptions }: { preferences: PrintPreferences; cashboxOptions: EntityComboboxOption[] }) {
   const t = useTranslations("settings.printPrefs");
   const [size, setSize] = useState(preferences.defaultPrintSize);
   const [cashboxId, setCashboxId] = useState<string | undefined>(preferences.defaultCashboxId);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!cashboxId) return;
+    const result = await savePrintPreferences({ defaultPrintSize: size, defaultCashboxId: cashboxId });
+    if (!result.success) return toast.error(result.error);
     toast.success(t("saved"));
-    // P7-9 wires this to settings.actions.ts.
   }
 
   return (

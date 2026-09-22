@@ -408,10 +408,10 @@
       "empty": "لا يوجد مستخدمون بعد",
       "columnActions": "إجراءات",
       "editUser": "تعديل المستخدم",
-      "deleteUser": "حذف المستخدم",
-      "deleteDialogTitle": "حذف المستخدم \"{name}\"؟",
-      "deleteDialogDescription": "لن يتمكن هذا المستخدم من تسجيل الدخول بعد الحذف. هذا الإجراء لا يمكن التراجع عنه.",
-      "deleteSuccess": "تم حذف المستخدم",
+      "deleteUser": "تعطيل المستخدم",
+      "deleteDialogTitle": "تعطيل المستخدم \"{name}\"؟",
+      "deleteDialogDescription": "لن يتمكن هذا المستخدم من تسجيل الدخول بعد التعطيل. يمكن إعادة تفعيله لاحقاً من نفس الشاشة.",
+      "deleteSuccess": "تم تعطيل المستخدم",
       "form": {
         "createTitle": "مستخدم جديد",
         "editTitle": "تعديل المستخدم",
@@ -606,10 +606,26 @@
     "markRead": "تحديد كمقروء",
     "markAllRead": "تحديد الكل كمقروء",
     "delete": "حذف",
-    "empty": "لا توجد إشعارات"
+    "empty": "لا توجد إشعارات",
+    "failed": "تعذر تحديث الإشعار",
+    "generated": {
+      "outOfStock": "نفد المخزون",
+      "outOfStockBody": "نفد مخزون {name} ووصل إلى {stock} {unit}",
+      "lowStock": "مخزون منخفض",
+      "lowStockBody": "مخزون {name} هو {stock} {unit} والحد الأدنى {min}",
+      "customerBalance": "رصيد عميل مستحق",
+      "customerBalanceBody": "رصيد العميل {name} المستحق هو {balance}",
+      "supplierBalance": "رصيد مورد مستحق",
+      "supplierBalanceBody": "الرصيد المستحق للمورد {name} هو {balance}"
+    }
   },
   "auditLog": {
     "title": "سجل التدقيق",
+    "failed": "تعذر تحميل سجل التدقيق",
+    "filterDate": "كل التواريخ",
+    "filterUser": "كل المستخدمين",
+    "filterAction": "كل الإجراءات",
+    "filterEntity": "كل أنواع العناصر",
     "columnDate": "التاريخ",
     "columnUser": "المستخدم",
     "columnAction": "الإجراء",
@@ -621,6 +637,21 @@
     "diffTitle": "التغييرات — {entity}",
     "diffEmpty": "لا توجد تفاصيل تغييرات لهذا الإجراء",
     "empty": "لا توجد سجلات تدقيق بعد",
+    "entities": {
+      "Invoice": "فاتورة",
+      "Product": "صنف",
+      "Customer": "عميل",
+      "Supplier": "مورد",
+      "Collection": "تحصيل",
+      "Payment": "دفعة",
+      "Cashbox": "خزينة",
+      "Category": "تصنيف",
+      "User": "مستخدم",
+      "Role": "دور",
+      "Setting": "إعداد",
+      "Notification": "إشعار",
+      "Stocktake": "جرد"
+    },
     "actions": {
       "product_create": "إضافة صنف",
       "product_update": "تعديل صنف",
@@ -696,9 +727,55 @@
     "hubTitle": "التقارير",
     "hubDescription": "اختر تقريراً لعرضه بالتفصيل",
     "dateRangePlaceholder": "اختر فترة زمنية",
+    "allCustomers": "كل العملاء",
+    "allSuppliers": "كل الموردين",
+    "allCashboxes": "كل الخزائن",
+    "allCategories": "كل التصنيفات",
+    "allProducts": "كل الأصناف",
+    "allUsers": "كل المستخدمين",
+    "empty": "لا توجد بيانات تطابق المرشحات",
+    "totalLabel": "الإجمالي",
     "exportCsv": "تصدير CSV",
     "exportPdf": "تصدير PDF",
+    "exportFailed": "تعذر تصدير التقرير",
     "chartSummary": "{title}: {count} فترة",
+    "charts": {
+      "salesTrend": "اتجاه المبيعات",
+      "purchasesTrend": "اتجاه المشتريات",
+      "profitTrend": "اتجاه إجمالي الربح"
+    },
+    "columns": {
+      "date": "التاريخ",
+      "number": "الرقم",
+      "name": "الاسم",
+      "product": "الصنف",
+      "category": "التصنيف",
+      "quantity": "الكمية",
+      "unit": "الوحدة",
+      "party": "الطرف",
+      "cashbox": "الخزينة",
+      "count": "العدد",
+      "subtotal": "الإجمالي الفرعي",
+      "discount": "الخصم",
+      "total": "الإجمالي",
+      "paid": "المدفوع",
+      "remaining": "المتبقي",
+      "valueAtCost": "القيمة بالتكلفة",
+      "valueAtSale": "القيمة بسعر البيع",
+      "invoiced": "إجمالي الفواتير",
+      "settled": "المسدّد",
+      "balance": "الرصيد الحالي",
+      "amount": "المبلغ",
+      "inflow": "الوارد",
+      "outflow": "الصادر",
+      "net": "الصافي",
+      "revenue": "الإيرادات",
+      "discounts": "الخصومات",
+      "returns": "مرتجعات البيع",
+      "cogs": "تكلفة البضاعة المباعة",
+      "grossProfit": "إجمالي الربح",
+      "margin": "هامش الربح %"
+    },
     "types": {
       "sales": {
         "title": "تقرير المبيعات",
@@ -737,6 +814,19 @@
         "description": "الإيرادات والتكلفة وصافي الربح"
       }
     }
+  },
+  "reportAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية لعرض التقارير",
+    "invalid": "مرشحات التقرير غير صالحة",
+    "failed": "تعذر تحميل بيانات التقرير"
+  },
+  "settingsAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية لإدارة الإعدادات",
+    "invalid": "بيانات الإعدادات غير صالحة",
+    "failed": "تعذر حفظ الإعدادات",
+    "printPreferences": "تفضيلات الطباعة"
   },
   "moneyDocuments": {
     "list": {
@@ -1156,6 +1246,7 @@
     "searchPlaceholder": "ابحث في طيبة... (Ctrl+K)",
     "searchShortcutHint": "بحث سريع",
     "notificationsLabel": "الإشعارات",
+    "unreadNotifications": "لديك {count} إشعارات غير مقروءة",
     "userMenuLabel": "قائمة المستخدم",
     "profile": "الملف الشخصي",
     "logout": "تسجيل الخروج",

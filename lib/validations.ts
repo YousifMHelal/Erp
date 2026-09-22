@@ -342,6 +342,88 @@ export const cancelMoneyDocumentSchema = z.object({
   reason: z.string().trim().min(3, v.short).max(500, v.long),
 });
 
+export const reportFiltersSchema = z
+  .object({
+    from: isoDate.optional(),
+    to: isoDate.optional(),
+    customerId: optionalId,
+    supplierId: optionalId,
+    cashboxId: optionalId,
+    categoryId: optionalId,
+    productId: optionalId,
+    userId: optionalId,
+  })
+  .refine(
+    (filters) => !filters.from || !filters.to || filters.from <= filters.to,
+    { path: ["to"], message: v.dateRange },
+  );
+
+export const reportFoundationSchema = reportFiltersSchema.and(
+  z.object({
+    reportKey: z.enum([
+      "sales",
+      "purchases",
+      "inventory",
+      "customers",
+      "suppliers",
+      "cashboxes",
+      "collections",
+      "payments",
+      "profit-loss",
+    ]),
+  }),
+);
+
+export const auditLogFilterSchema = z
+  .object({
+    userId: optionalId,
+    action: z.string().trim().max(100, v.long).optional(),
+    entityType: z.string().trim().max(100, v.long).optional(),
+    from: isoDate.optional(),
+    to: isoDate.optional(),
+  })
+  .refine((filters) => !filters.from || !filters.to || filters.from <= filters.to, {
+    path: ["to"], message: v.dateRange,
+  });
+
+export const shopProfileSchema = z.object({
+  name: z.string().trim().min(2, v.short).max(200, v.long),
+  phone: egyptPhoneSchema,
+  address: z.string().trim().min(2, v.short).max(500, v.long),
+  taxNote: z.string().trim().max(500, v.long).optional(),
+  invoiceFooter: z.string().trim().max(500, v.long).optional(),
+});
+
+export const printPreferencesSchema = z.object({
+  defaultPrintSize: z.enum(["A4", "A5", "80mm"]),
+  defaultCashboxId: partyIdSchema,
+});
+
+export const categorySchema = z.object({
+  name: z.string().trim().min(2, v.short).max(120, v.long),
+  description: z.string().trim().max(500, v.long).optional(),
+});
+
+export const settingsCashboxSchema = z.object({
+  name: z.string().trim().min(2, v.short).max(120, v.long),
+  description: z.string().trim().max(500, v.long).optional(),
+  isActive: z.boolean(),
+});
+
+export const settingsUserSchema = z.object({
+  displayName: z.string().trim().min(2, v.short).max(120, v.long),
+  username: z.string().trim().min(3, v.short).max(80, v.long).regex(/^[a-zA-Z][a-zA-Z0-9._-]*$/, v.invalid),
+  password: z.string().max(72, v.long).optional(),
+  roleId: partyIdSchema,
+  isActive: z.boolean(),
+});
+
+export const roleSchema = z.object({
+  name: z.string().trim().min(2, v.short).max(120, v.long),
+  description: z.string().trim().max(500, v.long).optional(),
+  permissions: z.array(z.string().trim().min(1).max(100)).max(100),
+});
+
 // Define every Zod schema here as each domain is implemented.
 
 /** Demo-only schema for the /design-system form anatomy preview. Delete at P8-11. */

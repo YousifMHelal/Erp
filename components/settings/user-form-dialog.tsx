@@ -11,7 +11,8 @@ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
-import type { SettingsUserFormDialogProps, SettingsUserRow } from "@/types";
+import type { SettingsUserFormDialogProps } from "@/types";
+import { saveSettingsUser } from "@/actions/settings.actions";
 
 export function UserFormDialog({ open, onOpenChange, roleOptions, user, onSave }: SettingsUserFormDialogProps) {
   const t = useTranslations("settings.users.form");
@@ -26,7 +27,7 @@ export function UserFormDialog({ open, onOpenChange, roleOptions, user, onSave }
   );
   const [isActive, setIsActive] = useState(user?.isActive ?? true);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!displayName.trim() || !username.trim()) {
       toast.error(t("errorRequired"));
@@ -40,19 +41,12 @@ export function UserFormDialog({ open, onOpenChange, roleOptions, user, onSave }
       toast.error(t("errorPasswordLength"));
       return;
     }
-    const roleName = roleOptions.find((r) => r.value === roleId)?.label ?? user?.roleName ?? "";
-    const saved: SettingsUserRow = {
-      id: user?.id ?? crypto.randomUUID(),
-      displayName: displayName.trim(),
-      username: username.trim(),
-      roleName,
-      isActive,
-      lastLoginAt: user?.lastLoginAt,
-    };
-    onSave(saved);
+    if (!roleId) return toast.error(t("errorRequired"));
+    const saved = await saveSettingsUser(user?.id, { displayName, username, password: password || undefined, roleId, isActive });
+    if (!saved.success) return toast.error(saved.error);
+    onSave(saved.data);
     toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
     onOpenChange(false);
-    // P7-9 wires this to users.actions.ts create/update.
   }
 
   return (

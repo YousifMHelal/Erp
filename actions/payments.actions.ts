@@ -7,6 +7,7 @@ import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
+import { syncNotifications } from "@/lib/notifications";
 import { cancelMoneyDocumentSchema, createPaymentSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
 import type { ActionResult, EntityComboboxOption, MoneyDocumentRow, PartyWithBalanceOption } from "@/types";
@@ -100,6 +101,7 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
         balanceAfter: updatedSupplier.balance, refType: "PAYMENT", refId: payment.id,
         note, occurredAt, createdById: user.id,
       } });
+      await syncNotifications(tx, { supplierIds: [supplierId] });
       await writeAudit(tx, {
         userId: user.id, action: "payment.create", entityType: "Payment",
         entityId: payment.id, entityLabel: `#${String(number).padStart(6, "0")}`,
@@ -148,6 +150,7 @@ export async function cancelPayment(input: unknown): Promise<ActionResult<{ id: 
         debit: payment.amount, credit: new Prisma.Decimal(0), balanceAfter: updatedSupplier.balance,
         refType: "PAYMENT", refId: id, note: reason, occurredAt, createdById: user.id,
       } });
+      await syncNotifications(tx, { supplierIds: [payment.supplierId] });
       await writeAudit(tx, {
         userId: user.id, action: "payment.cancel", entityType: "Payment",
         entityId: id, entityLabel: `#${String(payment.number).padStart(6, "0")}`,
@@ -163,4 +166,3 @@ export async function cancelPayment(input: unknown): Promise<ActionResult<{ id: 
     return actionError(error);
   }
 }
-

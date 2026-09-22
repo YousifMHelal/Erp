@@ -14,6 +14,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CategoryFormDialog } from "@/components/settings/category-form-dialog";
 import { formatNumber } from "@/lib/format";
 import type { CategoryRow } from "@/types";
+import { deleteCategory } from "@/actions/settings.actions";
 
 export function CategoriesTable({ categories: initialCategories }: { categories: CategoryRow[] }) {
   const t = useTranslations("settings.categories");
@@ -30,12 +31,13 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
     );
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deletingCategory) return;
+    const result = await deleteCategory(deletingCategory.id);
+    if (!result.success) return toast.error(result.error);
     setCategories((prev) => prev.filter((c) => c.id !== deletingCategory.id));
     toast.success(t("deleteSuccess"));
     setDeletingCategory(undefined);
-    // P7-9 wires this to categories.actions.ts delete.
   }
 
   const columns: ColumnDef<CategoryRow, unknown>[] = [
@@ -145,7 +147,7 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
         }
       />
 
-      <CategoryFormDialog open={formOpen} onOpenChange={setFormOpen} category={editingCategory} onSave={handleSave} />
+      <CategoryFormDialog key={editingCategory?.id ?? "new"} open={formOpen} onOpenChange={setFormOpen} category={editingCategory} onSave={handleSave} />
 
       <ConfirmDialog
         open={!!deletingCategory}

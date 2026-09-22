@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import type { SettingsCashboxFormDialogProps, SettingsCashboxRow } from "@/types";
+import type { SettingsCashboxFormDialogProps } from "@/types";
+import { saveSettingsCashbox } from "@/actions/settings.actions";
 
 export function SettingsCashboxFormDialog({ open, onOpenChange, cashbox, onSave }: SettingsCashboxFormDialogProps) {
   const t = useTranslations("settings.cashboxes.form");
@@ -18,23 +19,17 @@ export function SettingsCashboxFormDialog({ open, onOpenChange, cashbox, onSave 
   const [description, setDescription] = useState(cashbox?.description ?? "");
   const [isActive, setIsActive] = useState(cashbox?.isActive ?? true);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
       toast.error(t("errorRequired"));
       return;
     }
-    const saved: SettingsCashboxRow = {
-      id: cashbox?.id ?? crypto.randomUUID(),
-      name: name.trim(),
-      description: description.trim() || undefined,
-      isActive,
-      sortOrder: cashbox?.sortOrder ?? 0,
-    };
-    onSave(saved);
+    const saved = await saveSettingsCashbox(cashbox?.id, { name, description, isActive });
+    if (!saved.success) return toast.error(saved.error);
+    onSave(saved.data);
     toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
     onOpenChange(false);
-    // P7-9 wires this to cashboxes.actions.ts create/update.
   }
 
   return (

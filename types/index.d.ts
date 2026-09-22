@@ -477,8 +477,9 @@ export type NavGroup = {
 
 export type SidebarProps = { className?: string };
 export type SidebarNavProps = { onNavigate?: () => void };
-export type TopbarProps = { className?: string };
-export type AppShellProps = { children: ReactNode };
+export type TopbarProps = { className?: string; unreadNotificationCount: number };
+export type AppShellProps = { children: ReactNode; unreadNotificationCount: number };
+export type NotificationBellProps = { unreadCount: number };
 export type UserMenuProps = { className?: string };
 export type BreadcrumbItem = { labelKey: string; href?: string };
 
@@ -1314,12 +1315,18 @@ export type ReportPickerItem = {
 
 export type ReportShellProps = {
   reportKey: ReportKey;
-  children: ReactNode;
+  filters: ReportFilters;
+  options: ReportFilterOptions;
+  report: ReportDataset;
 };
 
 export type ReportFiltersBarProps = {
   dateRange: DateRange;
   onDateRangeChange: (range: DateRange) => void;
+  reportKey: ReportKey;
+  filters: ReportFilters;
+  options: ReportFilterOptions;
+  onFilterChange: (key: keyof ReportFilters, value: string | undefined) => void;
 };
 
 export type ReportTableColumn = {
@@ -1335,6 +1342,49 @@ export type ReportTableProps = {
 
 export type ReportChartPoint = { label: string; value: number };
 export type ReportChartProps = { title: string; data: ReportChartPoint[] };
+
+export type ExportButtonsProps = {
+  reportKey: ReportKey;
+  filters: ReportFilters;
+};
+
+export type ReportFilters = {
+  from?: string;
+  to?: string;
+  customerId?: string;
+  supplierId?: string;
+  cashboxId?: string;
+  categoryId?: string;
+  productId?: string;
+  userId?: string;
+};
+
+export type ReportFilterOption = { value: string; label: string };
+
+export type ReportFilterOptions = {
+  customers: ReportFilterOption[];
+  suppliers: ReportFilterOption[];
+  cashboxes: ReportFilterOption[];
+  categories: ReportFilterOption[];
+  products: ReportFilterOption[];
+  users: ReportFilterOption[];
+};
+
+export type ReportDateBounds = { from?: string; to?: string };
+
+export type ReportFoundation = {
+  filters: ReportFilters;
+  options: ReportFilterOptions;
+  matchedDateRange: ReportDateBounds;
+};
+
+export type ReportDataset = {
+  columns: string[];
+  moneyColumns: string[];
+  rows: Record<string, string>[];
+  footerRow?: Record<string, string>;
+  chart?: { titleKey: string; data: ReportChartPoint[] };
+};
 
 // --- Notifications & audit log (P2-19) ---
 
@@ -1364,6 +1414,12 @@ export type NotificationListProps = {
   onDelete: (id: string) => void;
 };
 
+export type NotificationTargets = {
+  productIds?: string[];
+  customerIds?: string[];
+  supplierIds?: string[];
+};
+
 export type NotificationListItemProps = {
   notification: NotificationItem;
   onMarkRead: (id: string) => void;
@@ -1382,6 +1438,28 @@ export type AuditLogRow = {
 
 export type AuditLogListProps = {
   entries: AuditLogRow[];
+};
+
+export type AuditLogFilters = {
+  userId?: string;
+  action?: string;
+  entityType?: string;
+  from?: string;
+  to?: string;
+};
+
+export type AuditLogPageData = {
+  entries: AuditLogRow[];
+  users: ReportFilterOption[];
+  actions: ReportFilterOption[];
+  entityTypes: ReportFilterOption[];
+};
+
+export type AuditLogFiltersProps = {
+  filters: AuditLogFilters;
+  users: ReportFilterOption[];
+  actions: ReportFilterOption[];
+  entityTypes: ReportFilterOption[];
 };
 
 export type AuditDiffDialogProps = {
@@ -1447,6 +1525,18 @@ export type RoleRow = {
   description?: string;
   isSystem: boolean;
   userCount: number;
+  permissions: string[];
+};
+
+export type SettingsOverview = {
+  profile: ShopProfile;
+  printPreferences: PrintPreferences;
+  cashboxes: EntityComboboxOption[];
+};
+
+export type SettingsUsersData = {
+  users: SettingsUserRow[];
+  roles: EntityComboboxOption[];
 };
 
 export type PermissionMatrixProps = {

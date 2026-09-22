@@ -14,6 +14,7 @@ import { AppTooltip } from "@/components/shared/app-tooltip";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SettingsCashboxFormDialog } from "@/components/settings/settings-cashbox-form-dialog";
 import type { SettingsCashboxRow } from "@/types";
+import { deleteSettingsCashbox } from "@/actions/settings.actions";
 
 export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashboxes: SettingsCashboxRow[] }) {
   const t = useTranslations("settings.cashboxes");
@@ -30,12 +31,13 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
     );
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deletingCashbox) return;
+    const result = await deleteSettingsCashbox(deletingCashbox.id);
+    if (!result.success) return toast.error(result.error);
     setCashboxes((prev) => prev.filter((c) => c.id !== deletingCashbox.id));
     toast.success(t("deleteSuccess"));
     setDeletingCashbox(undefined);
-    // P7-9 wires this to cashboxes.actions.ts delete.
   }
 
   const columns: ColumnDef<SettingsCashboxRow, unknown>[] = [
@@ -146,7 +148,7 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
         }
       />
 
-      <SettingsCashboxFormDialog open={formOpen} onOpenChange={setFormOpen} cashbox={editingCashbox} onSave={handleSave} />
+      <SettingsCashboxFormDialog key={editingCashbox?.id ?? "new"} open={formOpen} onOpenChange={setFormOpen} cashbox={editingCashbox} onSave={handleSave} />
 
       <ConfirmDialog
         open={!!deletingCashbox}
