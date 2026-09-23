@@ -174,12 +174,12 @@ Goal: the rest of the inventory-affecting flows, copying the Phase 4 pattern.
 - [~] **P8-3** — Micro-interactions: row hover, button press, KPI count-up, toast slide, sticky-header shadow on scroll.
 - [~] **P8-4** — Every empty state: icon, message, and a useful action. Every error state: `error.tsx` per group, `not-found.tsx` for missing entities.
 - [~] **P8-5** — Edge cases: zero-stock sale attempt, discount exceeding subtotal, paid exceeding total, cancelling an already-cancelled document, deleting a category in use, a product with `unitsPerBase = 1`, a customer with zero balance, an empty invoice, concurrent edits to the same invoice.
-- [ ] **P8-6** — Accessibility audit: contrast, focus order, `aria-label`s, landmarks, keyboard-only walkthrough of the complete sale flow, screen-reader pass on the sales screen.
-- [ ] **P8-7** — Performance: check bundle size, confirm Server Components are used where possible, add `Suspense` boundaries, verify no N+1 queries on list pages, add DB indexes where the query plan asks for them.
+- [~] **P8-6** — Accessibility audit: contrast, focus order, `aria-label`s, landmarks, keyboard-only walkthrough of the complete sale flow, screen-reader pass on the sales screen.
+- [~] **P8-7** — Performance: check bundle size, confirm Server Components are used where possible, add `Suspense` boundaries, verify no N+1 queries on list pages, add DB indexes where the query plan asks for them.
 - [ ] **P8-8** — **Final responsive + theme sweep** across every screen at 375 / 768 / 1024 / 1440 px in both themes.
-- [ ] **P8-9** — String audit: grep the codebase for hardcoded Arabic and Latin user-facing text; everything must resolve from `messages/ar.json`.
-- [ ] **P8-10** — Token audit: grep for hex values, `bg-<tailwindcolor>-<n>`, and physical properties (`ml-`, `pr-`, `left-`, `text-right`) in `components/` and `app/`. Zero results required.
-- [ ] **P8-11** — Delete the `/design-system` preview route.
+- [~] **P8-9** — String audit: grep the codebase for hardcoded Arabic and Latin user-facing text; everything must resolve from `messages/ar.json`.
+- [~] **P8-10** — Token audit: grep for hex values, `bg-<tailwindcolor>-<n>`, and physical properties (`ml-`, `pr-`, `left-`, `text-right`) in `components/` and `app/`. Zero results required.
+- [x] **P8-11** — Delete the `/design-system` preview route.
 
 **Exit:** every screen is polished in both themes at all widths, passes the a11y and token audits, and handles its edge cases gracefully.
 

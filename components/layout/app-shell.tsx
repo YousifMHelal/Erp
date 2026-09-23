@@ -20,7 +20,11 @@ export function AppShell({ children, unreadNotificationCount }: AppShellProps) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar unreadNotificationCount={unreadNotificationCount} />
-        <main id="main-content" className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 md:px-6">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 outline-none md:px-6"
+        >
           <PageTransition>{children}</PageTransition>
         </main>
       </div>

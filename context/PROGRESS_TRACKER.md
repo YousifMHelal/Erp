@@ -158,17 +158,17 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P8-1 | Page + dialog transitions | TODO | |
-| P8-2 | Skeletons everywhere | TODO | |
-| P8-3 | Micro-interactions | TODO | |
-| P8-4 | Empty + error states | TODO | |
-| P8-5 | Edge cases | TODO | |
-| P8-6 | Accessibility audit | TODO | |
-| P8-7 | Performance pass | TODO | |
+| P8-1 | Page + dialog transitions | IN PROGRESS | Page fade+rise, dialog/sheet motion already present, reduced-motion honored globally. |
+| P8-2 | Skeletons everywhere | IN PROGRESS | `loading.tsx` added to every route (list/detail/new/edit); no bare spinners found outside Sonner's toast icon. |
+| P8-3 | Micro-interactions | IN PROGRESS | Row hover/button press already existed; added KPI count-up and sticky-header scroll shadow (topbar + DataTable). |
+| P8-4 | Empty + error states | IN PROGRESS | Root + dashboard-scoped `error.tsx`/`not-found.tsx` added; audited all 28 EmptyState usages — existing actions already correct, none missing a genuine action. |
+| P8-5 | Edge cases | IN PROGRESS | Zero-stock, discount>subtotal, paid>total, already-cancelled, concurrent-edit, unitsPerBase=1, zero-balance, empty-invoice all already handled; fixed category-in-use showing wrong error message. |
+| P8-6 | Accessibility audit | IN PROGRESS | Landmarks (header/nav/aside/main) confirmed present; skip-link jumped to URL anchor but never moved focus — fixed with `tabIndex={-1}` on `<main>`. Keyboard walkthrough of the sale flow (F2 search → select → line → totals) verified in a real browser; row/search-result buttons and inputs all correctly labeled for screen readers. |
+| P8-7 | Performance pass | IN PROGRESS | `next build` succeeds; every route is a Server Component by default (zero `"use client"` `page.tsx` files); `loading.tsx` gives every route an automatic Suspense boundary; bundle sizes reviewed (205 kB shared, heaviest route 393 kB for the chart-bearing reports page). |
 | P8-8 | Final responsive + theme sweep | TODO | |
-| P8-9 | Hardcoded-string audit | TODO | Must be zero |
-| P8-10 | Token + logical-property audit | TODO | Must be zero |
-| P8-11 | Delete `/design-system` route | TODO | |
+| P8-9 | Hardcoded-string audit | IN PROGRESS | Grepped `components/` and `app/` for literal Arabic text. Fixed: `أ/` staff-prefix hardcoded in both A4/A5 print layouts (now `print.staffPrefix`). Remaining Arabic-Indic-digit hits are the locked phone-placeholder convention (`٠١٠xxxxxxxx`, per UI_DESIGN_RULES §6.2) and static demo product names in the print-template preview — not violations. |
+| P8-10 | Token + logical-property audit | IN PROGRESS | Grepped for hex colors, `bg-<tailwind>-<n>`, and physical CSS properties. Zero violations outside the three print templates (explicitly exempted by UI_DESIGN_RULES §6.11) and Radix `data-[side=...]` slide-direction variants (not layout properties). |
+| P8-11 | Delete `/design-system` route | DONE | Route and its demo-only `designSystemDemoSchema` deleted; no remaining references. |
 
 ## Phase 9 — Testing
 

@@ -1,22 +1,36 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { SettingsNav } from "@/components/settings/settings-nav";
 import { PrintTemplateForm } from "@/components/settings/print-template-form";
+import { EmptyState } from "@/components/shared/empty-state";
+import { getSettingsOverview } from "@/actions/settings.actions";
 import { DEFAULT_TOTALS_ROWS, createDefaultInfoColumns } from "@/lib/print-fields";
 import type { PrintTemplateSettings } from "@/types";
 
-export default function SettingsPrintTemplatePage() {
-  const t = useTranslations("settings");
-  const tFields = useTranslations("settings.printTemplate.systemFields");
-  const tShared = useTranslations("print");
+export default async function SettingsPrintTemplatePage() {
+  const t = await getTranslations("settings");
+  const tFields = await getTranslations("settings.printTemplate.systemFields");
+  const tShared = await getTranslations("print");
+  const overview = await getSettingsOverview();
+
+  if (!overview.success) {
+    return (
+      <>
+        <PageHeader title={t("title")} breadcrumbs={[{ labelKey: "nav.settings", href: "/settings" }, { labelKey: "settings.nav.printTemplate" }]} />
+        <EmptyState title={overview.error} />
+      </>
+    );
+  }
+
+  const { profile } = overview.data;
 
   const template: PrintTemplateSettings = {
-    templateName: "القالب الافتراضي",
+    templateName: "",
     shop: {
-      name: "طيبة",
-      phone: "01000000000",
-      address: "شارع الجمهورية، المنصورة",
-      invoiceFooter: "شكراً لتعاملكم معنا",
+      name: profile.name,
+      phone: profile.phone,
+      address: profile.address,
+      invoiceFooter: profile.invoiceFooter ?? "",
     },
     lineColumns: [
       { key: "unitName", labelKey: "columnUnitName", visible: true },
