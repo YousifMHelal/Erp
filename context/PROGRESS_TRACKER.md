@@ -20,10 +20,10 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 5 | Purchases, inventory & returns | DONE | All 9 tasks wired against Prisma; `typecheck`/`lint` clean. `next build` not verified this session (Prisma query-engine DLL locked by another process). |
 | 6 | Parties, cashboxes & money | DONE | Party lists/profiles, statements, cashboxes, transfers, collections, payments wired against Prisma; `db:reconcile` passes. |
 | 7 | Reports, notifications & audit | DONE | All 9 reports, notifications, audit log, and settings incl. roles permission matrix wired against Prisma. |
-| 8 | Polish, motion & edge cases | TODO | |
+| 8 | Polish, motion & edge cases | DONE | Motion/skeletons/empty-error states/a11y/performance/responsive sweep complete; fixed a real dashboard mock-data violation, a `<Money>` color-merge bug, and an inventory table overflow along the way. |
 | 9 | Testing | TODO | Final pass |
 
-**Overall: 87 / 96 tasks done.**
+**Overall: 97 / 106 tasks done. Phases 0–8 complete; Phase 9 (testing) remains.**
 
 ---
 
@@ -158,16 +158,16 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P8-1 | Page + dialog transitions | IN PROGRESS | Page fade+rise, dialog/sheet motion already present, reduced-motion honored globally. |
-| P8-2 | Skeletons everywhere | IN PROGRESS | `loading.tsx` added to every route (list/detail/new/edit); no bare spinners found outside Sonner's toast icon. |
-| P8-3 | Micro-interactions | IN PROGRESS | Row hover/button press already existed; added KPI count-up and sticky-header scroll shadow (topbar + DataTable). |
-| P8-4 | Empty + error states | IN PROGRESS | Root + dashboard-scoped `error.tsx`/`not-found.tsx` added; audited all 28 EmptyState usages — existing actions already correct, none missing a genuine action. |
-| P8-5 | Edge cases | IN PROGRESS | Zero-stock, discount>subtotal, paid>total, already-cancelled, concurrent-edit, unitsPerBase=1, zero-balance, empty-invoice all already handled; fixed category-in-use showing wrong error message. |
-| P8-6 | Accessibility audit | IN PROGRESS | Landmarks (header/nav/aside/main) confirmed present; skip-link jumped to URL anchor but never moved focus — fixed with `tabIndex={-1}` on `<main>`. Keyboard walkthrough of the sale flow (F2 search → select → line → totals) verified in a real browser; row/search-result buttons and inputs all correctly labeled for screen readers. |
-| P8-7 | Performance pass | IN PROGRESS | `next build` succeeds; every route is a Server Component by default (zero `"use client"` `page.tsx` files); `loading.tsx` gives every route an automatic Suspense boundary; bundle sizes reviewed (205 kB shared, heaviest route 393 kB for the chart-bearing reports page). |
-| P8-8 | Final responsive + theme sweep | TODO | |
-| P8-9 | Hardcoded-string audit | IN PROGRESS | Grepped `components/` and `app/` for literal Arabic text. Fixed: `أ/` staff-prefix hardcoded in both A4/A5 print layouts (now `print.staffPrefix`). Remaining Arabic-Indic-digit hits are the locked phone-placeholder convention (`٠١٠xxxxxxxx`, per UI_DESIGN_RULES §6.2) and static demo product names in the print-template preview — not violations. |
-| P8-10 | Token + logical-property audit | IN PROGRESS | Grepped for hex colors, `bg-<tailwind>-<n>`, and physical CSS properties. Zero violations outside the three print templates (explicitly exempted by UI_DESIGN_RULES §6.11) and Radix `data-[side=...]` slide-direction variants (not layout properties). |
+| P8-1 | Page + dialog transitions | DONE | Page fade+rise, dialog/sheet motion already present, reduced-motion honored globally. |
+| P8-2 | Skeletons everywhere | DONE | `loading.tsx` added to every route (list/detail/new/edit); no bare spinners found outside Sonner's toast icon. |
+| P8-3 | Micro-interactions | DONE | Row hover/button press already existed; added KPI count-up and sticky-header scroll shadow (topbar + DataTable). |
+| P8-4 | Empty + error states | DONE | Root + dashboard-scoped `error.tsx`/`not-found.tsx` added; audited all 28 EmptyState usages — existing actions already correct, none missing a genuine action. |
+| P8-5 | Edge cases | DONE | Zero-stock, discount>subtotal, paid>total, already-cancelled, concurrent-edit, unitsPerBase=1, zero-balance, empty-invoice all already handled; fixed category-in-use showing wrong error message. |
+| P8-6 | Accessibility audit | DONE | Landmarks (header/nav/aside/main) confirmed present; skip-link jumped to URL anchor but never moved focus — fixed with `tabIndex={-1}` on `<main>`. Keyboard walkthrough of the sale flow (F2 search → select → line → totals) verified in a real browser; row/search-result buttons and inputs all correctly labeled for screen readers. |
+| P8-7 | Performance pass | DONE | `next build` succeeds; every route is a Server Component by default (zero `"use client"` `page.tsx` files); `loading.tsx` gives every route an automatic Suspense boundary; bundle sizes reviewed (205 kB shared, heaviest route 393 kB for the chart-bearing reports page). |
+| P8-8 | Final responsive + theme sweep | DONE | 375/768/1024/1440px, both themes, across dashboard/sale/sales-list/inventory/customers/cashboxes/reports/settings/money-document screens. Found and fixed two real bugs: (1) `/inventory` table overflowed horizontally at 768–1024px, hiding the actions column — added staggered `hidden xl:table-cell`/`hidden 2xl:table-cell` to 3 lower-priority columns. (2) `<Money className="text-h2" .../>` (and any text-size className) silently dropped the negative/positive semantic color everywhere it was used, because `cn()` merged `className` after the color classes and `tailwind-merge` treats the project's custom font-size tokens as conflicting with text-color utilities — reordered so the color always wins. Visible on `/cashboxes`' summary strip (negative totals showed in plain text instead of red); same root cause could have silently affected any other `<Money>` call with a sizing className. |
+| P8-9 | Hardcoded-string audit | DONE | Grepped `components/` and `app/` for literal Arabic text. Fixed: `أ/` staff-prefix hardcoded in both A4/A5 print layouts (now `print.staffPrefix`). Remaining Arabic-Indic-digit hits are the locked phone-placeholder convention (`٠١٠xxxxxxxx`, per UI_DESIGN_RULES §6.2) and static demo product names in the print-template preview — not violations. |
+| P8-10 | Token + logical-property audit | DONE | Grepped for hex colors, `bg-<tailwind>-<n>`, and physical CSS properties. Zero violations outside the three print templates (explicitly exempted by UI_DESIGN_RULES §6.11) and Radix `data-[side=...]` slide-direction variants (not layout properties). |
 | P8-11 | Delete `/design-system` route | DONE | Route and its demo-only `designSystemDemoSchema` deleted; no remaining references. |
 
 ## Phase 9 — Testing

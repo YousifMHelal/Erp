@@ -19,9 +19,9 @@ export function Money({ value, className, sign = false }: MoneyProps) {
     <span
       className={cn(
         "tabular-nums",
+        className,
         isNegative && "text-danger-fg",
-        isPositive && "text-success-fg",
-        className
+        isPositive && "text-success-fg"
       )}
     >
       {isPositive ? "+" : ""}

@@ -39,7 +39,11 @@ export function useInventoryColumns(
         </Link>
       ),
     },
-    { accessorKey: "categoryName", header: t("columnCategory") },
+    {
+      accessorKey: "categoryName",
+      header: t("columnCategory"),
+      meta: { className: "hidden xl:table-cell" },
+    },
     {
       accessorKey: "stockQty",
       header: t("columnStockQty"),
@@ -53,6 +57,7 @@ export function useInventoryColumns(
       accessorKey: "avgCostPerSub",
       header: t("columnAvgCost"),
       cell: ({ row }) => <Money value={String(Number(row.original.avgCostPerSub) * row.original.unitsPerBase)} />,
+      meta: { className: "hidden 2xl:table-cell" },
     },
     {
       id: "sellPricePerSub",
@@ -63,6 +68,7 @@ export function useInventoryColumns(
       id: "valueAtCost",
       header: t("columnValueAtCost"),
       cell: ({ row }) => <Money value={String(row.original.stockQty * Number(row.original.avgCostPerSub))} />,
+      meta: { className: "hidden xl:table-cell" },
     },
     {
       id: "stockStatus",
