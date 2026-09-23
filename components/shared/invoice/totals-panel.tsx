@@ -28,7 +28,7 @@ export function TotalsPanel({ subtotal, discountAmount, onDiscountChange, total 
             step="any"
             value={discountAmount}
             onChange={(e) => onDiscountChange(Number(e.target.value))}
-            placeholder="٠٫٠٠"
+            placeholder="0.00"
             className="text-end tabular-nums"
           />
         </div>

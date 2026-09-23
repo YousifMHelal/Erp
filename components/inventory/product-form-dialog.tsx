@@ -162,7 +162,7 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
               value={minStockQty}
               onChange={(e) => setMinStockQty(Number(e.target.value))}
               className="text-end tabular-nums"
-              placeholder="مثال: ١٠"
+              placeholder="مثال: 10"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -203,7 +203,7 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
               value={unitsPerBase}
               onChange={(e) => setUnitsPerBase(Number(e.target.value))}
               className="text-end tabular-nums"
-              placeholder="مثال: ١٠"
+              placeholder="مثال: 10"
             />
           </div>
           <UnitConversionPreview
@@ -227,7 +227,7 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
               value={purchasePricePerBase}
               onChange={(e) => setPurchasePricePerBase(Number(e.target.value))}
               className="text-end tabular-nums"
-              placeholder="٠٫٠٠"
+              placeholder="0.00"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -241,7 +241,7 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
               value={sellPricePerBase}
               onChange={(e) => setSellPricePerBase(Number(e.target.value))}
               className="text-end tabular-nums"
-              placeholder="٠٫٠٠"
+              placeholder="0.00"
             />
           </div>
           <UnitConversionPreview

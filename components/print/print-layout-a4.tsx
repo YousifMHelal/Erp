@@ -81,7 +81,7 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
                     className="flex items-baseline justify-end text-[15.5px] whitespace-nowrap"
                     dir="rtl"
                   >
-                    <span className="font-bold">أ/{staff.name}</span>
+                    <span className="font-bold">{t("staffPrefix")}{staff.name}</span>
 
                     <span className="mx-[1.2mm]">:</span>
 
@@ -113,7 +113,7 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
               <div className="text-right">
                 {data.partyCompanyName && (
                   <div className="whitespace-nowrap">
-                    أ/ {data.partyCompanyName}
+                    {t("staffPrefix")} {data.partyCompanyName}
                   </div>
                 )}
 

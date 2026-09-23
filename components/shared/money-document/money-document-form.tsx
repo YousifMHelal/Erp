@@ -98,7 +98,7 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, 
               step="any"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="٠٫٠٠"
+              placeholder="0.00"
               className="text-end tabular-nums"
             />
           </div>

@@ -53,7 +53,7 @@ export function MoneyDocumentEditDialog({ documentType, open, onOpenChange, docu
               step="any"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="٠٫٠٠"
+              placeholder="0.00"
               className="text-end tabular-nums"
             />
             {error && <p className="text-body-sm text-danger-fg">{error}</p>}

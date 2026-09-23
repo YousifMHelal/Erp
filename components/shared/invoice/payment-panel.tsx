@@ -64,7 +64,7 @@ export function PaymentPanel({
             step="any"
             value={paidAmount}
             onChange={(e) => onPaidAmountChange(Number(e.target.value))}
-            placeholder="٠٫٠٠"
+            placeholder="0.00"
             className="text-end tabular-nums"
           />
         </div>

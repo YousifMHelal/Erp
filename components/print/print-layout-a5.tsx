@@ -48,7 +48,7 @@ export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
           <div className="mt-[1mm] space-y-[0.5mm]">
             {data.staffContacts?.map((staff, index) => (
               <div key={index} className="flex items-baseline justify-end text-[10.5px] whitespace-nowrap" dir="rtl">
-                <span className="font-bold">أ/{staff.name}</span>
+                <span className="font-bold">{t("staffPrefix")}{staff.name}</span>
                 <span className="mx-[1mm]">:</span>
                 <span dir="ltr" className="font-medium">{staff.phone}</span>
               </div>
@@ -59,7 +59,7 @@ export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
         <div className="w-[42mm] text-[11px] leading-[1.45]">
           <div className="mb-[1mm] text-right text-[12.5px] font-bold">{data.partyLabel}</div>
           <div className="text-right">
-            {data.partyCompanyName && <div className="whitespace-nowrap">أ/ {data.partyCompanyName}</div>}
+            {data.partyCompanyName && <div className="whitespace-nowrap">{t("staffPrefix")} {data.partyCompanyName}</div>}
             <div className="whitespace-nowrap">{data.partyName}</div>
             {data.partyPhone && <div className="whitespace-nowrap" dir="ltr">{data.partyPhone}</div>}
             {data.partyAddress && <div className="whitespace-nowrap">{data.partyAddress}</div>}

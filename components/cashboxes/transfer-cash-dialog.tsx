@@ -96,7 +96,7 @@ export function TransferCashDialog({ open, onOpenChange, cashboxes, onConfirm }:
               step="any"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="٠٫٠٠"
+              placeholder="0.00"
               className="text-end tabular-nums"
             />
           </div>

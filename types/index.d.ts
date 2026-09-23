@@ -480,6 +480,8 @@ export type SidebarProps = { className?: string };
 export type SidebarNavProps = { onNavigate?: () => void };
 export type TopbarProps = { className?: string; unreadNotificationCount: number };
 export type AppShellProps = { children: ReactNode; unreadNotificationCount: number };
+
+export type PageTransitionProps = { children: ReactNode };
 export type NotificationBellProps = { unreadCount: number };
 export type UserMenuProps = { className?: string };
 export type BreadcrumbItem = { labelKey: string; href?: string };
@@ -692,13 +694,20 @@ export type RecentInvoiceItem = {
 export type RecentInvoicesProps = { items: RecentInvoiceItem[] };
 
 export type KpiRowProps = {
-  todaySales: string;
-  todaySalesDelta: { value: string; tone: "success" | "danger" };
-  todayPurchases: string;
-  todayPurchasesDelta: { value: string; tone: "success" | "danger" };
+  todaySales: number;
+  todaySalesDelta: { value: number; tone: "success" | "danger" };
+  todayPurchases: number;
+  todayPurchasesDelta: { value: number; tone: "success" | "danger" };
   invoiceCount: number;
-  invoiceCountDelta: { value: string; tone: "success" | "danger" };
-  totalReceivables: string;
+  invoiceCountDelta: { value: number; tone: "success" | "danger" };
+  totalReceivables: number;
+};
+
+export type DashboardOverview = KpiRowProps & {
+  salesTrend: SalesTrendPoint[];
+  lowStock: LowStockItem[];
+  topDebtors: TopDebtorItem[];
+  recentInvoices: RecentInvoiceItem[];
 };
 
 // --- Invoice (shared sales/purchases, P2-6/9) ---

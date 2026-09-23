@@ -106,7 +106,10 @@ export async function deleteCategory(id: string): Promise<ActionResult<{ id: str
       await writeAudit(tx, { userId: user.id, action: "category.delete", entityType: "Category", entityId: before.id, entityLabel: before.name, before: { name: before.name } });
     });
     revalidatePath("/settings/categories"); return ok({ id: parsed.data });
-  } catch (error) { return actionError(error); }
+  } catch (error) {
+    if (error instanceof Error && error.message === "CATEGORY_IN_USE") return fail(m.categoryInUse);
+    return actionError(error);
+  }
 }
 
 export async function getSettingsCashboxes(): Promise<ActionResult<SettingsCashboxRow[]>> {

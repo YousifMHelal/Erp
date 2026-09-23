@@ -88,7 +88,7 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
           value={openingBalance}
           onChange={(e) => setOpeningBalance(e.target.value)}
           className="text-end tabular-nums"
-          placeholder="٠٫٠٠"
+          placeholder="0.00"
           disabled={isEdit}
         />
       </div>

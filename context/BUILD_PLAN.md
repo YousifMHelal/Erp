@@ -169,11 +169,11 @@ Goal: the rest of the inventory-affecting flows, copying the Phase 4 pattern.
 
 ## Phase 8 — Polish, motion & edge cases
 
-- [ ] **P8-1** — Page transitions (200 ms fade + 4 px rise), dialog/sheet motion, respect `prefers-reduced-motion`.
-- [ ] **P8-2** — Replace every remaining spinner with a layout-matched skeleton; add `loading.tsx` to every route.
-- [ ] **P8-3** — Micro-interactions: row hover, button press, KPI count-up, toast slide, sticky-header shadow on scroll.
-- [ ] **P8-4** — Every empty state: icon, message, and a useful action. Every error state: `error.tsx` per group, `not-found.tsx` for missing entities.
-- [ ] **P8-5** — Edge cases: zero-stock sale attempt, discount exceeding subtotal, paid exceeding total, cancelling an already-cancelled document, deleting a category in use, a product with `unitsPerBase = 1`, a customer with zero balance, an empty invoice, concurrent edits to the same invoice.
+- [~] **P8-1** — Page transitions (200 ms fade + 4 px rise), dialog/sheet motion, respect `prefers-reduced-motion`.
+- [~] **P8-2** — Replace every remaining spinner with a layout-matched skeleton; add `loading.tsx` to every route.
+- [~] **P8-3** — Micro-interactions: row hover, button press, KPI count-up, toast slide, sticky-header shadow on scroll.
+- [~] **P8-4** — Every empty state: icon, message, and a useful action. Every error state: `error.tsx` per group, `not-found.tsx` for missing entities.
+- [~] **P8-5** — Edge cases: zero-stock sale attempt, discount exceeding subtotal, paid exceeding total, cancelling an already-cancelled document, deleting a category in use, a product with `unitsPerBase = 1`, a customer with zero balance, an empty invoice, concurrent edits to the same invoice.
 - [ ] **P8-6** — Accessibility audit: contrast, focus order, `aria-label`s, landmarks, keyboard-only walkthrough of the complete sale flow, screen-reader pass on the sales screen.
 - [ ] **P8-7** — Performance: check bundle size, confirm Server Components are used where possible, add `Suspense` boundaries, verify no N+1 queries on list pages, add DB indexes where the query plan asks for them.
 - [ ] **P8-8** — **Final responsive + theme sweep** across every screen at 375 / 768 / 1024 / 1440 px in both themes.

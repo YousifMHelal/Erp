@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { flexRender } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -35,6 +36,7 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const t = useTranslations("dataTable");
   const density = useUiStore((s) => s.density);
+  const [scrolled, setScrolled] = useState(false);
   const tableColumns = enableRowSelection ? [selectionColumn(), ...columns] : columns;
 
   const table = useDataTable({ columns: tableColumns, data, getRowId, enableRowSelection });
@@ -56,6 +58,7 @@ export function DataTable<TData>({
       <div
         className={cn("hidden overflow-x-auto md:block", scrollHeight && "overflow-y-auto")}
         style={scrollHeight ? { maxHeight: scrollHeight } : undefined}
+        onScroll={scrollHeight ? (e) => setScrolled(e.currentTarget.scrollTop > 4) : undefined}
       >
         {isLoading ? (
           <DataTableSkeleton columnCount={tableColumns.length} rowCount={skeletonRowCount} />
@@ -63,7 +66,12 @@ export function DataTable<TData>({
           emptyState ?? <EmptyState title={t("noData")} />
         ) : (
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-muted">
+            <TableHeader
+              className={cn(
+                "sticky top-0 z-10 bg-muted transition-shadow duration-200",
+                scrolled && "shadow-elevation-sm",
+              )}
+            >
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => {

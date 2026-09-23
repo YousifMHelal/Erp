@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { PageTransition } from "@/components/layout/page-transition";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import type { AppShellProps } from "@/types";
@@ -20,7 +21,7 @@ export function AppShell({ children, unreadNotificationCount }: AppShellProps) {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar unreadNotificationCount={unreadNotificationCount} />
         <main id="main-content" className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 md:px-6">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
     </div>

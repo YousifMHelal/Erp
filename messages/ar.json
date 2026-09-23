@@ -7,6 +7,14 @@
   "theme": {
     "toggle": "تبديل المظهر"
   },
+  "errorBoundary": {
+    "title": "حدث خطأ غير متوقع",
+    "description": "تعذر عرض هذه الصفحة. حاول مرة أخرى أو ارجع إلى لوحة التحكم.",
+    "retry": "إعادة المحاولة",
+    "backToDashboard": "العودة للوحة التحكم",
+    "notFoundTitle": "الصفحة غير موجودة",
+    "notFoundDescription": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها."
+  },
   "common": {
     "save": "حفظ",
     "cancel": "إلغاء",
@@ -381,7 +389,8 @@
     "previousBalance": "الرصيد السابق",
     "currentBalance": "الرصيد الحالى",
     "amountInWords": "المطلوب",
-    "signatureBox": "الفارغ"
+    "signatureBox": "الفارغ",
+    "staffPrefix": "أ/"
   },
   "settings": {
     "title": "الإعدادات",
@@ -861,13 +870,18 @@
     "invalid": "مرشحات التقرير غير صالحة",
     "failed": "تعذر تحميل بيانات التقرير"
   },
+  "dashboardAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "failed": "تعذر تحميل بيانات لوحة التحكم"
+  },
   "settingsAction": {
     "unauthorized": "سجل الدخول للمتابعة",
     "forbidden": "ليس لديك صلاحية لإدارة الإعدادات",
     "invalid": "بيانات الإعدادات غير صالحة",
     "failed": "تعذر حفظ الإعدادات",
     "printPreferences": "تفضيلات الطباعة",
-    "userInUse": "لا يمكن حذف مستخدم له سجل حركات، يمكنك إلغاء تفعيله بدلاً من ذلك"
+    "userInUse": "لا يمكن حذف مستخدم له سجل حركات، يمكنك إلغاء تفعيله بدلاً من ذلك",
+    "categoryInUse": "لا يمكن حذف تصنيف له أصناف مرتبطة به"
   },
   "moneyDocuments": {
     "list": {
