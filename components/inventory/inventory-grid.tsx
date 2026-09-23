@@ -19,15 +19,12 @@ import { stockStatusFor } from "@/components/inventory/stock-status-badge";
 import { deleteProduct } from "@/actions/inventory.actions";
 import type { InventoryGridProps, InventoryProductRow, StockStatus } from "@/types";
 
-const PAGE_SIZE = 10;
-
 export function InventoryGrid({ products: initialProducts, categoryOptions }: InventoryGridProps) {
   const t = useTranslations("inventory");
   const [products, setProducts] = useState<InventoryProductRow[]>(initialProducts);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [stockStatus, setStockStatus] = useState<StockStatus | undefined>(undefined);
-  const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<InventoryProductRow | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<InventoryProductRow | undefined>(undefined);
@@ -95,21 +92,15 @@ export function InventoryGrid({ products: initialProducts, categoryOptions }: In
     };
   }, [products]);
 
-  const pageCount = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   return (
     <div className="flex flex-col gap-4">
       <InventoryValueSummary {...summary} />
       <DataTable
         columns={columns}
-        data={paged}
+        data={filtered}
         getRowId={(row) => row.id}
         renderMobileCard={(row) => <InventoryMobileCard product={row} onEdit={handleEdit} onDelete={handleDeleteRequest} />}
-        page={page}
-        pageCount={pageCount}
-        onPageChange={setPage}
-        totalCount={filtered.length}
+        scrollHeight="calc(100vh - 20rem)"
         emptyState={
           <EmptyState
             icon={<PackageSearch className="size-6" />}
@@ -131,10 +122,7 @@ export function InventoryGrid({ products: initialProducts, categoryOptions }: In
         toolbar={
           <DataTableToolbar
             searchValue={search}
-            onSearchChange={(v) => {
-              setSearch(v);
-              setPage(1);
-            }}
+            onSearchChange={setSearch}
             searchPlaceholder={t("searchPlaceholder")}
             filters={
               <InventoryFilters

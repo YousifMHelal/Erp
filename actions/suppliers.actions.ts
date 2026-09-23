@@ -55,7 +55,7 @@ export async function getSupplierDetail(id: string): Promise<ActionResult<PartyD
       prisma.invoice.findMany({ where: { supplierId, type: "PURCHASE" }, orderBy: { issuedAt: "desc" } }),
       prisma.payment.findMany({ where: { supplierId }, include: { cashbox: true }, orderBy: { occurredAt: "desc" } }),
       prisma.partyTransaction.findMany({
-        where: { supplierId }, include: { invoice: { select: { number: true } } },
+        where: { supplierId }, include: { invoice: { select: { id: true, number: true } } },
         orderBy: [{ occurredAt: "asc" }, { createdAt: "asc" }, { id: "asc" }],
       }),
     ]);
@@ -67,6 +67,7 @@ export async function getSupplierDetail(id: string): Promise<ActionResult<PartyD
       type: transaction.type,
       debit: transaction.debit.toString(),
       credit: transaction.credit.toString(),
+      invoiceId: transaction.invoice?.id,
       invoiceNumber: transaction.invoice?.number,
       referenceNumber: transaction.refType === "PAYMENT" ? paymentNumbers.get(transaction.refId) : undefined,
       referenceType: transaction.refType === "PAYMENT" ? "PAYMENT" : undefined,

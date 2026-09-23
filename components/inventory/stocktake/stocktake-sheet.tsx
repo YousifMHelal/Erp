@@ -13,11 +13,11 @@ export function StocktakeSheet({ lines, onUpdateCounted }: StocktakeSheetProps) 
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-muted">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-label">{t("columnProduct")}</TableHead>
-              <TableHead className="text-label">{t("columnUnit")}</TableHead>
-              <TableHead className="text-label">{t("columnSystem")}</TableHead>
-              <TableHead className="text-label">{t("columnCounted")}</TableHead>
-              <TableHead className="text-label text-end">{t("columnDifference")}</TableHead>
+              <TableHead className="h-8 text-label">{t("columnProduct")}</TableHead>
+              <TableHead className="h-8 text-label">{t("columnUnit")}</TableHead>
+              <TableHead className="h-8 text-label">{t("columnSystem")}</TableHead>
+              <TableHead className="h-8 text-label">{t("columnCounted")}</TableHead>
+              <TableHead className="h-8 text-label text-end">{t("columnDifference")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

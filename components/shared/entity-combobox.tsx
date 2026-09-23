@@ -33,9 +33,9 @@ export function EntityCombobox({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn("w-full justify-between font-normal", className)}
+          className={cn("w-full min-w-0 justify-between font-normal", className)}
         >
-          <span className="truncate">{selected ? selected.label : (placeholder ?? t("comboboxPlaceholder"))}</span>
+          <span className="min-w-0 truncate">{selected ? selected.label : (placeholder ?? t("comboboxPlaceholder"))}</span>
           <ChevronsUpDown className="size-4 shrink-0 opacity-50" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
@@ -55,10 +55,12 @@ export function EntityCombobox({
                     setOpen(false);
                   }}
                 >
-                  <span className="flex flex-col">
-                    <span>{option.label}</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="min-w-0 flex-1 truncate">{option.label}</span>
                     {option.description && (
-                      <span className="text-caption text-muted-foreground">{option.description}</span>
+                      <span className="shrink-0 whitespace-nowrap text-caption text-muted-foreground">
+                        {option.description}
+                      </span>
                     )}
                   </span>
                 </CommandItem>

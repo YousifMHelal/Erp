@@ -298,6 +298,12 @@ export const confirmStocktakeSchema = z.object({
   lines: z.array(stocktakeLineSchema).min(1, v.lines).max(2000, v.long),
 });
 
+export const updateStocktakeSchema = z.object({
+  id: z.string().trim().min(1, v.required).max(80, v.long),
+  note: optionalNote,
+  lines: z.array(stocktakeLineSchema).min(1, v.lines).max(2000, v.long),
+});
+
 export const stocktakeIdSchema = z.string().trim().min(1, v.required).max(80, v.long);
 
 export const partyIdSchema = z.string().trim().min(1, v.required).max(80, v.long);
@@ -330,11 +336,19 @@ export const createCollectionSchema = z.object({
   note: optionalNote,
 });
 
+export const updateCollectionSchema = createCollectionSchema.extend({
+  id: partyIdSchema,
+});
+
 export const createPaymentSchema = z.object({
   supplierId: partyIdSchema,
   cashboxId: partyIdSchema,
   amount: positiveMoney,
   note: optionalNote,
+});
+
+export const updatePaymentSchema = createPaymentSchema.extend({
+  id: partyIdSchema,
 });
 
 export const cancelMoneyDocumentSchema = z.object({

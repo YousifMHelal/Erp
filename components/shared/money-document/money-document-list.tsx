@@ -11,11 +11,11 @@ import { DataTable } from "@/components/shared/data-table/data-table";
 import { DataTableToolbar } from "@/components/shared/data-table/data-table-toolbar";
 import { DataTableDensityToggle } from "@/components/shared/data-table/data-table-density-toggle";
 import { EmptyState } from "@/components/shared/empty-state";
-import { CancelMoneyDocumentDialog } from "@/components/shared/money-document/cancel-money-document-dialog";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MoneyDocumentMobileCard } from "@/components/shared/money-document/money-document-mobile-card";
 import { useMoneyDocumentColumns } from "@/components/shared/money-document/money-document-columns";
-import { cancelCollection } from "@/actions/collections.actions";
-import { cancelPayment } from "@/actions/payments.actions";
+import { deleteCollection } from "@/actions/collections.actions";
+import { deletePayment } from "@/actions/payments.actions";
 import type { MoneyDocumentListProps, MoneyDocumentRow } from "@/types";
 
 const PAGE_SIZE = 10;
@@ -25,29 +25,33 @@ export function MoneyDocumentList({ documentType, documents }: MoneyDocumentList
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [cancellingDocument, setCancellingDocument] = useState<MoneyDocumentRow | undefined>(undefined);
+  const [deletingDocument, setDeletingDocument] = useState<MoneyDocumentRow | undefined>(undefined);
   const [pending, setPending] = useState(false);
 
-  async function confirmCancel(reason: string) {
-    if (!cancellingDocument) return;
+  function handleEdit(document: MoneyDocumentRow) {
+    router.push(documentType === "COLLECTION" ? `/collections/${document.id}/edit` : `/payments/${document.id}/edit`);
+  }
+
+  async function confirmDelete() {
+    if (!deletingDocument) return;
     setPending(true);
     try {
       const response = documentType === "COLLECTION"
-        ? await cancelCollection({ id: cancellingDocument.id, reason })
-        : await cancelPayment({ id: cancellingDocument.id, reason });
+        ? await deleteCollection(deletingDocument.id)
+        : await deletePayment(deletingDocument.id);
       if (!response.success) {
         toast.error(response.error);
         return;
       }
-      toast.success(t("cancelSuccess"));
-      setCancellingDocument(undefined);
+      toast.success(documentType === "COLLECTION" ? t("collectionDeleted") : t("paymentDeleted"));
+      setDeletingDocument(undefined);
       router.refresh();
     } finally {
       setPending(false);
     }
   }
 
-  const columns = useMoneyDocumentColumns(documentType, t, setCancellingDocument);
+  const columns = useMoneyDocumentColumns(documentType, t, handleEdit, setDeletingDocument);
   const newHref = documentType === "COLLECTION" ? "/collections/new" : "/payments/new";
   const newLabel = documentType === "COLLECTION" ? t("newCollection") : t("newPayment");
   const emptyTitle = documentType === "COLLECTION" ? t("emptyCollectionTitle") : t("emptyPaymentTitle");
@@ -60,6 +64,13 @@ export function MoneyDocumentList({ documentType, documents }: MoneyDocumentList
   const pageCount = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  const deleteTitle = documentType === "COLLECTION" ? t("deleteCollectionTitle") : t("deletePaymentTitle");
+  const deleteDescription = deletingDocument
+    ? t(documentType === "COLLECTION" ? "deleteCollectionDescription" : "deletePaymentDescription", {
+        number: String(deletingDocument.number).padStart(5, "0"),
+      })
+    : "";
+
   return (
     <div className="flex flex-col gap-4">
       <DataTable
@@ -67,7 +78,7 @@ export function MoneyDocumentList({ documentType, documents }: MoneyDocumentList
         data={paged}
         getRowId={(row) => row.id}
         renderMobileCard={(row) => (
-          <MoneyDocumentMobileCard document={row} documentType={documentType} onCancel={setCancellingDocument} />
+          <MoneyDocumentMobileCard document={row} documentType={documentType} onEdit={handleEdit} onDelete={setDeletingDocument} />
         )}
         page={page}
         pageCount={pageCount}
@@ -107,8 +118,15 @@ export function MoneyDocumentList({ documentType, documents }: MoneyDocumentList
           />
         }
       />
-      <CancelMoneyDocumentDialog documentType={documentType} document={cancellingDocument}
-        onOpenChange={(open) => !open && setCancellingDocument(undefined)} onConfirm={confirmCancel} isPending={pending} />
+      <ConfirmDialog
+        open={!!deletingDocument}
+        onOpenChange={(open) => !open && setDeletingDocument(undefined)}
+        title={deleteTitle}
+        description={deleteDescription}
+        variant="destructive"
+        onConfirm={confirmDelete}
+        isPending={pending}
+      />
     </div>
   );
 }

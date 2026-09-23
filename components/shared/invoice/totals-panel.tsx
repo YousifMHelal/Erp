@@ -34,7 +34,7 @@ export function TotalsPanel({ subtotal, discountAmount, onDiscountChange, total 
         </div>
         <div className="flex items-center justify-between border-t border-border pt-3">
           <span className="text-h3 font-semibold">{t("totalLabel")}</span>
-          <span className="text-display tabular-nums">
+          <span className="text-h2 tabular-nums">
             <Money value={String(total)} />
           </span>
         </div>

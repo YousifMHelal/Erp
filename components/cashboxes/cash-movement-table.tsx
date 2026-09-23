@@ -40,10 +40,11 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="hidden md:block">
+      <div className="hidden max-h-[calc(100vh-16rem)] overflow-y-auto md:block">
         <Table>
-          <TableHeader className="bg-muted">
+          <TableHeader className="sticky top-0 z-10 bg-muted">
             <TableRow className="hover:bg-transparent">
+              <TableHead className="text-label">{t("columnNumber")}</TableHead>
               <TableHead className="text-label">{t("columnDate")}</TableHead>
               <TableHead className="hidden text-label lg:table-cell">{t("columnCashbox")}</TableHead>
               <TableHead className="text-label">{t("columnType")}</TableHead>
@@ -54,8 +55,9 @@ export function CashMovementTable({ movements }: CashMovementTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {movements.map((movement) => (
+            {movements.map((movement, i) => (
               <TableRow key={movement.id}>
+                <TableCell className="tabular-nums text-muted-foreground">{i + 1}</TableCell>
                 <TableCell className="tabular-nums">{formatDate(movement.createdAt)}</TableCell>
                 <TableCell className="hidden lg:table-cell">{movement.cashboxName}</TableCell>
                 <TableCell>{tType(movement.type)}</TableCell>

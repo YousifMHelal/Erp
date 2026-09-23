@@ -12,7 +12,7 @@ import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
 import { syncNotifications } from "@/lib/notifications";
 import { decimal } from "@/lib/money";
-import { confirmStocktakeSchema, stocktakeIdSchema } from "@/lib/validations";
+import { confirmStocktakeSchema, stocktakeIdSchema, updateStocktakeSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
 import type {
   ActionResult,
@@ -44,7 +44,7 @@ export async function getNewStocktakeLines(): Promise<ActionResult<StocktakeLine
     const products = await prisma.product.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, subUnitName: true, stockQty: true },
+      select: { id: true, name: true, baseUnitName: true, subUnitName: true, unitsPerBase: true, stockQty: true },
     });
     return ok(
       products.map((product) => ({
@@ -52,6 +52,10 @@ export async function getNewStocktakeLines(): Promise<ActionResult<StocktakeLine
         productId: product.id,
         productName: product.name,
         unitName: product.subUnitName,
+        baseUnitName: product.baseUnitName,
+        subUnitName: product.subUnitName,
+        unitsPerBase: product.unitsPerBase.toNumber(),
+        unitType: "SUB" as const,
         systemQty: product.stockQty.toNumber(),
         countedQty: product.stockQty.toNumber(),
       })),
@@ -148,6 +152,195 @@ export async function confirmStocktake(
   }
 }
 
+/**
+ * Re-edits a confirmed stocktake's counted quantities. Each line's adjustment is applied
+ * against the product's CURRENT live stock (not the stocktake's original system qty —
+ * other invoices/purchases may have moved stock since), so this is always a correct delta
+ * from "where stock is right now" to "what the corrected count says it should be".
+ * `systemQtyInSub` on each line is left untouched — it is a historical fact (what the
+ * system showed at the moment this stocktake was originally confirmed) and must not drift.
+ */
+export async function updateStocktake(
+  input: unknown,
+): Promise<ActionResult<{ id: string; number: number }>> {
+  try {
+    const user = await requirePermission("inventory.stocktake");
+    const parsed = updateStocktakeSchema.safeParse(input);
+    if (!parsed.success)
+      return fail(m.invalid, parsed.error.flatten().fieldErrors);
+
+    const updated = await prisma.$transaction(
+      async (tx) => {
+        const stocktake = await tx.stocktake.findUnique({
+          where: { id: parsed.data.id },
+          include: { lines: true },
+        });
+        if (!stocktake) throw new StocktakeDomainError("notFound");
+        if (stocktake.status !== "CONFIRMED")
+          throw new StocktakeDomainError("notFound");
+
+        const lineByProductId = new Map(
+          stocktake.lines.map((line) => [line.productId, line]),
+        );
+        const touchedProductIds: string[] = [];
+
+        for (const input of parsed.data.lines) {
+          const existingLine = lineByProductId.get(input.productId);
+          if (!existingLine) continue;
+
+          const newCountedQty = decimal(input.countedQty);
+          if (newCountedQty.eq(existingLine.countedQtyInSub)) continue;
+
+          const product = await tx.product.findUniqueOrThrow({
+            where: { id: input.productId },
+          });
+          const adjustment = newCountedQty.minus(product.stockQty);
+          const newStock = product.stockQty.plus(adjustment);
+          if (newStock.lt(0)) throw new StocktakeDomainError("negativeStock");
+
+          await tx.product.update({
+            where: { id: input.productId },
+            data: { stockQty: newStock },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: input.productId,
+              type: "STOCKTAKE",
+              qtyInSub: adjustment,
+              balanceAfter: newStock,
+              unitCostPerSub: product.avgCostPerSub,
+              refType: "STOCKTAKE",
+              refId: stocktake.id,
+              createdById: user.id,
+              note: "تعديل جرد",
+            },
+          });
+          await tx.stocktakeLine.update({
+            where: { id: existingLine.id },
+            data: {
+              countedQtyInSub: newCountedQty,
+              differenceInSub: newCountedQty.minus(existingLine.systemQtyInSub),
+            },
+          });
+          touchedProductIds.push(input.productId);
+        }
+
+        if (parsed.data.note !== undefined) {
+          await tx.stocktake.update({
+            where: { id: stocktake.id },
+            data: { note: parsed.data.note },
+          });
+        }
+
+        if (touchedProductIds.length > 0) {
+          await syncNotifications(tx, { productIds: touchedProductIds });
+        }
+
+        await writeAudit(tx, {
+          userId: user.id,
+          action: "stocktake.update",
+          entityType: "Stocktake",
+          entityId: stocktake.id,
+          entityLabel: `#${String(stocktake.number).padStart(4, "0")}`,
+          before: { lineCount: stocktake.lines.length },
+          after: { touchedLines: touchedProductIds.length },
+        });
+
+        return { id: stocktake.id, number: stocktake.number };
+      },
+      { timeout: 30_000 },
+    );
+
+    revalidatePath("/inventory/stocktake");
+    revalidatePath(`/inventory/stocktake/${updated.id}`);
+    revalidatePath("/inventory");
+    return ok(updated);
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+/**
+ * Hard-deletes a confirmed stocktake. Every line's recorded difference is reversed against
+ * the product's current live stock first (writing a compensating StockMovement so the
+ * ledger stays reconciled), then the Stocktake row is deleted — cascading its lines. No
+ * status is left behind; the record is gone, matching the invoice hard-delete pattern.
+ */
+export async function deleteStocktake(
+  id: string,
+): Promise<ActionResult<{ number: number }>> {
+  try {
+    const user = await requirePermission("inventory.stocktake");
+    const parsedId = stocktakeIdSchema.safeParse(id);
+    if (!parsedId.success) return fail(m.invalid);
+
+    const deleted = await prisma.$transaction(
+      async (tx) => {
+        const stocktake = await tx.stocktake.findUnique({
+          where: { id: parsedId.data },
+          include: { lines: true },
+        });
+        if (!stocktake) throw new StocktakeDomainError("notFound");
+        if (stocktake.status !== "CONFIRMED")
+          throw new StocktakeDomainError("notFound");
+
+        for (const line of stocktake.lines) {
+          if (line.differenceInSub.isZero()) continue;
+
+          const product = await tx.product.findUniqueOrThrow({
+            where: { id: line.productId },
+          });
+          const restoredStock = product.stockQty.minus(line.differenceInSub);
+          if (restoredStock.lt(0)) throw new StocktakeDomainError("negativeStock");
+
+          await tx.product.update({
+            where: { id: line.productId },
+            data: { stockQty: restoredStock },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: line.productId,
+              type: "STOCKTAKE",
+              qtyInSub: line.differenceInSub.negated(),
+              balanceAfter: restoredStock,
+              unitCostPerSub: product.avgCostPerSub,
+              refType: "STOCKTAKE",
+              refId: stocktake.id,
+              createdById: user.id,
+              note: "حذف جرد",
+            },
+          });
+        }
+
+        await syncNotifications(tx, {
+          productIds: stocktake.lines.map((line) => line.productId),
+        });
+
+        await writeAudit(tx, {
+          userId: user.id,
+          action: "stocktake.delete",
+          entityType: "Stocktake",
+          entityId: stocktake.id,
+          entityLabel: `#${String(stocktake.number).padStart(4, "0")}`,
+          before: { status: stocktake.status, lineCount: stocktake.lines.length },
+          after: undefined,
+        });
+
+        await tx.stocktake.delete({ where: { id: stocktake.id } });
+
+        return { number: stocktake.number };
+      },
+      { timeout: 30_000 },
+    );
+
+    revalidatePath("/inventory/stocktake");
+    revalidatePath("/inventory");
+    return ok(deleted);
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
 export async function getStocktakes(): Promise<ActionResult<StocktakeListRow[]>> {
   try {
     await requirePermission("inventory.view");
@@ -188,7 +381,7 @@ export async function getStocktakeById(
       where: { id: parsedId.data },
       include: {
         createdBy: { select: { displayName: true } },
-        lines: { include: { product: { select: { name: true, subUnitName: true } } } },
+        lines: { include: { product: { select: { name: true, baseUnitName: true, subUnitName: true, unitsPerBase: true } } } },
       },
     });
     if (!stocktake) return fail(m.notFound);
@@ -206,8 +399,12 @@ export async function getStocktakeById(
       note: stocktake.note ?? undefined,
       lines: stocktake.lines.map((line) => ({
         id: line.id,
+        productId: line.productId,
         productName: line.product.name,
         unitName: line.product.subUnitName,
+        baseUnitName: line.product.baseUnitName,
+        subUnitName: line.product.subUnitName,
+        unitsPerBase: line.product.unitsPerBase.toNumber(),
         systemQty: line.systemQtyInSub.toNumber(),
         countedQty: line.countedQtyInSub.toNumber(),
         difference: line.differenceInSub.toNumber(),

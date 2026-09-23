@@ -16,6 +16,12 @@ export function usePartyColumns(
 
   return [
     {
+      id: "rowNumber",
+      header: t("columnNumber"),
+      cell: ({ row }) => <span className="tabular-nums text-muted-foreground">{row.index + 1}</span>,
+      enableSorting: false,
+    },
+    {
       accessorKey: "name",
       header: t("columnName"),
       cell: ({ row }) => (
@@ -30,6 +36,11 @@ export function usePartyColumns(
       cell: ({ getValue }) => <span className="tabular-nums" dir="ltr">{getValue<string>() || "—"}</span>,
     },
     {
+      accessorKey: "address",
+      header: t("columnAddress"),
+      cell: ({ getValue }) => <span className="text-muted-foreground">{getValue<string>() || "—"}</span>,
+    },
+    {
       accessorKey: "balance",
       header: t("columnBalance"),
       cell: ({ row }) => <BalanceBadge partyType={partyType} balance={row.original.balance} />,
@@ -37,6 +48,7 @@ export function usePartyColumns(
     {
       id: "actions",
       header: t("columnActions"),
+      meta: { className: "text-end" },
       enableSorting: false,
       cell: ({ row }) => (
         <PartyRowActions partyType={partyType} party={row.original} onEdit={onEdit} onDelete={onDelete} />

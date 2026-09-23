@@ -8,7 +8,7 @@ import { fail, ok } from "@/lib/action-result";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
 import { syncNotifications } from "@/lib/notifications";
-import { cancelMoneyDocumentSchema, createCollectionSchema } from "@/lib/validations";
+import { createCollectionSchema, partyIdSchema, updateCollectionSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
 import type { ActionResult, EntityComboboxOption, MoneyDocumentRow, PartyWithBalanceOption } from "@/types";
 
@@ -36,9 +36,12 @@ export async function getCollections(): Promise<ActionResult<MoneyDocumentRow[]>
     return ok(collections.map((collection) => ({
       id: collection.id,
       number: collection.number,
+      partyId: collection.customerId,
       partyName: collection.customer.name,
+      cashboxId: collection.cashboxId,
       cashboxName: collection.cashbox.name,
       amount: collection.amount.toString(),
+      note: collection.note ?? undefined,
       status: collection.status,
       occurredAt: collection.occurredAt.toISOString(),
     })));
@@ -47,11 +50,41 @@ export async function getCollections(): Promise<ActionResult<MoneyDocumentRow[]>
   }
 }
 
-export async function getCollectionFormOptions(): Promise<ActionResult<{ parties: PartyWithBalanceOption[]; cashboxes: EntityComboboxOption[] }>> {
+export async function getCollectionById(id: string): Promise<ActionResult<MoneyDocumentRow>> {
+  try {
+    await requirePermission("collection.view");
+    const parsedId = partyIdSchema.safeParse(id);
+    if (!parsedId.success) return fail(m.notFound);
+    const collection = await prisma.collection.findUnique({
+      where: { id: parsedId.data },
+      include: { customer: { select: { name: true } }, cashbox: { select: { name: true } } },
+    });
+    if (!collection) return fail(m.notFound);
+    return ok({
+      id: collection.id,
+      number: collection.number,
+      partyId: collection.customerId,
+      partyName: collection.customer.name,
+      cashboxId: collection.cashboxId,
+      cashboxName: collection.cashbox.name,
+      amount: collection.amount.toString(),
+      note: collection.note ?? undefined,
+      status: collection.status,
+      occurredAt: collection.occurredAt.toISOString(),
+    });
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function getCollectionFormOptions(includePartyId?: string): Promise<ActionResult<{ parties: PartyWithBalanceOption[]; cashboxes: EntityComboboxOption[] }>> {
   try {
     await requirePermission("collection.create");
     const [customers, cashboxes] = await Promise.all([
-      prisma.customer.findMany({ where: { isActive: true, balance: { gt: 0 } }, orderBy: { name: "asc" } }),
+      prisma.customer.findMany({
+        where: { isActive: true, OR: [{ balance: { gt: 0 } }, ...(includePartyId ? [{ id: includePartyId }] : [])] },
+        orderBy: { name: "asc" },
+      }),
       prisma.cashbox.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
     ]);
     return ok({
@@ -114,53 +147,131 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
   }
 }
 
-export async function cancelCollection(input: unknown): Promise<ActionResult<{ id: string }>> {
+/**
+ * Reverses a confirmed collection's cash and customer-balance effect inside the caller's
+ * transaction, without touching the Collection row itself — shared by update (reverse, then
+ * reapply with new values) and delete (reverse, then remove the row).
+ */
+async function reverseCollectionEffect(
+  tx: Prisma.TransactionClient,
+  collection: { id: string; customerId: string; cashboxId: string; amount: Prisma.Decimal; number: number },
+  userId: string,
+  note: string | undefined,
+) {
+  const occurredAt = new Date();
+  const cashboxUpdate = await tx.cashbox.updateMany({
+    where: { id: collection.cashboxId, balance: { gte: collection.amount } },
+    data: { balance: { decrement: collection.amount } },
+  });
+  if (cashboxUpdate.count !== 1) throw new CollectionDomainError("insufficientCash");
+  const updatedCashbox = await tx.cashbox.findUniqueOrThrow({ where: { id: collection.cashboxId } });
+  const updatedCustomer = await tx.customer.update({
+    where: { id: collection.customerId }, data: { balance: { increment: collection.amount } },
+  });
+  await tx.cashMovement.create({ data: {
+    cashboxId: collection.cashboxId, type: "CUSTOMER_COLLECTION", amount: collection.amount.negated(),
+    balanceAfter: updatedCashbox.balance, customerId: collection.customerId,
+    refType: "COLLECTION", refId: collection.id, note, createdById: userId, createdAt: occurredAt,
+  } });
+  await tx.partyTransaction.create({ data: {
+    partyType: "CUSTOMER", customerId: collection.customerId, type: "PAYMENT",
+    debit: collection.amount, credit: new Prisma.Decimal(0), balanceAfter: updatedCustomer.balance,
+    refType: "COLLECTION", refId: collection.id, note, occurredAt, createdById: userId,
+  } });
+}
+
+export async function updateCollection(input: unknown): Promise<ActionResult<{ id: string; number: number }>> {
   try {
-    const user = await requirePermission("collection.cancel");
-    const parsed = cancelMoneyDocumentSchema.safeParse(input);
+    const user = await requirePermission("collection.create");
+    const parsed = updateCollectionSchema.safeParse(input);
     if (!parsed.success) return fail(m.invalid, parsed.error.flatten().fieldErrors);
-    const { id, reason } = parsed.data;
-    const customerId = await prisma.$transaction(async (tx) => {
-      const collection = await tx.collection.findUnique({ where: { id }, include: { customer: true } });
-      if (!collection) throw new CollectionDomainError("notFound");
-      if (collection.status === "CANCELLED") throw new CollectionDomainError("cancelled");
+    const { id, customerId, cashboxId, note } = parsed.data;
+    const amount = new Prisma.Decimal(parsed.data.amount);
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const existing = await tx.collection.findUnique({ where: { id } });
+      if (!existing) throw new CollectionDomainError("notFound");
+      if (existing.status !== "CONFIRMED") throw new CollectionDomainError("cancelled");
+
+      const [customer, cashbox] = await Promise.all([
+        tx.customer.findUnique({ where: { id: customerId } }),
+        tx.cashbox.findUnique({ where: { id: cashboxId } }),
+      ]);
+      if (!customer || !cashbox) throw new CollectionDomainError("notFound");
+      if (!customer.isActive || !cashbox.isActive) throw new CollectionDomainError("inactive");
+
+      await reverseCollectionEffect(tx, existing, user.id, "تعديل تحصيل");
+
+      const reappliedCustomerUpdate = await tx.customer.updateMany({
+        where: { id: customerId, balance: { gte: amount } }, data: { balance: { decrement: amount } },
+      });
+      if (reappliedCustomerUpdate.count !== 1) throw new CollectionDomainError("exceedsBalance");
+      const finalCustomer = await tx.customer.findUniqueOrThrow({ where: { id: customerId } });
+      const finalCashbox = await tx.cashbox.update({ where: { id: cashboxId }, data: { balance: { increment: amount } } });
+
       const occurredAt = new Date();
-      const cancelUpdate = await tx.collection.updateMany({
-        where: { id, status: "CONFIRMED" },
-        data: { status: "CANCELLED", cancelledAt: occurredAt, cancelledById: user.id },
-      });
-      if (cancelUpdate.count !== 1) throw new CollectionDomainError("cancelled");
-      const cashboxUpdate = await tx.cashbox.updateMany({
-        where: { id: collection.cashboxId, balance: { gte: collection.amount } },
-        data: { balance: { decrement: collection.amount } },
-      });
-      if (cashboxUpdate.count !== 1) throw new CollectionDomainError("insufficientCash");
-      const updatedCashbox = await tx.cashbox.findUniqueOrThrow({ where: { id: collection.cashboxId } });
-      const updatedCustomer = await tx.customer.update({
-        where: { id: collection.customerId }, data: { balance: { increment: collection.amount } },
+      await tx.collection.update({
+        where: { id }, data: { customerId, cashboxId, amount, note, occurredAt },
       });
       await tx.cashMovement.create({ data: {
-        cashboxId: collection.cashboxId, type: "CUSTOMER_COLLECTION", amount: collection.amount.negated(),
-        balanceAfter: updatedCashbox.balance, customerId: collection.customerId,
-        refType: "COLLECTION", refId: id, note: reason, createdById: user.id, createdAt: occurredAt,
+        cashboxId, type: "CUSTOMER_COLLECTION", amount, balanceAfter: finalCashbox.balance,
+        customerId, refType: "COLLECTION", refId: id, note, createdById: user.id, createdAt: occurredAt,
       } });
       await tx.partyTransaction.create({ data: {
-        partyType: "CUSTOMER", customerId: collection.customerId, type: "PAYMENT",
-        debit: collection.amount, credit: new Prisma.Decimal(0), balanceAfter: updatedCustomer.balance,
-        refType: "COLLECTION", refId: id, note: reason, occurredAt, createdById: user.id,
+        partyType: "CUSTOMER", customerId, type: "PAYMENT", debit: new Prisma.Decimal(0), credit: amount,
+        balanceAfter: finalCustomer.balance, refType: "COLLECTION", refId: id,
+        note, occurredAt, createdById: user.id,
       } });
-      await syncNotifications(tx, { customerIds: [collection.customerId] });
+
+      await syncNotifications(tx, { customerIds: [existing.customerId, customerId] });
       await writeAudit(tx, {
-        userId: user.id, action: "collection.cancel", entityType: "Collection",
-        entityId: id, entityLabel: `#${String(collection.number).padStart(6, "0")}`,
-        before: { status: "CONFIRMED" }, after: { status: "CANCELLED", reason },
+        userId: user.id, action: "collection.update", entityType: "Collection",
+        entityId: id, entityLabel: `#${String(existing.number).padStart(6, "0")}`,
+        before: { customerId: existing.customerId, cashboxId: existing.cashboxId, amount: existing.amount.toString() },
+        after: { customerId, cashboxId, amount: amount.toString() },
       });
-      return collection.customerId;
+      return { id, number: existing.number };
     });
+
     revalidatePath("/collections");
     revalidatePath("/cashboxes");
     revalidatePath(`/customers/${customerId}`);
-    return ok({ id });
+    return ok(updated);
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function deleteCollection(id: unknown): Promise<ActionResult<{ number: number }>> {
+  try {
+    const user = await requirePermission("collection.cancel");
+    const parsedId = partyIdSchema.safeParse(id);
+    if (!parsedId.success) return fail(m.invalid);
+
+    const deleted = await prisma.$transaction(async (tx) => {
+      const collection = await tx.collection.findUnique({ where: { id: parsedId.data } });
+      if (!collection) throw new CollectionDomainError("notFound");
+      if (collection.status !== "CONFIRMED") throw new CollectionDomainError("cancelled");
+
+      await reverseCollectionEffect(tx, collection, user.id, "حذف تحصيل");
+
+      await writeAudit(tx, {
+        userId: user.id, action: "collection.delete", entityType: "Collection",
+        entityId: collection.id, entityLabel: `#${String(collection.number).padStart(6, "0")}`,
+        before: { status: collection.status, amount: collection.amount.toString() },
+        after: undefined,
+      });
+
+      await tx.collection.delete({ where: { id: parsedId.data } });
+
+      await syncNotifications(tx, { customerIds: [collection.customerId] });
+
+      return { number: collection.number };
+    });
+
+    revalidatePath("/collections");
+    revalidatePath("/cashboxes");
+    return ok(deleted);
   } catch (error) {
     return actionError(error);
   }

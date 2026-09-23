@@ -13,7 +13,7 @@ export function InvoiceTotalsCard({ invoice }: InvoiceTotalsCardProps) {
         {Number(invoice.discountAmount) > 0 && <Row label={t("discountLabel")} value={invoice.discountAmount} negative />}
         <div className="flex items-center justify-between border-t border-border pt-3">
           <span className="text-h3 font-semibold">{t("totalLabel")}</span>
-          <Money value={invoice.total} className="text-display" />
+          <Money value={invoice.total} className="text-h2" />
         </div>
         <Row label={t("paidLabel")} value={invoice.paidAmount} />
         <Row label={t("remainingLabel")} value={invoice.remainingAmount} emphasize />

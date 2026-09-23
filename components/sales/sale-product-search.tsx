@@ -38,6 +38,20 @@ export function SaleProductSearch({
     onAddLineRef.current = onAddLine;
   });
 
+  function loadDefaultResults() {
+    void searchSaleProducts("").then((result) => {
+      if (result.success) setResults(result.data);
+    });
+  }
+
+  // Auto-focus and load the full product list on mount so the counter can start
+  // scanning or browsing immediately without typing anything first.
+  useEffect(() => {
+    inputRef.current?.focus();
+    setOpen(true);
+    loadDefaultResults();
+  }, []);
+
   const runSearch = useDebouncedCallback((value: string) => {
     const requestId = ++requestIdRef.current;
     void searchSaleProducts(value).then((result) => {
@@ -68,8 +82,8 @@ export function SaleProductSearch({
   function handleSelect(product: SaleProductOption) {
     onAddLine(product);
     setQuery("");
-    setResults([]);
-    setOpen(false);
+    setOpen(true);
+    loadDefaultResults();
     inputRef.current?.focus();
   }
 
@@ -81,14 +95,17 @@ export function SaleProductSearch({
   }
 
   return (
-    <Popover open={open && query.trim().length > 0} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
         <InputGroup>
           <InputGroupInput
             ref={mergedRef}
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            onFocus={() => setOpen(true)}
+            onFocus={() => {
+              setOpen(true);
+              if (!query.trim()) loadDefaultResults();
+            }}
             onKeyDown={handleKeyDown}
             placeholder={t("productSearchPlaceholder")}
             aria-label={t("productSearchPlaceholder")}
@@ -143,14 +160,13 @@ function SaleProductResult({
       )}
     >
       <Card className="transition-colors duration-200 hover:bg-muted" size="sm">
-        <div className="flex items-center justify-between gap-2 px-4">
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate text-body-sm font-medium">{product.name}</span>
-            <span className="text-caption text-muted-foreground">
-              {product.sku} · {formatNumber(stock)} {product.subUnitName}
-              {outOfStock && ` · ${t("outOfStock")}`}
-            </span>
-          </div>
+        <div className="flex items-center gap-3 px-4">
+          <span className="shrink-0 text-caption whitespace-nowrap text-muted-foreground">{product.sku}</span>
+          <span className="min-w-0 flex-1 truncate text-body-sm font-medium">{product.name}</span>
+          <span className="shrink-0 whitespace-nowrap text-caption tabular-nums text-muted-foreground">
+            {formatNumber(stock)} {product.subUnitName}
+            {outOfStock && ` · ${t("outOfStock")}`}
+          </span>
           <Money value={product.pricePerSub} className="shrink-0 text-body-sm font-medium" />
         </div>
       </Card>

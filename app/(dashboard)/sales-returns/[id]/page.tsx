@@ -5,12 +5,13 @@ import { ReturnDetailView } from "@/components/shared/returns/return-detail-view
 import { getSaleReturnById } from "@/actions/returns.actions";
 import { getCurrentUser } from "@/lib/auth-guard";
 import { hasPermission } from "@/lib/permissions";
+import { getDefaultPrintSize } from "@/lib/print-preferences";
 
 export default async function SalesReturnDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const t = await getTranslations("invoices.detail");
   const { id } = await params;
 
-  const [result, user] = await Promise.all([getSaleReturnById(id), getCurrentUser()]);
+  const [result, user, defaultPrintSize] = await Promise.all([getSaleReturnById(id), getCurrentUser(), getDefaultPrintSize()]);
   if (!result.success) notFound();
 
   const permissions = user?.role.permissions ?? [];
@@ -21,7 +22,7 @@ export default async function SalesReturnDetailPage({ params }: { params: Promis
         title={t("title", { number: String(result.data.number).padStart(6, "0") })}
         breadcrumbs={[{ labelKey: "nav.salesReturns", href: "/sales-returns" }, { labelKey: "invoices.detail.breadcrumbSale" }]}
       />
-      <ReturnDetailView invoice={result.data} canCancel={hasPermission(permissions, "return.cancel")} />
+      <ReturnDetailView invoice={result.data} canCancel={hasPermission(permissions, "return.cancel")} defaultPrintSize={defaultPrintSize} />
     </>
   );
 }

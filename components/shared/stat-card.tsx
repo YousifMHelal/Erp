@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { StatCardProps } from "@/types";
 
-export function StatCard({ label, value, delta, icon: Icon, sparkline }: StatCardProps) {
+export function StatCard({ label, value, delta, icon: Icon, sparkline, valueClassName }: StatCardProps) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-2">
@@ -11,7 +11,7 @@ export function StatCard({ label, value, delta, icon: Icon, sparkline }: StatCar
           <span className="text-label text-muted-foreground">{label}</span>
           {Icon && <Icon className="size-4 text-muted-foreground" aria-hidden="true" />}
         </div>
-        <span className="text-display tabular-nums">{value}</span>
+        <span className={cn("tabular-nums", valueClassName ?? "text-display")}>{value}</span>
         {delta && (
           <span
             className={cn(

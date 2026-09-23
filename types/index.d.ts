@@ -350,6 +350,7 @@ export type PurchaseDetailViewProps = {
   purchase: PurchaseDetail;
   canEdit: boolean;
   canCancel: boolean;
+  defaultPrintSize: "A4" | "A5" | "80mm";
 };
 
 // --- Returns actions (P5-7/8) ---
@@ -515,6 +516,8 @@ export type DataTableProps<TData> = {
   pageSize?: number;
   totalCount?: number;
   className?: string;
+  /** Caps the table body height and makes it scroll internally instead of paginating. */
+  scrollHeight?: string;
 };
 
 export type DataTablePaginationProps = {
@@ -610,6 +613,7 @@ export type StatCardProps = {
   delta?: { value: string; tone: "success" | "danger" };
   icon?: LucideIcon;
   sparkline?: ReactNode;
+  valueClassName?: string;
 };
 
 // --- Auth (P2-4) ---
@@ -981,6 +985,11 @@ export type StocktakeLineDraft = {
   productId: string;
   productName: string;
   unitName: string;
+  baseUnitName: string;
+  subUnitName: string;
+  unitsPerBase: number;
+  unitType: UnitType;
+  /** Always in the product's sub-unit, regardless of `unitType` — the row converts for display/edit. */
   systemQty: number;
   countedQty: number | null;
 };
@@ -1009,8 +1018,12 @@ export type StocktakeDetail = StocktakeListRow & {
   note?: string;
   lines: {
     id: string;
+    productId: string;
     productName: string;
     unitName: string;
+    baseUnitName: string;
+    subUnitName: string;
+    unitsPerBase: number;
     systemQty: number;
     countedQty: number;
     difference: number;
@@ -1029,6 +1042,7 @@ export type PartyType = "CUSTOMER" | "SUPPLIER";
   id: string;
   name: string;
   phone?: string;
+  address?: string;
   balance: string;
     isActive: boolean;
   };
@@ -1076,6 +1090,8 @@ export type PartyMobileCardProps = {
 export type BalanceBadgeProps = {
   partyType: PartyType;
   balance: string;
+  className?: string;
+  size?: "default" | "lg";
 };
 
   export type PartyDetail = {
@@ -1126,6 +1142,8 @@ export type PartyPaymentRow = {
   debit: string;
   credit: string;
     balanceAfter: string;
+    invoiceId?: string;
+    isReturn?: boolean;
   };
   export type PartyStatementEntry = {
     id: string;
@@ -1133,6 +1151,7 @@ export type PartyPaymentRow = {
     type: "OPENING" | "INVOICE" | "PAYMENT" | "RETURN";
     debit: string;
     credit: string;
+    invoiceId?: string;
     invoiceNumber?: number;
     referenceNumber?: number;
     referenceType?: "COLLECTION" | "PAYMENT";
@@ -1149,9 +1168,7 @@ export type PartyDetailViewProps = {
   export type PartySummaryCardProps = {
     party: PartyDetail;
     partyType: PartyType;
-    statement: StatementLine[];
     onEdit: () => void;
-  onDelete: () => void;
 };
 
 export type CustomerInvoicesTabProps = {
@@ -1160,6 +1177,7 @@ export type CustomerInvoicesTabProps = {
 };
 export type CustomerPaymentsTabProps = { payments: PartyPaymentRow[] };
 export type AccountStatementTabProps = {
+  partyType: PartyType;
   statement: StatementLine[];
   onPrint: () => void;
 };
@@ -1246,9 +1264,12 @@ export type MoneyDocumentType = "COLLECTION" | "PAYMENT";
 export type MoneyDocumentRow = {
   id: string;
   number: number;
+  partyId: string;
   partyName: string;
+  cashboxId: string;
   cashboxName: string;
   amount: string;
+  note?: string;
   status: "CONFIRMED" | "CANCELLED";
   occurredAt: string;
 };
@@ -1261,7 +1282,8 @@ export type MoneyDocumentListProps = {
 export type MoneyDocumentRowActionsProps = {
   documentType: MoneyDocumentType;
   document: MoneyDocumentRow;
-  onCancel: (document: MoneyDocumentRow) => void;
+  onEdit: (document: MoneyDocumentRow) => void;
+  onDelete: (document: MoneyDocumentRow) => void;
 };
 export type MoneyDocumentMobileCardProps = MoneyDocumentRowActionsProps;
 export type CancelMoneyDocumentDialogProps = {
@@ -1293,6 +1315,7 @@ export type MoneyDocumentFormProps = {
   documentType: MoneyDocumentType;
   partyOptions: PartyWithBalanceOption[];
   cashboxOptions: EntityComboboxOption[];
+  editing?: MoneyDocumentRow;
 };
 
 // --- Reports (P2-18) ---
@@ -1733,6 +1756,7 @@ export type SaleDetailViewProps = {
   sale: SaleDetail;
   canEdit: boolean;
   canCancel: boolean;
+  defaultPrintSize: "A4" | "A5" | "80mm";
 };
 
 export type InvoiceFiltersProps = {

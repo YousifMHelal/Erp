@@ -24,6 +24,8 @@ export function buildPartyStatement(entries: PartyStatementEntry[]): StatementLi
       debit: entry.debit,
       credit: entry.credit,
       balanceAfter: balance.toString(),
+      invoiceId: entry.type === "INVOICE" || entry.type === "RETURN" ? entry.invoiceId : undefined,
+      isReturn: entry.type === "RETURN",
     };
   });
 }

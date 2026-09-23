@@ -31,6 +31,7 @@ export function DataTable<TData>({
   onPageChange,
   totalCount,
   className,
+  scrollHeight,
 }: DataTableProps<TData>) {
   const t = useTranslations("dataTable");
   const density = useUiStore((s) => s.density);
@@ -52,7 +53,10 @@ export function DataTable<TData>({
     >
       {toolbar}
 
-      <div className="hidden overflow-x-auto md:block">
+      <div
+        className={cn("hidden overflow-x-auto md:block", scrollHeight && "overflow-y-auto")}
+        style={scrollHeight ? { maxHeight: scrollHeight } : undefined}
+      >
         {isLoading ? (
           <DataTableSkeleton columnCount={tableColumns.length} rowCount={skeletonRowCount} />
         ) : isEmpty ? (

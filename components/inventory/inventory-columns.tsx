@@ -22,6 +22,12 @@ export function useInventoryColumns(
 ): ColumnDef<InventoryProductRow, unknown>[] {
   return [
     {
+      id: "rowNumber",
+      header: t("columnNumber"),
+      cell: ({ row }) => <span className="tabular-nums text-muted-foreground">{row.index + 1}</span>,
+      enableSorting: false,
+    },
+    {
       accessorKey: "name",
       header: t("columnProduct"),
       cell: ({ row }) => (
@@ -39,19 +45,19 @@ export function useInventoryColumns(
       header: t("columnStockQty"),
       cell: ({ row }) => (
         <span className="tabular-nums">
-          {formatNumber(row.original.stockQty)} {row.original.subUnitName}
+          {formatNumber(row.original.stockQty / row.original.unitsPerBase, 1)} {row.original.baseUnitName}
         </span>
       ),
     },
     {
       accessorKey: "avgCostPerSub",
       header: t("columnAvgCost"),
-      cell: ({ getValue }) => <Money value={getValue<string>()} />,
+      cell: ({ row }) => <Money value={String(Number(row.original.avgCostPerSub) * row.original.unitsPerBase)} />,
     },
     {
       id: "sellPricePerSub",
       header: t("columnSellPrice"),
-      cell: ({ row }) => <Money value={String(Number(row.original.sellPricePerBase) / row.original.unitsPerBase)} />,
+      cell: ({ row }) => <Money value={row.original.sellPricePerBase} />,
     },
     {
       id: "valueAtCost",
@@ -67,7 +73,8 @@ export function useInventoryColumns(
     },
     {
       id: "actions",
-      header: "",
+      header: t("columnActions"),
+      meta: { className: "text-end" },
       cell: ({ row }) => {
         const product = row.original;
         const canDelete = product.stockQty <= 0;

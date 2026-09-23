@@ -9,16 +9,14 @@ import { InvoicePartyCard } from "@/components/shared/invoice/invoice-party-card
 import { InvoiceLinesTable } from "@/components/shared/invoice/invoice-lines-table";
 import { InvoiceTotalsCard } from "@/components/shared/invoice/invoice-totals-card";
 import { InvoiceActionsBar } from "@/components/shared/invoice/invoice-actions-bar";
-import { PrintSizeDialog } from "@/components/shared/invoice/print-size-dialog";
 import { CancelInvoiceDialog } from "@/components/shared/invoice/cancel-invoice-dialog";
 import { cancelPurchase } from "@/actions/purchases.actions";
 import type { InvoiceDetail, PurchaseDetailViewProps } from "@/types";
 
-export function PurchaseDetailView({ purchase, canEdit, canCancel }: PurchaseDetailViewProps) {
+export function PurchaseDetailView({ purchase, canEdit, canCancel, defaultPrintSize }: PurchaseDetailViewProps) {
   const t = useTranslations("invoices.detail");
   const tAction = useTranslations("purchasesAction");
   const router = useRouter();
-  const [printOpen, setPrintOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -57,9 +55,8 @@ export function PurchaseDetailView({ purchase, canEdit, canCancel }: PurchaseDet
     })),
   };
 
-  function handlePrintSelect(size: "A4" | "A5" | "80mm") {
-    setPrintOpen(false);
-    window.open(`/print/${purchase.id}?size=${size}`, "_blank", "noopener,noreferrer");
+  function handlePrint() {
+    window.open(`/print/${purchase.id}?size=${defaultPrintSize}`, "_blank", "noopener,noreferrer");
   }
 
   function handleCancelConfirm(reason: string) {
@@ -79,12 +76,12 @@ export function PurchaseDetailView({ purchase, canEdit, canCancel }: PurchaseDet
     <div className="flex flex-col gap-4">
       <InvoiceActionsBar
         invoice={invoice}
-        onPrint={() => setPrintOpen(true)}
+        onPrint={handlePrint}
         onCancel={canCancel ? () => setCancelOpen(true) : undefined}
         onEdit={canEdit ? () => router.push(`/purchases/${purchase.id}/edit`) : undefined}
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <InvoiceHeaderCard invoice={invoice} />
           <InvoiceLinesTable lines={invoice.lines} />
           {invoice.notes && (
@@ -104,7 +101,6 @@ export function PurchaseDetailView({ purchase, canEdit, canCancel }: PurchaseDet
         </div>
       </div>
 
-      <PrintSizeDialog open={printOpen} onOpenChange={setPrintOpen} onSelect={handlePrintSelect} />
       <CancelInvoiceDialog
         open={cancelOpen}
         onOpenChange={setCancelOpen}

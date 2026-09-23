@@ -20,7 +20,7 @@ import { createCustomer, updateCustomer, archiveCustomer } from "@/actions/custo
 import { createSupplier, updateSupplier, archiveSupplier } from "@/actions/suppliers.actions";
 import type { PartyFormValues, PartyListRow, PartyListProps, PartyRecord } from "@/types";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 25;
 
 export function PartyList({ partyType, parties }: PartyListProps) {
   const t = useTranslations("parties");

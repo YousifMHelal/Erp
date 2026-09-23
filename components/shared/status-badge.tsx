@@ -9,6 +9,7 @@ export type StatusBadgeProps = {
   label: string;
   icon?: LucideIcon;
   className?: string;
+  size?: "default" | "lg";
 };
 
 const toneStyles: Record<StatusTone, string> = {
@@ -27,18 +28,19 @@ const toneIcons: Record<StatusTone, LucideIcon> = {
   neutral: Ban,
 };
 
-export function StatusBadge({ tone, label, icon, className }: StatusBadgeProps) {
+export function StatusBadge({ tone, label, icon, className, size = "default" }: StatusBadgeProps) {
   const Icon = icon ?? toneIcons[tone];
 
   return (
     <span
       className={cn(
-        "inline-flex h-5 w-fit shrink-0 items-center gap-1 rounded-sm px-2.5 py-1.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex w-fit shrink-0 items-center gap-1 rounded-sm font-medium whitespace-nowrap",
+        size === "lg" ? "gap-2 rounded-md px-4 py-2 text-h3" : "h-5 px-2.5 py-1.5 text-xs",
         toneStyles[tone],
         className
       )}
     >
-      <Icon className="size-3 shrink-0" aria-hidden="true" />
+      <Icon className={size === "lg" ? "size-5 shrink-0" : "size-3 shrink-0"} aria-hidden="true" />
       {label}
     </span>
   );

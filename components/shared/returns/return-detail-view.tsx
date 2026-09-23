@@ -9,24 +9,29 @@ import { InvoicePartyCard } from "@/components/shared/invoice/invoice-party-card
 import { InvoiceLinesTable } from "@/components/shared/invoice/invoice-lines-table";
 import { InvoiceTotalsCard } from "@/components/shared/invoice/invoice-totals-card";
 import { InvoiceActionsBar } from "@/components/shared/invoice/invoice-actions-bar";
-import { PrintSizeDialog } from "@/components/shared/invoice/print-size-dialog";
 import { CancelInvoiceDialog } from "@/components/shared/invoice/cancel-invoice-dialog";
 import { cancelReturn } from "@/actions/returns.actions";
 import type { InvoiceDetail } from "@/types";
 
-export function ReturnDetailView({ invoice, canCancel }: { invoice: InvoiceDetail; canCancel: boolean }) {
+export function ReturnDetailView({
+  invoice,
+  canCancel,
+  defaultPrintSize,
+}: {
+  invoice: InvoiceDetail;
+  canCancel: boolean;
+  defaultPrintSize: "A4" | "A5" | "80mm";
+}) {
   const t = useTranslations("invoices.detail");
   const tAction = useTranslations("returnsAction");
   const router = useRouter();
-  const [printOpen, setPrintOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const invoiceNumber = String(invoice.number).padStart(6, "0");
 
-  function handlePrintSelect(size: "A4" | "A5" | "80mm") {
-    setPrintOpen(false);
-    window.open(`/print/${invoice.id}?size=${size}`, "_blank", "noopener,noreferrer");
+  function handlePrint() {
+    window.open(`/print/${invoice.id}?size=${defaultPrintSize}`, "_blank", "noopener,noreferrer");
   }
 
   function handleCancelConfirm(reason: string) {
@@ -46,11 +51,11 @@ export function ReturnDetailView({ invoice, canCancel }: { invoice: InvoiceDetai
     <div className="flex flex-col gap-4">
       <InvoiceActionsBar
         invoice={invoice}
-        onPrint={() => setPrintOpen(true)}
+        onPrint={handlePrint}
         onCancel={canCancel ? () => setCancelOpen(true) : undefined}
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <InvoiceHeaderCard invoice={invoice} />
           <InvoiceLinesTable lines={invoice.lines} />
           {invoice.notes && (
@@ -70,7 +75,6 @@ export function ReturnDetailView({ invoice, canCancel }: { invoice: InvoiceDetai
         </div>
       </div>
 
-      <PrintSizeDialog open={printOpen} onOpenChange={setPrintOpen} onSelect={handlePrintSelect} />
       <CancelInvoiceDialog
         open={cancelOpen}
         onOpenChange={setCancelOpen}

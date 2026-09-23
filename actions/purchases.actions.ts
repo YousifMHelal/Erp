@@ -242,20 +242,15 @@ export async function cancelPurchase(
         throw new PurchaseDomainError("cancelled");
       if (invoice.returns.some((entry) => entry.status === "CONFIRMED"))
         throw new PurchaseDomainError("hasReturns");
-      const changed = await tx.invoice.updateMany({
+      const claimed = await tx.invoice.updateMany({
         where: { id: invoice.id, status: "CONFIRMED" },
-        data: {
-          status: "CANCELLED",
-          cancelledAt: new Date(),
-          cancelledById: user.id,
-          cancelReason: parsed.data.reason,
-        },
+        data: { status: "CANCELLED", cancelledAt: new Date(), cancelledById: user.id, cancelReason: parsed.data.reason },
       });
-      if (changed.count !== 1) throw new PurchaseDomainError("conflict");
+      if (claimed.count !== 1) throw new PurchaseDomainError("conflict");
       await reversePurchase(tx, invoice, user.id, parsed.data.reason);
       await writeAudit(tx, {
         userId: user.id,
-        action: "purchase.cancel",
+        action: "purchase.delete",
         entityType: "Invoice",
         entityId: invoice.id,
         entityLabel: `#${String(invoice.number).padStart(6, "0")}`,
@@ -264,8 +259,9 @@ export async function cancelPurchase(
           total: invoice.total,
           paidAmount: invoice.paidAmount,
         },
-        after: { status: "CANCELLED", cancelReason: parsed.data.reason },
+        after: undefined,
       });
+      await tx.invoice.delete({ where: { id: invoice.id } });
       return { id: invoice.id, number: invoice.number };
     });
     revalidatePath("/purchases");

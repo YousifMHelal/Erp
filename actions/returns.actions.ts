@@ -260,13 +260,14 @@ export async function cancelReturn(
 
       await writeAudit(tx, {
         userId: user.id,
-        action: isSaleReturn ? "return.sale.cancel" : "return.purchase.cancel",
+        action: isSaleReturn ? "return.sale.delete" : "return.purchase.delete",
         entityType: "Invoice",
         entityId: invoice.id,
         entityLabel: `#${String(invoice.number).padStart(6, "0")}`,
         before: { status: invoice.status },
-        after: { status: "CANCELLED", cancelReason: parsed.data.reason },
+        after: undefined,
       });
+      await tx.invoice.delete({ where: { id: invoice.id } });
       return { id: invoice.id, number: invoice.number };
     });
     revalidatePath("/sales-returns");

@@ -27,12 +27,12 @@ export function InventoryMobileCard({ product, onEdit, onDelete }: InventoryMobi
           <div className="flex flex-col">
             <span className="text-caption text-muted-foreground">{t("columnStockQty")}</span>
             <span className="tabular-nums">
-              {formatNumber(product.stockQty)} {product.subUnitName}
+              {formatNumber(product.stockQty / product.unitsPerBase, 1)} {product.baseUnitName}
             </span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-caption text-muted-foreground">{t("columnAvgCost")}</span>
-            <Money value={product.avgCostPerSub} />
+            <Money value={String(Number(product.avgCostPerSub) * product.unitsPerBase)} />
           </div>
         </div>
         <div className="flex items-center justify-end gap-1 border-t border-border pt-2">

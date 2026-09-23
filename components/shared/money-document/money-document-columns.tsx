@@ -10,9 +10,16 @@ import type { MoneyDocumentRow, MoneyDocumentType } from "@/types";
 export function useMoneyDocumentColumns(
   documentType: MoneyDocumentType,
   t: (key: string) => string,
-  onCancel: (document: MoneyDocumentRow) => void,
+  onEdit: (document: MoneyDocumentRow) => void,
+  onDelete: (document: MoneyDocumentRow) => void,
 ): ColumnDef<MoneyDocumentRow, unknown>[] {
   return [
+    {
+      id: "rowNumber",
+      header: t("columnRowNumber"),
+      cell: ({ row }) => <span className="tabular-nums text-muted-foreground">{row.index + 1}</span>,
+      enableSorting: false,
+    },
     {
       accessorKey: "number",
       header: t("columnNumber"),
@@ -37,9 +44,10 @@ export function useMoneyDocumentColumns(
     {
       id: "actions",
       header: t("columnActions"),
+      meta: { className: "text-end" },
       enableSorting: false,
       cell: ({ row }) => (
-        <MoneyDocumentRowActions documentType={documentType} document={row.original} onCancel={onCancel} />
+        <MoneyDocumentRowActions documentType={documentType} document={row.original} onEdit={onEdit} onDelete={onDelete} />
       ),
     },
   ];

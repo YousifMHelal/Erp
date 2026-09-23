@@ -59,7 +59,6 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
       }
       lineIdCounter += 1;
       return [
-        ...prev,
         recalcLine({
           lineId: `line-${lineIdCounter}`,
           productId: product.id,
@@ -72,6 +71,7 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
           unitPrice: Number(product.pricePerSub),
           lineTotal: 0,
         }),
+        ...prev,
       ];
     });
   }

@@ -5,13 +5,14 @@ import { PurchaseDetailView } from "@/components/purchases/purchase-detail-view"
 import { getPurchaseById } from "@/actions/purchases.actions";
 import { getCurrentUser } from "@/lib/auth-guard";
 import { hasPermission } from "@/lib/permissions";
+import { getDefaultPrintSize } from "@/lib/print-preferences";
 import type { PurchaseDetailPageProps } from "@/types";
 
 export default async function PurchaseDetailPage({ params }: PurchaseDetailPageProps) {
   const t = await getTranslations("invoices.detail");
   const { id } = await params;
 
-  const [result, user] = await Promise.all([getPurchaseById(id), getCurrentUser()]);
+  const [result, user, defaultPrintSize] = await Promise.all([getPurchaseById(id), getCurrentUser(), getDefaultPrintSize()]);
   if (!result.success) notFound();
 
   const permissions = user?.role.permissions ?? [];
@@ -29,6 +30,7 @@ export default async function PurchaseDetailPage({ params }: PurchaseDetailPageP
         purchase={result.data}
         canEdit={hasPermission(permissions, "purchase.edit")}
         canCancel={hasPermission(permissions, "purchase.cancel")}
+        defaultPrintSize={defaultPrintSize}
       />
     </>
   );

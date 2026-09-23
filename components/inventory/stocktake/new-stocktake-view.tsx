@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { StocktakeSheet } from "@/components/inventory/stocktake/stocktake-sheet";
 import { StocktakeDiffSummary } from "@/components/inventory/stocktake/stocktake-diff-summary";
@@ -16,6 +18,7 @@ export function NewStocktakeView({ initialLines }: NewStocktakeViewProps) {
   const tAction = useTranslations("stocktakeAction");
   const router = useRouter();
   const [lines, setLines] = useState<StocktakeLineDraft[]>(initialLines);
+  const [note, setNote] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -26,6 +29,7 @@ export function NewStocktakeView({ initialLines }: NewStocktakeViewProps) {
   function handleConfirm() {
     startTransition(async () => {
       const result = await confirmStocktake({
+        note: note.trim() || undefined,
         lines: lines
           .filter((line) => line.countedQty !== null)
           .map((line) => ({ productId: line.productId, countedQty: String(line.countedQty) })),
@@ -46,6 +50,10 @@ export function NewStocktakeView({ initialLines }: NewStocktakeViewProps) {
     <div className="flex flex-col gap-4">
       <StocktakeDiffSummary lines={lines} />
       <StocktakeSheet lines={lines} onUpdateCounted={updateCounted} />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="stocktake-note">{t("noteLabel")}</Label>
+        <Textarea id="stocktake-note" value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
+      </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="accent" disabled={!allCounted || isPending} onClick={() => setConfirmOpen(true)}>
           {t("confirmStocktake")}

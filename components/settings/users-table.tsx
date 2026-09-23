@@ -64,6 +64,7 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
     {
       id: "actions",
       header: t("columnActions"),
+      meta: { className: "text-end" },
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-1">
           <AppTooltip content={t("editUser")}>

@@ -117,8 +117,8 @@ export function ReturnFormView({ documentType, options }: ReturnFormViewProps) {
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-      <div className="flex flex-col gap-4">
-        <Card>
+      <div className="flex min-w-0 flex-col gap-4">
+        <Card className="shrink-0">
           <CardHeader>
             <CardTitle>{t("originalInvoiceTitle")}</CardTitle>
           </CardHeader>
@@ -144,7 +144,7 @@ export function ReturnFormView({ documentType, options }: ReturnFormViewProps) {
             </div>
             <div className="flex items-center justify-between border-t border-border pt-3">
               <span className="text-h3 font-semibold">{t("totalLabel")}</span>
-              <Money value={String(total)} className="text-display" />
+              <Money value={String(total)} className="text-h2" />
             </div>
             <p className="text-body-sm text-muted-foreground">
               {isSaleReturn

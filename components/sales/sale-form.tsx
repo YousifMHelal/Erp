@@ -96,7 +96,6 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
       }
       lineIdCounter += 1;
       return [
-        ...prev,
         recalcLine({
           lineId: `line-${lineIdCounter}`,
           productId: product.id,
@@ -109,6 +108,7 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
           unitPrice: Number(product.pricePerSub),
           lineTotal: 0,
         }),
+        ...prev,
       ];
     });
 

@@ -5,13 +5,14 @@ import { SaleDetailView } from "@/components/sales/sale-detail-view";
 import { getSaleById } from "@/actions/sales.actions";
 import { getCurrentUser } from "@/lib/auth-guard";
 import { hasPermission } from "@/lib/permissions";
+import { getDefaultPrintSize } from "@/lib/print-preferences";
 import type { SaleDetailPageProps } from "@/types";
 
 export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
   const t = await getTranslations("invoices.detail");
   const { id } = await params;
 
-  const [result, user] = await Promise.all([getSaleById(id), getCurrentUser()]);
+  const [result, user, defaultPrintSize] = await Promise.all([getSaleById(id), getCurrentUser(), getDefaultPrintSize()]);
   if (!result.success) notFound();
 
   const permissions = user?.role.permissions ?? [];
@@ -29,6 +30,7 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
         sale={result.data}
         canEdit={hasPermission(permissions, "sale.edit")}
         canCancel={hasPermission(permissions, "sale.cancel")}
+        defaultPrintSize={defaultPrintSize}
       />
     </>
   );

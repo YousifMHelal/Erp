@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,14 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { createProduct, updateProduct } from "@/actions/inventory.actions";
 import type { ProductFormDialogProps } from "@/types";
 
+function generateSku() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 export function ProductFormDialog({ open, onOpenChange, categoryOptions, product, onSave }: ProductFormDialogProps) {
   const t = useTranslations("inventory.form");
+  const tAction = useTranslations("inventoryAction");
+  const skuTakenMessage = tAction("skuTaken");
   const isEdit = !!product;
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,49 +34,82 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
   const [categoryId, setCategoryId] = useState<string | undefined>(
     categoryOptions.find((o) => o.label === product?.categoryName)?.value,
   );
-  const [baseUnitName, setBaseUnitName] = useState(product?.baseUnitName ?? "كرتونة");
-  const [subUnitName, setSubUnitName] = useState(product?.subUnitName ?? "قطعة");
+  const [baseUnitName, setBaseUnitName] = useState(product?.baseUnitName ?? "");
+  const [subUnitName, setSubUnitName] = useState(product?.subUnitName ?? "");
   const [unitsPerBase, setUnitsPerBase] = useState(product?.unitsPerBase ?? 1);
   const [purchasePricePerBase, setPurchasePricePerBase] = useState(Number(product?.purchasePricePerBase ?? 0));
   const [sellPricePerBase, setSellPricePerBase] = useState(Number(product?.sellPricePerBase ?? 0));
   const [minStockQty, setMinStockQty] = useState(product?.minStockQty ?? 0);
   const [notes, setNotes] = useState(product?.notes ?? "");
 
+  // Reset per-open so a fresh "create" always starts blank and gets a new
+  // auto-generated SKU, instead of reusing whatever the dialog last held.
+  useEffect(() => {
+    if (!open) return;
+    setName(product?.name ?? "");
+    setSku(product?.sku ?? generateSku());
+    setBarcode(product?.barcode ?? "");
+    setCategoryId(categoryOptions.find((o) => o.label === product?.categoryName)?.value);
+    setBaseUnitName(product?.baseUnitName ?? "");
+    setSubUnitName(product?.subUnitName ?? "");
+    setUnitsPerBase(product?.unitsPerBase ?? 1);
+    setPurchasePricePerBase(Number(product?.purchasePricePerBase ?? 0));
+    setSellPricePerBase(Number(product?.sellPricePerBase ?? 0));
+    setMinStockQty(product?.minStockQty ?? 0);
+    setNotes(product?.notes ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, product]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !sku.trim()) {
+    if (!name.trim() || !baseUnitName.trim() || !subUnitName.trim()) {
       toast.error(t("errorRequired"));
       return;
     }
 
-    const payload = {
-      sku: sku.trim(),
-      barcode: barcode.trim(),
-      name: name.trim(),
-      categoryId,
-      baseUnitName: baseUnitName.trim(),
-      subUnitName: subUnitName.trim(),
-      unitsPerBase: String(unitsPerBase),
-      purchasePricePerBase: purchasePricePerBase.toFixed(2),
-      sellPricePerBase: sellPricePerBase.toFixed(2),
-      minStockQty: String(minStockQty),
-      notes: notes.trim(),
-      isActive: product?.isActive ?? true,
-    };
-
     setIsSubmitting(true);
-    const result = isEdit ? await updateProduct(product.id, payload) : await createProduct(payload);
-    setIsSubmitting(false);
+    let currentSku = sku;
+    // The SKU is auto-generated and hidden from the user, so a rare collision
+    // (6-digit random space) is retried transparently with a fresh code
+    // instead of surfacing a "SKU taken" error the user has no way to act on.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const payload = {
+        sku: currentSku.trim(),
+        barcode: barcode.trim(),
+        name: name.trim(),
+        categoryId,
+        baseUnitName: baseUnitName.trim(),
+        subUnitName: subUnitName.trim(),
+        unitsPerBase: String(unitsPerBase),
+        purchasePricePerBase: purchasePricePerBase.toFixed(2),
+        sellPricePerBase: sellPricePerBase.toFixed(2),
+        minStockQty: String(minStockQty),
+        notes: notes.trim(),
+        isActive: product?.isActive ?? true,
+      };
 
-    if (!result.success) {
-      const fieldError = Object.values(result.fieldErrors ?? {}).flat().find(Boolean);
-      toast.error(fieldError ?? result.error);
+      const result = isEdit ? await updateProduct(product.id, payload) : await createProduct(payload);
+
+      if (!result.success) {
+        if (!isEdit && result.error === skuTakenMessage) {
+          currentSku = generateSku();
+          setSku(currentSku);
+          continue;
+        }
+        setIsSubmitting(false);
+        const fieldError = Object.values(result.fieldErrors ?? {}).flat().find(Boolean);
+        toast.error(fieldError ?? result.error);
+        return;
+      }
+
+      setIsSubmitting(false);
+      onSave(result.data);
+      toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
+      onOpenChange(false);
       return;
     }
-
-    onSave(result.data);
-    toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
-    onOpenChange(false);
+    setIsSubmitting(false);
+    toast.error(skuTakenMessage);
   }
 
   const title = isEdit ? t("editTitle") : t("createTitle");
@@ -93,10 +132,8 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="product-sku">
-                {t("skuLabel")} <span className="text-accent">*</span>
-              </Label>
-              <Input id="product-sku" value={sku} onChange={(e) => setSku(e.target.value)} placeholder="SKU-001" className="tabular-nums" />
+              <Label htmlFor="product-sku">{t("skuLabel")}</Label>
+              <Input id="product-sku" value={sku} readOnly disabled className="tabular-nums text-end" dir="ltr" />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="product-barcode">{t("barcodeLabel")}</Label>
@@ -143,11 +180,15 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
         <TabsContent value="units" className="flex flex-col gap-4 pt-2">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="base-unit">{t("baseUnitLabel")}</Label>
+              <Label htmlFor="base-unit">
+                {t("baseUnitLabel")} <span className="text-accent">*</span>
+              </Label>
               <Input id="base-unit" value={baseUnitName} onChange={(e) => setBaseUnitName(e.target.value)} placeholder="مثال: كرتونة" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="sub-unit">{t("subUnitLabel")}</Label>
+              <Label htmlFor="sub-unit">
+                {t("subUnitLabel")} <span className="text-accent">*</span>
+              </Label>
               <Input id="sub-unit" value={subUnitName} onChange={(e) => setSubUnitName(e.target.value)} placeholder="مثال: قطعة" />
             </div>
           </div>
