@@ -22,10 +22,14 @@ export async function getAuditLog(input: unknown): Promise<ActionResult<AuditLog
     if (!parsed.success) return fail(messages.auditLog.failed, parsed.error.flatten().fieldErrors);
     const filters = parsed.data;
     const date = reportDateRange(filters);
-    const [entries, users, actions, entityTypes] = await Promise.all([
+    const where = { userId: filters.userId, action: filters.action, entityType: filters.entityType, createdAt: date };
+    const pageSize = 50;
+    const page = filters.page ?? 1;
+    const [totalCount, entries, users, actions, entityTypes] = await Promise.all([
+      prisma.auditLog.count({ where }),
       prisma.auditLog.findMany({
-        where: { userId: filters.userId, action: filters.action, entityType: filters.entityType, createdAt: date },
-        include: { user: { select: { displayName: true } } }, orderBy: { createdAt: "desc" }, take: 500,
+        where, include: { user: { select: { displayName: true } } }, orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize, take: pageSize,
       }),
       prisma.user.findMany({ orderBy: { displayName: "asc" }, select: { id: true, displayName: true } }),
       prisma.auditLog.findMany({ distinct: ["action"], orderBy: { action: "asc" }, select: { action: true } }),
@@ -41,6 +45,7 @@ export async function getAuditLog(input: unknown): Promise<ActionResult<AuditLog
       users: users.map((user) => ({ value: user.id, label: user.displayName })),
       actions: actions.map(({ action }) => ({ value: action, label: action })),
       entityTypes: entityTypes.map(({ entityType }) => ({ value: entityType, label: entityType })),
+      page, pageCount: Math.max(1, Math.ceil(totalCount / pageSize)), totalCount,
     });
   } catch (error) { return actionError(error); }
 }

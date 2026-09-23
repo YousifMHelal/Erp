@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { format } from "date-fns";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -13,7 +13,7 @@ import { ExportButtons } from "@/components/reports/export-buttons";
 import { ReportChart } from "@/components/reports/report-chart";
 import { ReportTable } from "@/components/reports/report-table";
 import { reportTitleKey } from "@/components/reports/report-picker";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatNumber, formatTime } from "@/lib/format";
 import type { DateRange, ReportFilters, ReportShellProps } from "@/types";
 
 export function ReportShell({ reportKey, filters, options, report }: ReportShellProps) {
@@ -21,6 +21,8 @@ export function ReportShell({ reportKey, filters, options, report }: ReportShell
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
+  const [generatedAt, setGeneratedAt] = useState<Date>();
+  useEffect(() => setGeneratedAt(new Date()), []);
   const dateRange = {
     from: filters.from ? new Date(`${filters.from}T00:00:00`) : undefined,
     to: filters.to ? new Date(`${filters.to}T00:00:00`) : undefined,
@@ -71,20 +73,43 @@ export function ReportShell({ reportKey, filters, options, report }: ReportShell
         actions={<ExportButtons reportKey={reportKey} filters={filters} />}
       />
       <div className="flex flex-col gap-4">
-        <ReportFiltersBar
-          reportKey={reportKey}
-          filters={filters}
-          options={options}
-          dateRange={dateRange}
-          onDateRangeChange={changeDateRange}
-          onFilterChange={(key, value) => updateFilters({ [key]: value })}
-        />
-        {report.chart ? <ReportChart title={t(`reports.charts.${report.chart.titleKey}`)} data={report.chart.data} /> : null}
-        {rows.length ? (
-          <ReportTable columns={columns} rows={rows} footerRow={footerRow} />
-        ) : (
-          <EmptyState icon={<FileBarChart className="size-6" />} title={t("reports.empty")} />
-        )}
+        <div className="print:hidden">
+          <ReportFiltersBar
+            reportKey={reportKey}
+            filters={filters}
+            options={options}
+            dateRange={dateRange}
+            onDateRangeChange={changeDateRange}
+            onFilterChange={(key, value) => updateFilters({ [key]: value })}
+          />
+        </div>
+        <div id="print-root" className="report-print flex flex-col gap-4">
+          <div className="hidden print:flex print:flex-col print:gap-1 print:border-b print:border-black print:pb-3">
+            <div className="flex items-center justify-between">
+              <h1 className="text-title-2 font-semibold">{t(reportTitleKey(reportKey))}</h1>
+              <span className="text-body-sm">{t("app.name")}</span>
+            </div>
+            <div className="flex items-center justify-between text-body-sm text-muted-foreground">
+              <span>
+                {t("reports.printDateRange", {
+                  range:
+                    dateRange.from && dateRange.to
+                      ? `${formatDate(dateRange.from)} – ${formatDate(dateRange.to)}`
+                      : t("reports.printAllPeriod"),
+                })}
+              </span>
+              {generatedAt ? (
+                <span>{t("reports.printGeneratedAt", { date: `${formatDate(generatedAt)} ${formatTime(generatedAt)}` })}</span>
+              ) : null}
+            </div>
+          </div>
+          {report.chart ? <ReportChart title={t(`reports.charts.${report.chart.titleKey}`)} data={report.chart.data} /> : null}
+          {rows.length ? (
+            <ReportTable columns={columns} rows={rows} footerRow={footerRow} />
+          ) : (
+            <EmptyState icon={<FileBarChart className="size-6" />} title={t("reports.empty")} />
+          )}
+        </div>
       </div>
     </>
   );

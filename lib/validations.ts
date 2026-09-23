@@ -395,6 +395,7 @@ export const auditLogFilterSchema = z
     entityType: z.string().trim().max(100, v.long).optional(),
     from: isoDate.optional(),
     to: isoDate.optional(),
+    page: z.coerce.number().int().min(1).optional(),
   })
   .refine((filters) => !filters.from || !filters.to || filters.from <= filters.to, {
     path: ["to"], message: v.dateRange,

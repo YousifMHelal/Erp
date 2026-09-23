@@ -1461,6 +1461,9 @@ export type AuditLogRow = {
 
 export type AuditLogListProps = {
   entries: AuditLogRow[];
+  page: number;
+  pageCount: number;
+  totalCount: number;
 };
 
 export type AuditLogFilters = {
@@ -1469,6 +1472,7 @@ export type AuditLogFilters = {
   entityType?: string;
   from?: string;
   to?: string;
+  page?: string;
 };
 
 export type AuditLogPageData = {
@@ -1476,6 +1480,9 @@ export type AuditLogPageData = {
   users: ReportFilterOption[];
   actions: ReportFilterOption[];
   entityTypes: ReportFilterOption[];
+  page: number;
+  pageCount: number;
+  totalCount: number;
 };
 
 export type AuditLogFiltersProps = {

@@ -13,12 +13,12 @@ export default async function AuditLogPage({ searchParams }: {
     Object.entries(query).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
   );
   const [t, audit] = await Promise.all([getTranslations("auditLog"), getAuditLog(filters)]);
-  const data = audit.success ? audit.data : { entries: [], users: [], actions: [], entityTypes: [] };
+  const data = audit.success ? audit.data : { entries: [], users: [], actions: [], entityTypes: [], page: 1, pageCount: 1, totalCount: 0 };
   return (
     <>
       <PageHeader title={t("title")} breadcrumbs={[{ labelKey: "nav.auditLog" }]} />
       <AuditLogFiltersBar filters={filters} users={data.users} actions={data.actions} entityTypes={data.entityTypes} />
-      <AuditLogList entries={data.entries} />
+      <AuditLogList entries={data.entries} page={data.page} pageCount={data.pageCount} totalCount={data.totalCount} />
     </>
   );
 }

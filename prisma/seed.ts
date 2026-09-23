@@ -1091,22 +1091,22 @@ async function main() {
       notificationData.push({
         type: "OUT_OF_STOCK",
         severity: "CRITICAL",
-        titleKey: "notifications.outOfStock.title",
-        bodyParams: { productName: p.name },
+        titleKey: "outOfStock",
+        bodyParams: { name: p.name, stock: p.stockQty.toString(), min: p.minStockQty.toString(), unit: p.subUnitName },
         entityType: "Product",
         entityId: p.id,
-        dedupeKey: `out_of_stock:${p.id}:${new Date().toISOString().slice(0, 10)}`,
+        dedupeKey: `stock:${p.id}`,
         createdAt: daysAgo(0),
       });
     } else if (p.stockQty.lessThan(p.minStockQty)) {
       notificationData.push({
         type: "LOW_STOCK",
         severity: "WARNING",
-        titleKey: "notifications.lowStock.title",
-        bodyParams: { productName: p.name, stockQty: p.stockQty.toString() },
+        titleKey: "lowStock",
+        bodyParams: { name: p.name, stock: p.stockQty.toString(), min: p.minStockQty.toString(), unit: p.subUnitName },
         entityType: "Product",
         entityId: p.id,
-        dedupeKey: `low_stock:${p.id}:${new Date().toISOString().slice(0, 10)}`,
+        dedupeKey: `stock:${p.id}`,
         createdAt: daysAgo(0),
       });
     }
@@ -1116,11 +1116,11 @@ async function main() {
     notificationData.push({
       type: "CUSTOMER_BALANCE",
       severity: "INFO",
-      titleKey: "notifications.customerBalance.title",
-      bodyParams: { customerName: c.name, balance: c.balance.toString() },
+      titleKey: "customerBalance",
+      bodyParams: { name: c.name, balance: c.balance.toString() },
       entityType: "Customer",
       entityId: c.id,
-      dedupeKey: `customer_balance:${c.id}:${new Date().toISOString().slice(0, 10)}`,
+      dedupeKey: `customer-balance:${c.id}`,
       createdAt: daysAgo(0),
     });
   }

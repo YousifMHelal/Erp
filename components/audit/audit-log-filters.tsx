@@ -20,7 +20,7 @@ export function AuditLogFiltersBar({ filters, users, actions, entityTypes }: Aud
 
   function update(changes: Partial<AuditLogFilters>) {
     const params = new URLSearchParams();
-    for (const [key, value] of Object.entries({ ...filters, ...changes })) if (value) params.set(key, value);
+    for (const [key, value] of Object.entries({ ...filters, ...changes, page: undefined })) if (value) params.set(key, value);
     router.push(`${pathname}?${params.toString()}`);
   }
 
@@ -29,11 +29,11 @@ export function AuditLogFiltersBar({ filters, users, actions, entityTypes }: Aud
   }
 
   return (
-    <div className="mb-4 flex flex-wrap gap-2">
-      <DateRangePicker value={dateRange} onChange={updateDate} placeholder={t("filterDate")} />
-      <EntityCombobox options={users} value={filters.userId} onChange={(value) => update({ userId: value })} placeholder={t("filterUser")} />
-      <EntityCombobox options={actionOptions} value={filters.action} onChange={(value) => update({ action: value })} placeholder={t("filterAction")} />
-      <EntityCombobox options={entityOptions} value={filters.entityType} onChange={(value) => update({ entityType: value })} placeholder={t("filterEntity")} />
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <DateRangePicker className="w-56 shrink-0" value={dateRange} onChange={updateDate} placeholder={t("filterDate")} />
+      <EntityCombobox className="w-44 shrink-0" options={users} value={filters.userId} onChange={(value) => update({ userId: value })} placeholder={t("filterUser")} />
+      <EntityCombobox className="w-44 shrink-0" options={actionOptions} value={filters.action} onChange={(value) => update({ action: value })} placeholder={t("filterAction")} />
+      <EntityCombobox className="w-44 shrink-0" options={entityOptions} value={filters.entityType} onChange={(value) => update({ entityType: value })} placeholder={t("filterEntity")} />
     </div>
   );
 }

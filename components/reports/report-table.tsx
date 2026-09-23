@@ -8,7 +8,7 @@ export function ReportTable({ columns, rows, footerRow }: ReportTableProps) {
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="hidden overflow-x-auto md:block">
+      <div className="hidden overflow-x-auto md:block print:block">
         <Table>
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
@@ -44,7 +44,7 @@ export function ReportTable({ columns, rows, footerRow }: ReportTableProps) {
         </Table>
       </div>
 
-      <div className="flex flex-col divide-y divide-border md:hidden">
+      <div className="flex flex-col divide-y divide-border md:hidden print:hidden">
         {rows.map((row, index) => (
           <div key={index} className="flex flex-col gap-1.5 p-4">
             {identityColumn && <span className="font-medium">{row[identityColumn.key]}</span>}

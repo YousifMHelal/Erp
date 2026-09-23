@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import type { ShopProfile } from "@/types";
 import { saveShopProfile } from "@/actions/settings.actions";
 
@@ -17,11 +16,10 @@ export function ShopProfileForm({ profile }: { profile: ShopProfile }) {
   const [phone, setPhone] = useState(profile.phone);
   const [address, setAddress] = useState(profile.address);
   const [taxNote, setTaxNote] = useState(profile.taxNote ?? "");
-  const [invoiceFooter, setInvoiceFooter] = useState(profile.invoiceFooter ?? "");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const result = await saveShopProfile({ name, phone, address, taxNote, invoiceFooter });
+    const result = await saveShopProfile({ name, phone, address, taxNote, invoiceFooter: profile.invoiceFooter ?? "" });
     if (!result.success) return toast.error(result.error);
     toast.success(t("saved"));
   }
@@ -50,16 +48,6 @@ export function ShopProfileForm({ profile }: { profile: ShopProfile }) {
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="shop-tax-note">{t("taxNoteLabel")}</Label>
             <Input id="shop-tax-note" value={taxNote} onChange={(e) => setTaxNote(e.target.value)} placeholder={t("taxNotePlaceholder")} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="invoice-footer">{t("invoiceFooterLabel")}</Label>
-            <Textarea
-              id="invoice-footer"
-              value={invoiceFooter}
-              onChange={(e) => setInvoiceFooter(e.target.value)}
-              placeholder={t("invoiceFooterPlaceholder")}
-              rows={2}
-            />
           </div>
           <Button type="submit" variant="accent" className="w-fit">
             {t("save")}

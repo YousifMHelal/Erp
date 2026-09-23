@@ -89,7 +89,8 @@ export async function deleteNotification(id: string): Promise<ActionResult<{ id:
     if (!parsed.success) return fail(n.failed);
     await prisma.$transaction(async (tx) => {
       const before = await tx.notification.delete({ where: { id: parsed.data } });
-      await writeAudit(tx, { userId: user.id, action: "notification.delete", entityType: "Notification", entityId: before.id, entityLabel: before.titleKey, before: { type: before.type, isRead: before.isRead } });
+      const label = n.generated[before.titleKey as keyof typeof n.generated] ?? before.titleKey;
+      await writeAudit(tx, { userId: user.id, action: "notification.delete", entityType: "Notification", entityId: before.id, entityLabel: label, before: { type: before.type, isRead: before.isRead } });
     });
     revalidatePath("/notifications");
     revalidatePath("/", "layout");

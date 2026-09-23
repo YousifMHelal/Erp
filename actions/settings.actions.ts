@@ -172,9 +172,28 @@ export async function deactivateUser(id: string): Promise<ActionResult<{ id: str
   } catch (error) { return actionError(error); }
 }
 
+export async function deleteUser(id: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const actor = await requirePermission("user.edit"); const parsed = partyIdSchema.safeParse(id); if (!parsed.success || parsed.data === actor.id) return fail(m.invalid);
+    await prisma.$transaction(async (tx) => {
+      const before = await tx.user.findUniqueOrThrow({
+        where: { id: parsed.data },
+        include: { _count: { select: { createdSales: true, cancelledSales: true, stockMovements: true, cashMovements: true, partyTransactions: true, collections: true, cancelledCollections: true, payments: true, cancelledPayments: true, stocktakes: true, auditLogs: true } } },
+      });
+      if (Object.values(before._count).some((count) => count > 0)) throw new Error("USER_IN_USE");
+      await tx.user.delete({ where: { id: before.id } });
+      await writeAudit(tx, { userId: actor.id, action: "user.delete", entityType: "User", entityId: before.id, entityLabel: before.displayName, before: { username: before.username } });
+    });
+    revalidatePath("/settings/users"); return ok({ id: parsed.data });
+  } catch (error) {
+    if (error instanceof Error && error.message === "USER_IN_USE") return fail(m.userInUse);
+    return actionError(error);
+  }
+}
+
 export async function getRoles(): Promise<ActionResult<RoleRow[]>> {
   try {
-    await requirePermission("role.view"); const roles = await prisma.role.findMany({ include: { _count: { select: { users: true } } }, orderBy: { name: "asc" } });
+    await requirePermission("role.view"); const roles = await prisma.role.findMany({ include: { _count: { select: { users: true } } }, orderBy: [{ isSystem: "desc" }, { name: "asc" }] });
     return ok(roles.map((role) => ({ id: role.id, name: role.name, description: role.description ?? undefined, isSystem: role.isSystem, userCount: role._count.users, permissions: role.permissions })));
   } catch (error) { return actionError(error); }
 }

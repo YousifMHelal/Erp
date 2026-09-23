@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eye, History } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
@@ -13,10 +14,19 @@ import { AuditDiffDialog } from "@/components/audit/audit-diff-dialog";
 import { formatDate } from "@/lib/format";
 import type { AuditLogListProps, AuditLogRow } from "@/types";
 
-export function AuditLogList({ entries }: AuditLogListProps) {
+export function AuditLogList({ entries, page, pageCount, totalCount }: AuditLogListProps) {
   const t = useTranslations("auditLog");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selected, setSelected] = useState<AuditLogRow | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  function changePage(nextPage: number) {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", String(nextPage));
+    router.push(`${pathname}?${params.toString()}`);
+  }
 
   function actionLabel(action: string): string {
     const key = `actions.${action.replaceAll(".", "_")}`;
@@ -30,7 +40,7 @@ export function AuditLogList({ entries }: AuditLogListProps) {
     { accessorKey: "entityLabel", header: t("columnEntity") },
     {
       id: "actions",
-      header: "",
+      header: t("columnActions"),
       cell: ({ row }) => (
         <AppTooltip content={t("viewDiff")}>
           <Button
@@ -82,6 +92,10 @@ export function AuditLogList({ entries }: AuditLogListProps) {
           </Card>
         )}
         emptyState={<EmptyState icon={<History className="size-6" />} title={t("empty")} />}
+        page={page}
+        pageCount={pageCount}
+        totalCount={totalCount}
+        onPageChange={changePage}
       />
       <AuditDiffDialog open={dialogOpen} onOpenChange={setDialogOpen} entry={selected} />
     </>

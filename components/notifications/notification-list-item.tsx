@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Info, OctagonAlert, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Info, OctagonAlert, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { AppTooltip } from "@/components/shared/app-tooltip";
@@ -26,32 +26,35 @@ export function NotificationListItem({ notification, onMarkRead, onDelete }: Not
   const content = (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-md p-4 transition-colors duration-200",
+        "flex items-center gap-2.5 px-3 py-2 transition-colors duration-200",
         !notification.isRead && "bg-primary/5",
       )}
     >
-      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full", SEVERITY_COLOR[notification.severity])}>
-        <Icon className="size-4.5" aria-hidden="true" />
+      <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-full", SEVERITY_COLOR[notification.severity])}>
+        <Icon className="size-3.5" aria-hidden="true" />
       </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className={cn("text-body-sm", !notification.isRead && "font-semibold")}>{notification.title}</span>
-        <span className="text-body-sm text-muted-foreground">{notification.body}</span>
-        <span className="text-caption text-muted-foreground">{formatDate(notification.createdAt)}</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0 sm:flex-row sm:items-baseline sm:gap-2">
+        <span className={cn("shrink-0 text-body-sm", !notification.isRead && "font-semibold")}>{notification.title}</span>
+        <span className="min-w-0 flex-1 truncate text-body-sm text-muted-foreground">{notification.body}</span>
+        <span className="shrink-0 text-caption text-muted-foreground">{formatDate(notification.createdAt)}</span>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-0.5">
         {!notification.isRead && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="max-md:min-h-11"
-            onClick={(e) => {
-              e.preventDefault();
-              onMarkRead(notification.id);
-            }}
-          >
-            {t("markRead")}
-          </Button>
+          <AppTooltip content={t("markRead")}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("markRead")}
+              className="max-md:min-h-11 max-md:min-w-11"
+              onClick={(e) => {
+                e.preventDefault();
+                onMarkRead(notification.id);
+              }}
+            >
+              <Check className="size-4" />
+            </Button>
+          </AppTooltip>
         )}
         <AppTooltip content={t("delete")}>
           <Button

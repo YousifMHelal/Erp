@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, UserPlus, UserX, Users } from "lucide-react";
+import { Pencil, Trash2, UserPlus, UserX, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -15,7 +15,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { UserFormDialog } from "@/components/settings/user-form-dialog";
 import { formatDate } from "@/lib/format";
 import type { EntityComboboxOption, SettingsUserRow } from "@/types";
-import { deactivateUser } from "@/actions/settings.actions";
+import { deactivateUser, deleteUser } from "@/actions/settings.actions";
 
 export function UsersTable({ users: initialUsers, roleOptions }: { users: SettingsUserRow[]; roleOptions: EntityComboboxOption[] }) {
   const t = useTranslations("settings.users");
@@ -24,17 +24,27 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
   const [users, setUsers] = useState(initialUsers);
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<SettingsUserRow | undefined>(undefined);
+  const [deactivatingUser, setDeactivatingUser] = useState<SettingsUserRow | undefined>(undefined);
   const [deletingUser, setDeletingUser] = useState<SettingsUserRow | undefined>(undefined);
 
   function handleSave(user: SettingsUserRow) {
     setUsers((prev) => (prev.some((u) => u.id === user.id) ? prev.map((u) => (u.id === user.id ? user : u)) : [...prev, user]));
   }
 
+  async function handleDeactivate() {
+    if (!deactivatingUser) return;
+    const result = await deactivateUser(deactivatingUser.id);
+    if (!result.success) return toast.error(result.error);
+    setUsers((prev) => prev.map((u) => (u.id === deactivatingUser.id ? { ...u, isActive: false } : u)));
+    toast.success(t("deactivateSuccess"));
+    setDeactivatingUser(undefined);
+  }
+
   async function handleDelete() {
     if (!deletingUser) return;
-    const result = await deactivateUser(deletingUser.id);
+    const result = await deleteUser(deletingUser.id);
     if (!result.success) return toast.error(result.error);
-    setUsers((prev) => prev.map((u) => (u.id === deletingUser.id ? { ...u, isActive: false } : u)));
+    setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
     toast.success(t("deleteSuccess"));
     setDeletingUser(undefined);
   }
@@ -81,6 +91,20 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
               <Pencil className="size-4" />
             </Button>
           </AppTooltip>
+          {row.original.isActive && (
+            <AppTooltip content={t("deactivateUser")}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t("deactivateUser")}
+                className="text-danger-fg hover:bg-danger-bg"
+                onClick={() => setDeactivatingUser(row.original)}
+              >
+                <UserX className="size-4" />
+              </Button>
+            </AppTooltip>
+          )}
           <AppTooltip content={t("deleteUser")}>
             <Button
               type="button"
@@ -90,7 +114,7 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
               className="text-danger-fg hover:bg-danger-bg"
               onClick={() => setDeletingUser(row.original)}
             >
-              <UserX className="size-4" />
+              <Trash2 className="size-4" />
             </Button>
           </AppTooltip>
         </div>
@@ -132,6 +156,20 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
                     <Pencil className="size-4" />
                   </Button>
                 </AppTooltip>
+                {row.isActive && (
+                  <AppTooltip content={t("deactivateUser")}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t("deactivateUser")}
+                      className="text-danger-fg max-md:min-h-11 max-md:min-w-11 hover:bg-danger-bg"
+                      onClick={() => setDeactivatingUser(row)}
+                    >
+                      <UserX className="size-4" />
+                    </Button>
+                  </AppTooltip>
+                )}
                 <AppTooltip content={t("deleteUser")}>
                   <Button
                     type="button"
@@ -141,7 +179,7 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
                     className="text-danger-fg max-md:min-h-11 max-md:min-w-11 hover:bg-danger-bg"
                     onClick={() => setDeletingUser(row)}
                   >
-                    <UserX className="size-4" />
+                    <Trash2 className="size-4" />
                   </Button>
                 </AppTooltip>
               </div>
@@ -172,6 +210,17 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
         roleOptions={roleOptions}
         user={editingUser}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={!!deactivatingUser}
+        onOpenChange={(open) => !open && setDeactivatingUser(undefined)}
+        title={t("deactivateDialogTitle", { name: deactivatingUser?.displayName ?? "" })}
+        description={t("deactivateDialogDescription")}
+        confirmLabel={tCommon("confirm")}
+        cancelLabel={tCommon("cancel")}
+        variant="destructive"
+        onConfirm={handleDeactivate}
       />
 
       <ConfirmDialog
