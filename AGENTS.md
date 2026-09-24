@@ -1,4 +1,4 @@
-# Teba (طيبة)
+# ERP
 
 Arabic-only (RTL) retail shop ERP. Next.js 15 · TypeScript strict · Tailwind v4 · shadcn/ui · Prisma · PostgreSQL · Zod · NextAuth · Zustand.
 

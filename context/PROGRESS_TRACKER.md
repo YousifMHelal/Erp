@@ -1,4 +1,4 @@
-# PROGRESS TRACKER — Teba (طيبة)
+# PROGRESS TRACKER — ERP
 
 > **Single source of truth for "what's done."** Update this file after **every** task — not at the end of a phase, not at the end of a session. A task is only `DONE` when it meets its exit criteria, passes the two-theme / four-width check where it touches UI, and `npm run typecheck` and `npm run lint` are clean.
 

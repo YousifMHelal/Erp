@@ -1,6 +1,6 @@
-# AGENTS — operating guide for Teba (طيبة)
+# AGENTS — operating guide for ERP
 
-You are working on **Teba**, an Arabic-only (RTL) retail shop ERP. Next.js 15 · TypeScript strict · Tailwind v4 · shadcn/ui · Prisma · PostgreSQL · Zod · NextAuth · Zustand.
+You are working on **ERP** (working name, renamed from "Teba" — see MEMORY.md), an Arabic-only (RTL) retail shop ERP. Next.js 15 · TypeScript strict · Tailwind v4 · shadcn/ui · Prisma · PostgreSQL · Zod · NextAuth · Zustand.
 
 This is a checklist, not an essay. Follow it.
 

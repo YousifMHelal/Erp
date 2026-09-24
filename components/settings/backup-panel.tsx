@@ -64,7 +64,7 @@ export function BackupPanel({ reminder }: { reminder: BackupReminderSettings }) 
       const filenameMatch = /filename="([^"]+)"/.exec(disposition);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = filenameMatch?.[1] ?? "teba-backup.json";
+      anchor.download = filenameMatch?.[1] ?? "erp-backup.json";
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();

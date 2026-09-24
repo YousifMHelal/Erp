@@ -32,7 +32,7 @@ export async function GET(): Promise<Response> {
     return new Response(body, {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="teba-backup-${stamp}.json"`,
+        "Content-Disposition": `attachment; filename="erp-backup-${stamp}.json"`,
         "Cache-Control": "private, no-store",
       },
     });

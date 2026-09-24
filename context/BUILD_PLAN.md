@@ -1,4 +1,4 @@
-# BUILD PLAN — Teba (طيبة)
+# BUILD PLAN — ERP
 
 Phased, dependency-ordered. Every task has a stable ID. Tick the box here **and** update [PROGRESS_TRACKER.md](./PROGRESS_TRACKER.md) when a task changes state.
 

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "طيبة",
+    "name": "ERP",
     "description": "نظام إدارة متجر التجزئة",
     "foundationReady": "الأساس جاهز لبدء بناء النظام"
   },
@@ -1090,7 +1090,7 @@
       "totalInvoiced": "إجمالي الفواتير",
       "currentBalance": "الرصيد الحالي",
       "sendWhatsapp": "إرسال عبر واتساب",
-      "whatsappGreeting": "مرحباً {name}، هذا كشف حسابك من طيبة.",
+      "whatsappGreeting": "مرحباً {name}، هذا كشف حسابك من ERP.",
       "tabInvoices": "الفواتير",
       "tabPayments": "المدفوعات",
       "tabStatement": "كشف الحساب",
@@ -1362,7 +1362,7 @@
     "expandSidebar": "توسيع القائمة",
     "collapseSidebar": "طي القائمة",
     "openNav": "فتح القائمة",
-    "searchPlaceholder": "ابحث في طيبة... (Ctrl+K)",
+    "searchPlaceholder": "ابحث في ERP... (Ctrl+K)",
     "searchShortcutHint": "بحث سريع",
     "notificationsLabel": "الإشعارات",
     "unreadNotifications": "لديك {count} إشعارات غير مقروءة",

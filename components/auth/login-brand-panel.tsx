@@ -7,7 +7,7 @@ export function LoginBrandPanel() {
     <div className="relative hidden flex-col justify-between overflow-hidden bg-sidebar p-10 text-white lg:flex">
       <div className="flex items-center gap-2.5">
         <span className="flex size-9 items-center justify-center rounded-md bg-accent text-h2 font-bold text-accent-foreground">
-          ط
+          E
         </span>
         <span className="text-h2 font-bold">{t("app.name")}</span>
       </div>

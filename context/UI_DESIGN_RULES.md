@@ -1,16 +1,16 @@
-# UI DESIGN RULES — Teba (طيبة)
+# UI DESIGN RULES — ERP
 
 > **These rules are binding.** They override any snippet imported from shadcn, 21st.dev, a tutorial, or a previous project. Imported patterns are a starting point for *structure* only — colour, type, spacing, radius, and motion always come from this document.
 
 Companion docs: [ARCHITECTURE.md](./ARCHITECTURE.md) · [BUILD_PLAN.md](./BUILD_PLAN.md)
 
-Derived using the `ui-ux-pro-max` skill. It classified Teba as **Data-Dense Dashboard / Drill-Down**, WCAG AA, Recharts + TanStack DataTable, CSS-variable theming. Its generic blue/amber palette is **replaced** by the indigo/teal system below.
+Derived using the `ui-ux-pro-max` skill. It classified ERP as **Data-Dense Dashboard / Drill-Down**, WCAG AA, Recharts + TanStack DataTable, CSS-variable theming. Its generic blue/amber palette is **replaced** by the indigo/teal system below.
 
 ---
 
 ## 1. Design direction
 
-**Premium operational instrument.** Teba is used eight hours a day by people counting money. It must feel precise, calm, and fast — closer to a well-made financial terminal than to a marketing site or a stock admin template.
+**Premium operational instrument.** ERP is used eight hours a day by people counting money. It must feel precise, calm, and fast — closer to a well-made financial terminal than to a marketing site or a stock admin template.
 
 | Principle | What it means in practice |
 |-----------|---------------------------|

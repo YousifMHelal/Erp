@@ -47,7 +47,7 @@ const ACCOUNTANT_PERMISSIONS = ALL_PERMISSIONS.filter(
 );
 
 async function main() {
-  console.log("Seeding Teba database...");
+  console.log("Seeding ERP database...");
 
   // -- Settings ---------------------------------------------------------
   await prisma.setting.createMany({

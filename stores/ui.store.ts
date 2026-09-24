@@ -20,6 +20,6 @@ export const useUiStore = create<UiStore>()(
       density: "comfortable",
       setDensity: (density) => set({ density }),
     }),
-    { name: "teba-ui-store", partialize: (s) => ({ sidebarExpanded: s.sidebarExpanded, density: s.density }) },
+    { name: "erp-ui-store", partialize: (s) => ({ sidebarExpanded: s.sidebarExpanded, density: s.density }) },
   ),
 );

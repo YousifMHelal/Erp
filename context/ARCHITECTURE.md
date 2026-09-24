@@ -1,6 +1,6 @@
-# ARCHITECTURE — Teba (طيبة)
+# ARCHITECTURE — ERP
 
-> **Scope statement:** Teba is a production-grade, Arabic-only (RTL) retail shop ERP covering sales, purchases, inventory, customers, suppliers, cashboxes, collections/payments, reports, users/permissions, audit log, and notifications — built as a single Next.js application backed by PostgreSQL.
+> **Scope statement:** ERP (working name, renamed from "Teba" — see MEMORY.md) is a production-grade, Arabic-only (RTL) retail shop ERP covering sales, purchases, inventory, customers, suppliers, cashboxes, collections/payments, reports, users/permissions, audit log, and notifications — built as a single Next.js application backed by PostgreSQL.
 
 Source of truth for the domain: [`Docs/PRD — Retail Shop ERP.md`](../Docs/PRD%20—%20Retail%20Shop%20ERP.md).
 Visual/UX inspiration (behaviour, not aesthetics): the Sahl (سهل) desktop ERP screenshots in [`inspiration/`](../inspiration/).
@@ -40,7 +40,7 @@ Related docs: [BUILD_PLAN.md](./BUILD_PLAN.md) · [UI_DESIGN_RULES.md](./UI_DESI
 - Multi-warehouse (Sahl has مخزن switching). One implicit stock location.
 - Multi-currency. EGP only.
 - Sales-rep commissions (مندوب بيع), instalments (أقساط), cheques (شيكات).
-- Full double-entry general ledger / chart of accounts. Teba tracks balances per party and per cashbox, not T-accounts.
+- Full double-entry general ledger / chart of accounts. ERP tracks balances per party and per cashbox, not T-accounts.
 - Product images, product expiry/serial tracking.
 - Email sending, SMS, WhatsApp Business API (share is a `wa.me` link only).
 - Offline mode / PWA / service workers.
@@ -103,7 +103,7 @@ These are not in the user's stack table; each is here because the app genuinely 
 No `src/`. App code sits at the project root.
 
 ```
-teba/
+erp/
 ├── app/
 │   ├── layout.tsx                    # <html dir="rtl" lang="ar">, fonts, providers
 │   ├── globals.css                   # Tailwind v4 @theme tokens (single source of design truth)
