@@ -1971,3 +1971,19 @@ export type PrintFieldFormDialogProps = {
   onEditSystemField: (fieldKey: PrintSystemFieldKey, label: string) => void;
   onEditCustomField: (label: string, value: string) => void;
 };
+
+// --- My Profile (self-service account page) ---
+
+export type MyProfile = {
+  id: string;
+  displayName: string;
+  username: string;
+  avatarUrl?: string;
+  avatarColor: string;
+};
+
+export type ProfileFormProps = {
+  profile: MyProfile;
+};
+
+export type ChangePasswordFormProps = Record<string, never>;

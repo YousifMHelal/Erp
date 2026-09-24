@@ -442,6 +442,7 @@ export const roleSchema = z.object({
 export const restoreBackupSchema = z.object({
   password: z.string().min(1, v.required).max(72, v.long),
   fileContent: z.string().min(1, v.required),
+  scope: z.enum(["inventory", "customers", "suppliers", "sales", "payments", "all"]).default("all"),
 });
 
 export const backupReminderSchema = z
@@ -453,5 +454,26 @@ export const backupReminderSchema = z
   })
   .refine((data) => data.frequency !== "weekly" || data.dayOfWeek !== undefined, { message: v.required, path: ["dayOfWeek"] })
   .refine((data) => data.frequency !== "monthly" || data.dayOfMonth !== undefined, { message: v.required, path: ["dayOfMonth"] });
+
+export const updateProfileSchema = z.object({
+  displayName: z.string().trim().min(2, v.short).max(120, v.long),
+  username: z.string().trim().min(3, v.short).max(80, v.long).regex(/^[a-zA-Z][a-zA-Z0-9._-]*$/, v.invalid),
+  avatarUrl: z.string().trim().max(2_000_000, v.long).optional().nullable(),
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, v.required).max(72, v.long),
+    newPassword: z
+      .string()
+      .min(8, v.short)
+      .max(72, v.long)
+      .regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/, v.password),
+    confirmNewPassword: z.string().min(1, v.required).max(72, v.long),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    path: ["confirmNewPassword"],
+    message: v.passwordMatch,
+  });
 
 // Define every Zod schema here as each domain is implemented.

@@ -17,6 +17,8 @@ import type { BackupReminderSettings } from "@/types";
 const CONFIRM_PHRASE = "استعادة النسخة الاحتياطية";
 const WEEKDAY_KEYS = ["0", "1", "2", "3", "4", "5", "6"] as const;
 const MONTH_DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+const RESTORE_SCOPES = ["all", "inventory", "customers", "suppliers", "sales", "payments"] as const;
+type RestoreScope = (typeof RESTORE_SCOPES)[number];
 
 /** 24h "HH:mm" slots every 30 minutes, shown as 12h ص/م in the trigger via formatHourLabel. */
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
@@ -43,6 +45,7 @@ export function BackupPanel({ reminder }: { reminder: BackupReminderSettings }) 
   const [showPassword, setShowPassword] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [isRestoring, setIsRestoring] = useState(false);
+  const [restoreScope, setRestoreScope] = useState<RestoreScope>("all");
 
   const [frequency, setFrequency] = useState(reminder.frequency);
   const [time, setTime] = useState(reminder.time);
@@ -84,6 +87,7 @@ export function BackupPanel({ reminder }: { reminder: BackupReminderSettings }) 
     setPendingFile(file);
     setPassword("");
     setConfirmText("");
+    setRestoreScope("all");
     setDialogOpen(true);
   }
 
@@ -98,7 +102,7 @@ export function BackupPanel({ reminder }: { reminder: BackupReminderSettings }) 
     setIsRestoring(true);
     try {
       const fileContent = await pendingFile.text();
-      const result = await restoreBackup({ password, fileContent });
+      const result = await restoreBackup({ password, fileContent, scope: restoreScope });
       if (!result.success) {
         toast.error(result.error);
         return;
@@ -263,6 +267,21 @@ export function BackupPanel({ reminder }: { reminder: BackupReminderSettings }) 
             <p className="rounded-md bg-danger-bg px-3 py-2 text-body-sm text-danger-fg">
               {t("restoreWarning", { fileName: pendingFile?.name ?? "" })}
             </p>
+            <div className="flex flex-col gap-1.5">
+              <Label>{t("restoreScopeLabel")}</Label>
+              <Select value={restoreScope} onValueChange={(v) => setRestoreScope(v as RestoreScope)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RESTORE_SCOPES.map((scope) => (
+                    <SelectItem key={scope} value={scope}>
+                      {t(`restoreScope.${scope}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="backup-restore-password">{t("passwordLabel")}</Label>
               <InputGroup>

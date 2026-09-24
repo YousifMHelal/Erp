@@ -102,6 +102,7 @@ model User {
   displayName  String
   passwordHash String
   avatarColor  String
+  avatarUrl    String?
   roleId       String
   role         Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
   isActive     Boolean   @default(true)

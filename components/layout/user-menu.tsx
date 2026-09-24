@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { LogOut, User as UserIcon } from "lucide-react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -50,9 +51,11 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>{displayName ?? t("userMenuLabel")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <UserIcon />
-          {t("profile")}
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <UserIcon />
+            {t("profile")}
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

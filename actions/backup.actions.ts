@@ -7,7 +7,7 @@ import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
 import { AuthRequiredError, PermissionDeniedError, requireAuth, requirePermission } from "@/lib/auth-guard";
 import { isBackupReminderDue } from "@/lib/backup-reminder";
-import { BACKUP_MODELS, wipeAllTables, writeAllTables, type BackupFile } from "@/lib/backup";
+import { BACKUP_MODELS, getModelsForScope, validateScopedRestore, wipeAllTables, writeAllTables, type BackupFile } from "@/lib/backup";
 import { prisma } from "@/lib/prisma";
 import { backupReminderSchema, restoreBackupSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
@@ -17,9 +17,13 @@ const m = messages.settingsAction;
 const REMINDER_KEYS: string[] = ["backup.reminderFrequency", "backup.reminderTime", "backup.reminderDayOfWeek", "backup.reminderDayOfMonth", "backup.reminderLastFiredAt"];
 const DEFAULT_REMINDER: BackupReminderSettings = { frequency: "off", time: "09:00" };
 
+/** Thrown inside the restore transaction when the pre-flight FK check fails, so it can be surfaced as a clear ActionResult instead of a raw Postgres FK violation. */
+class ScopedRestoreValidationError extends Error {}
+
 function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
+  if (error instanceof ScopedRestoreValidationError) return fail(error.message);
   logError("Backup restore failed", error);
   return fail(m.backupRestoreFailed);
 }
@@ -31,6 +35,35 @@ function isValidBackupFile(value: unknown): value is BackupFile {
   if (!candidate.data || typeof candidate.data !== "object") return false;
   const data = candidate.data as Record<string, unknown>;
   return BACKUP_MODELS.every((model) => Array.isArray(data[model]));
+}
+
+/** Arabic labels for BackupModel, used to build a readable FK-problem message. */
+const MODEL_LABELS: Record<string, string> = {
+  role: "الأدوار",
+  user: "المستخدمين",
+  category: "الفئات",
+  product: "الأصناف",
+  customer: "العملاء",
+  supplier: "الموردين",
+  cashbox: "الخزائن",
+  invoice: "الفواتير",
+  invoiceLine: "بنود الفواتير",
+  stockMovement: "حركات المخزون",
+  cashMovement: "حركات الخزينة",
+  partyTransaction: "حركات الحساب",
+  collection: "التحصيلات",
+  payment: "المدفوعات",
+  stocktake: "الجرد",
+  stocktakeLine: "بنود الجرد",
+  auditLog: "سجل التدقيق",
+  notification: "الإشعارات",
+  setting: "الإعدادات",
+  documentCounter: "عدادات المستندات",
+};
+
+function describeScopedRestoreProblems(problems: { model: string; target: string; missingIds: string[] }[]): string {
+  const targets = [...new Set(problems.map((p) => MODEL_LABELS[p.target] ?? p.target))];
+  return m.backupScopeMissingRefs.replace("{targets}", targets.join("، "));
 }
 
 export async function restoreBackup(input: unknown): Promise<ActionResult<null>> {
@@ -50,10 +83,17 @@ export async function restoreBackup(input: unknown): Promise<ActionResult<null>>
     }
     if (!isValidBackupFile(file)) return fail(m.backupInvalidFile);
 
+    const scope = parsed.data.scope;
+    const models = getModelsForScope(scope);
+
     await prisma.$transaction(
       async (tx) => {
-        await wipeAllTables(tx);
-        await writeAllTables(tx, file.data);
+        if (scope !== "all") {
+          const problems = await validateScopedRestore(tx, models, file.data);
+          if (problems.length > 0) throw new ScopedRestoreValidationError(describeScopedRestoreProblems(problems));
+        }
+        await wipeAllTables(tx, models);
+        await writeAllTables(tx, file.data, models);
       },
       { timeout: 60_000 },
     );

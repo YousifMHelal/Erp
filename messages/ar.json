@@ -418,6 +418,15 @@
       "restoreDialogTitle": "تحذير: استبدال كامل البيانات",
       "restoreDialogDescription": "هذا الإجراء يحذف كل البيانات الحالية نهائياً ويستبدلها بمحتوى الملف المرفوع. لا يمكن التراجع عن هذا الإجراء إلا برفع نسخة احتياطية أخرى.",
       "restoreWarning": "الملف المحدد: {fileName}",
+      "restoreScopeLabel": "نطاق الاستعادة",
+      "restoreScope": {
+        "all": "كل البيانات",
+        "inventory": "المخزون (الفئات، الأصناف، حركات المخزون)",
+        "customers": "العملاء",
+        "suppliers": "الموردون",
+        "sales": "المبيعات والفواتير",
+        "payments": "التحصيلات والمدفوعات"
+      },
       "passwordLabel": "كلمة المرور الحالية",
       "passwordPlaceholder": "••••••••",
       "showPassword": "إظهار كلمة المرور",
@@ -684,6 +693,40 @@
       }
     }
   },
+  "profile": {
+    "title": "الملف الشخصي",
+    "description": "عرض وتعديل بياناتك الشخصية وكلمة المرور",
+    "form": {
+      "title": "البيانات الشخصية",
+      "avatarLabel": "الصورة الشخصية",
+      "avatarUpload": "رفع صورة",
+      "avatarRemove": "إزالة الصورة",
+      "avatarHint": "PNG أو JPG أو WEBP، بحد أقصى ٢ ميجابايت",
+      "avatarTooLarge": "حجم الصورة أكبر من ٢ ميجابايت",
+      "avatarInvalidType": "صيغة الصورة غير مدعومة",
+      "nameLabel": "الاسم الكامل",
+      "namePlaceholder": "مثال: أحمد سعيد",
+      "usernameLabel": "اسم المستخدم",
+      "usernamePlaceholder": "مثال: ahmed",
+      "errorRequired": "يرجى تعبئة الاسم واسم المستخدم",
+      "save": "حفظ التغييرات",
+      "saved": "تم حفظ بياناتك الشخصية"
+    },
+    "passwordForm": {
+      "title": "تغيير كلمة المرور",
+      "currentPasswordLabel": "كلمة المرور الحالية",
+      "newPasswordLabel": "كلمة المرور الجديدة",
+      "confirmPasswordLabel": "تأكيد كلمة المرور الجديدة",
+      "passwordPlaceholder": "••••••••",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "errorRequired": "يرجى تعبئة كل حقول كلمة المرور",
+      "errorPasswordLength": "يجب أن تكون كلمة المرور الجديدة ٨ أحرف على الأقل",
+      "errorPasswordMatch": "كلمتا المرور غير متطابقتين",
+      "save": "تحديث كلمة المرور",
+      "saved": "تم تحديث كلمة المرور"
+    }
+  },
   "notifications": {
     "title": "الإشعارات",
     "markRead": "تحديد كمقروء",
@@ -941,7 +984,17 @@
     "backupRestoreFailed": "تعذرت استعادة النسخة الاحتياطية",
     "backupWrongPassword": "كلمة المرور غير صحيحة",
     "backupInvalidFile": "ملف النسخة الاحتياطية غير صالح",
-    "backupReminderEntityLabel": "تذكير النسخ الاحتياطي"
+    "backupReminderEntityLabel": "تذكير النسخ الاحتياطي",
+    "backupScopeMissingRefs": "لا يمكن استعادة هذا الجزء فقط لأن الملف يشير إلى بيانات غير موجودة حالياً في قاعدة البيانات ({targets})، يمكنك استعادة النسخة الاحتياطية بالكامل بدلاً من ذلك، أو استعادة تلك البيانات أولاً"
+  },
+  "profileAction": {
+    "unauthorized": "سجل الدخول للمتابعة",
+    "invalid": "البيانات غير صالحة",
+    "failed": "تعذر حفظ البيانات",
+    "usernameTaken": "اسم المستخدم مستخدم بالفعل",
+    "wrongPassword": "كلمة المرور الحالية غير صحيحة",
+    "profileEntityLabel": "الملف الشخصي",
+    "passwordChangeLabel": "تغيير كلمة المرور"
   },
   "moneyDocuments": {
     "list": {
