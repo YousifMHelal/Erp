@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 export async function GET(): Promise<Response> {
   try {
-    await requirePermission("settings.manage");
+    await requirePermission("settings.backup");
     // Read-only snapshot — no cross-table invariant to protect at read time,
     // so this runs as plain queries rather than one interactive transaction
     // (which hit Prisma's 5s default timeout against Neon's real latency

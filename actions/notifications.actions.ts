@@ -38,7 +38,7 @@ export async function getNotifications(): Promise<ActionResult<NotificationItem[
     return ok(rows.map((row) => ({
       id: row.id, type: row.type, severity: row.severity, isRead: row.isRead,
       createdAt: row.createdAt.toISOString(), ...notificationText(row.titleKey, row.bodyParams),
-      entityHref: row.entityType === "Product" ? `/inventory/${row.entityId}` : row.entityType === "Customer" ? `/customers/${row.entityId}` : row.entityType === "Supplier" ? `/suppliers/${row.entityId}` : undefined,
+      entityHref: row.entityType === "Product" ? `/inventory/${row.entityId}` : row.entityType === "Customer" ? `/customers/${row.entityId}` : row.entityType === "Supplier" ? `/suppliers/${row.entityId}` : row.entityType === "Setting" && row.entityId === "backup" ? "/settings/backup" : undefined,
     })));
   } catch (error) { return actionError(error); }
 }

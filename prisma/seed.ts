@@ -43,7 +43,7 @@ const CASHIER_PERMISSIONS = [
 ];
 
 const ACCOUNTANT_PERMISSIONS = ALL_PERMISSIONS.filter(
-  (p) => !p.startsWith("user.") && !p.startsWith("role.") && p !== "settings.manage",
+  (p) => !p.startsWith("user.") && !p.startsWith("role.") && p !== "settings.manage" && p !== "settings.backup",
 );
 
 async function main() {

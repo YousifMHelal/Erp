@@ -444,4 +444,14 @@ export const restoreBackupSchema = z.object({
   fileContent: z.string().min(1, v.required),
 });
 
+export const backupReminderSchema = z
+  .object({
+    frequency: z.enum(["off", "daily", "weekly", "monthly"]),
+    time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, v.invalid),
+    dayOfWeek: z.number().int().min(0).max(6).optional(),
+    dayOfMonth: z.number().int().min(1).max(31).optional(),
+  })
+  .refine((data) => data.frequency !== "weekly" || data.dayOfWeek !== undefined, { message: v.required, path: ["dayOfWeek"] })
+  .refine((data) => data.frequency !== "monthly" || data.dayOfMonth !== undefined, { message: v.required, path: ["dayOfMonth"] });
+
 // Define every Zod schema here as each domain is implemented.

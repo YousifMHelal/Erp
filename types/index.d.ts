@@ -1606,6 +1606,13 @@ export type RestoreBackupInput = {
   fileContent: string;
 };
 
+export type BackupReminderSettings = {
+  frequency: "off" | "daily" | "weekly" | "monthly";
+  time: string;
+  dayOfWeek?: number;
+  dayOfMonth?: number;
+};
+
 // --- Print templates (P2-21) ---
 
 export type PrintShopInfo = {

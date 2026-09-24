@@ -426,7 +426,31 @@
       "cancel": "إلغاء",
       "restoreConfirm": "استبدال كل البيانات",
       "restoring": "جارٍ الاستعادة...",
-      "restoreSuccess": "تمت استعادة البيانات بنجاح"
+      "restoreSuccess": "تمت استعادة البيانات بنجاح",
+      "reminderTitle": "تذكير النسخ الاحتياطي",
+      "reminderDescription": "أرسل تذكيراً دورياً لتنزيل نسخة احتياطية. لا يتم إرسال أي ملف تلقائياً — التذكير فقط.",
+      "reminderFrequencyLabel": "التكرار",
+      "reminderFrequency": {
+        "off": "متوقف",
+        "daily": "يومي",
+        "weekly": "أسبوعي",
+        "monthly": "شهري"
+      },
+      "reminderTimeLabel": "الوقت",
+      "reminderDayOfWeekLabel": "اليوم",
+      "reminderDayOfMonthLabel": "يوم الشهر",
+      "reminderDayOfMonthOption": "يوم {day}",
+      "weekdays": {
+        "0": "الأحد",
+        "1": "الاثنين",
+        "2": "الثلاثاء",
+        "3": "الأربعاء",
+        "4": "الخميس",
+        "5": "الجمعة",
+        "6": "السبت"
+      },
+      "reminderSave": "حفظ التذكير",
+      "reminderSaved": "تم حفظ إعدادات التذكير"
     },
     "profile": {
       "title": "بيانات المتجر",
@@ -526,7 +550,8 @@
         "transfer": "تحويل",
         "manage": "إدارة",
         "profitLoss": "الأرباح والخسائر",
-        "export": "تصدير"
+        "export": "تصدير",
+        "backup": "النسخ الاحتياطي والاستعادة"
       }
     },
     "categories": {
@@ -671,7 +696,9 @@
       "customerBalance": "رصيد عميل مستحق",
       "customerBalanceBody": "رصيد العميل {name} المستحق هو {balance}",
       "supplierBalance": "رصيد مورد مستحق",
-      "supplierBalanceBody": "الرصيد المستحق للمورد {name} هو {balance}"
+      "supplierBalanceBody": "الرصيد المستحق للمورد {name} هو {balance}",
+      "backupReminder": "حان وقت النسخ الاحتياطي",
+      "backupReminderBody": "حسب الجدول الذي حددته، حان وقت تنزيل نسخة احتياطية من بيانات المتجر."
     }
   },
   "auditLog": {
@@ -910,7 +937,8 @@
     "categoryInUse": "لا يمكن حذف تصنيف له أصناف مرتبطة به",
     "backupRestoreFailed": "تعذرت استعادة النسخة الاحتياطية",
     "backupWrongPassword": "كلمة المرور غير صحيحة",
-    "backupInvalidFile": "ملف النسخة الاحتياطية غير صالح"
+    "backupInvalidFile": "ملف النسخة الاحتياطية غير صالح",
+    "backupReminderEntityLabel": "تذكير النسخ الاحتياطي"
   },
   "moneyDocuments": {
     "list": {

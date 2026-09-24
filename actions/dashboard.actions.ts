@@ -1,6 +1,7 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
+import { syncBackupReminder } from "@/actions/backup.actions";
 import { AuthRequiredError, requireAuth } from "@/lib/auth-guard";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
@@ -45,6 +46,7 @@ function percentDelta(today: Prisma.Decimal, yesterday: Prisma.Decimal): { value
 export async function getDashboardOverview(): Promise<ActionResult<DashboardOverview>> {
   try {
     await requireAuth();
+    await syncBackupReminder();
 
     const today = dayRange(0);
     const yesterday = dayRange(1);

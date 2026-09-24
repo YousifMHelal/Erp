@@ -14,7 +14,7 @@ const actionsByGroup: Record<PermissionGroupKey, string[]> = {
   user: ["view", "create", "edit"],
   role: ["view", "create", "edit"],
   audit: ["view"],
-  settings: ["manage"],
+  settings: ["manage", "backup"],
 };
 
 export const PERMISSION_GROUPS: PermissionGroup[] = (

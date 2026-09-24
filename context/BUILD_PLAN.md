@@ -206,9 +206,10 @@ Built last, as a dedicated pass, focused on logic that can silently corrupt mone
 
 Features added after v1 shipped (all 106 Phase 0–9 tasks done). Same rigour, same rules — tracked here rather than retrofitted into the original phases.
 
-- [x] **P10-1** — Full-database backup & restore, `/settings/backup`. Export streams every table as one JSON file via `GET /api/backup/export` (a third route-handler exception alongside NextAuth and the invoice PDF — justified the same way: a binary/file download a Server Action can't stream). Restore is full wipe + reload inside one `$transaction`, gated by `settings.manage`, a re-entered password (bcrypt-compared against the acting user's hash), and a typed Arabic confirmation phrase — no partial/merge restore, since the 20 tables' FK graph makes a partial restore unsafe.
+- [x] **P10-1** — Full-database backup & restore, `/settings/backup`. Export streams every table as one JSON file via `GET /api/backup/export` (a third route-handler exception alongside NextAuth and the invoice PDF — justified the same way: a binary/file download a Server Action can't stream). Restore is full wipe + reload inside one `$transaction`, gated by a dedicated `settings.backup` permission, a re-entered password (bcrypt-compared against the acting user's hash), and a typed Arabic confirmation phrase — no partial/merge restore, since the 20 tables' FK graph makes a partial restore unsafe.
+- [x] **P10-2** — Backup reminder schedule. User picks frequency (off/daily/weekly/monthly) + time (+ day-of-week/day-of-month), stored as `Setting` rows. No cron exists, so `syncBackupReminder()` runs opportunistically on every dashboard load (`getDashboardOverview()`), and creates a dedupe-keyed `Notification` the next time anyone visits after the scheduled moment passes. No file is ever generated or sent automatically — reminder only, gated by `settings.backup`.
 
-**Exit:** typecheck/lint clean; export downloads a valid JSON file covering all 20 models; restore round-trip (export → wipe → restore the same file) leaves the database identical.
+**Exit:** typecheck/lint clean; export downloads a valid JSON file covering all 20 models; restore round-trip (export → wipe → restore the same file) leaves the database identical; a due reminder fires exactly once per scheduled occurrence (verified: fires on first dashboard load after the due time, does not re-fire on a second load, `lastFiredAt` updates correctly).
 
 ---
 
