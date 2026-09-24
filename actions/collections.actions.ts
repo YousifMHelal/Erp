@@ -137,7 +137,7 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
         after: { customerId, cashboxId, amount: amount.toString() },
       });
       return { id: collection.id, number };
-    });
+    }, { timeout: 20_000 });
     revalidatePath("/collections");
     revalidatePath("/cashboxes");
     revalidatePath(`/customers/${customerId}`);
@@ -231,7 +231,7 @@ export async function updateCollection(input: unknown): Promise<ActionResult<{ i
         after: { customerId, cashboxId, amount: amount.toString() },
       });
       return { id, number: existing.number };
-    });
+    }, { timeout: 20_000 });
 
     revalidatePath("/collections");
     revalidatePath("/cashboxes");
@@ -267,7 +267,7 @@ export async function deleteCollection(id: unknown): Promise<ActionResult<{ numb
       await syncNotifications(tx, { customerIds: [collection.customerId] });
 
       return { number: collection.number };
-    });
+    }, { timeout: 20_000 });
 
     revalidatePath("/collections");
     revalidatePath("/cashboxes");

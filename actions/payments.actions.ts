@@ -141,7 +141,7 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
         after: { supplierId, cashboxId, amount: amount.toString() },
       });
       return { id: payment.id, number };
-    });
+    }, { timeout: 20_000 });
     revalidatePath("/payments");
     revalidatePath("/cashboxes");
     revalidatePath(`/suppliers/${supplierId}`);
@@ -236,7 +236,7 @@ export async function updatePayment(input: unknown): Promise<ActionResult<{ id: 
         after: { supplierId, cashboxId, amount: amount.toString() },
       });
       return { id, number: existing.number };
-    });
+    }, { timeout: 20_000 });
 
     revalidatePath("/payments");
     revalidatePath("/cashboxes");
@@ -272,7 +272,7 @@ export async function deletePayment(id: unknown): Promise<ActionResult<{ number:
       await syncNotifications(tx, { supplierIds: [payment.supplierId] });
 
       return { number: payment.number };
-    });
+    }, { timeout: 20_000 });
 
     revalidatePath("/payments");
     revalidatePath("/cashboxes");

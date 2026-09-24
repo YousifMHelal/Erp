@@ -1,21 +1,18 @@
 import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth.config";
+import { decideMiddlewareAction } from "@/lib/middleware-policy";
 
 const { auth } = NextAuth(authConfig);
 
 export default auth((request) => {
-  const path = request.nextUrl.pathname;
-  if (path.startsWith("/api/auth")) return NextResponse.next();
-  if (path === "/login") {
-    return request.auth ? NextResponse.redirect(new URL("/", request.nextUrl)) : NextResponse.next();
-  }
-  if (!request.auth) {
-    const login = new URL("/login", request.nextUrl);
-    login.searchParams.set("callbackUrl", request.nextUrl.pathname + request.nextUrl.search);
-    return NextResponse.redirect(login);
-  }
-  return NextResponse.next();
+  const action = decideMiddlewareAction(
+    request.nextUrl.pathname,
+    request.nextUrl.search,
+    Boolean(request.auth),
+  );
+  if (action.kind === "next") return NextResponse.next();
+  return NextResponse.redirect(new URL(action.to, request.nextUrl));
 });
 
 export const config = {

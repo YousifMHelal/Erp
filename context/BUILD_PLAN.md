@@ -189,14 +189,14 @@ Goal: the rest of the inventory-affecting flows, copying the Phase 4 pattern.
 
 Built last, as a dedicated pass, focused on logic that can silently corrupt money or stock.
 
-- [ ] **P9-1** — Vitest setup + test database strategy (separate schema, reset between runs).
-- [ ] **P9-2** — Unit tests for the pure domain libs: `units.ts` (conversion in both directions, fractional ratios), `costing.ts` (weighted average across a purchase sequence), `pricing.ts` (all three tiers plus the fallthrough), `money.ts` (rounding, Decimal precision), `format.ts`.
-- [ ] **P9-3** — Validation tests: every Zod schema, valid and invalid cases, cross-field `.refine()`s, Egyptian phone regex, password complexity.
-- [ ] **P9-4** — Auth & permission tests: credential verification, session shape, `requirePermission` allowing and denying, middleware redirects.
-- [ ] **P9-5** — Integration tests on the critical transactions: create sale (stock + cash + party all move, atomically), negative-stock rejection, purchase average-cost recompute, cancellation reversal leaving balances unchanged, return flows, collection and payment.
-- [ ] **P9-6** — **Ledger reconciliation test:** after a randomised sequence of operations, assert every party balance and every cashbox balance still equals `opening + Σ(ledger)`.
-- [ ] **P9-7** — Playwright E2E: login → create a credit sale → verify inventory decreased → collect a payment → verify customer balance → open the report → cancel the invoice → verify everything reversed.
-- [ ] **P9-8** — Component tests for the highest-risk UI: `LineItemsTable` unit/price recalculation, `TotalsPanel` discount maths, `PermissionMatrix`.
+- [x] **P9-1** — Vitest setup + test database strategy (separate schema, reset between runs).
+- [x] **P9-2** — Unit tests for the pure domain libs: `units.ts` (conversion in both directions, fractional ratios), `costing.ts` (weighted average across a purchase sequence), `pricing.ts` (all three tiers plus the fallthrough), `money.ts` (rounding, Decimal precision), `format.ts`.
+- [x] **P9-3** — Validation tests: every Zod schema, valid and invalid cases, cross-field `.refine()`s, Egyptian phone regex, password complexity.
+- [x] **P9-4** — Auth & permission tests: credential verification, session shape, `requirePermission` allowing and denying, middleware redirects.
+- [x] **P9-5** — Integration tests on the critical transactions: create sale (stock + cash + party all move, atomically), negative-stock rejection, purchase average-cost recompute, cancellation reversal leaving balances unchanged, return flows, collection and payment.
+- [x] **P9-6** — **Ledger reconciliation test:** after a randomised sequence of operations, assert every party balance and every cashbox balance still equals `opening + Σ(ledger)`.
+- [x] **P9-7** — Playwright E2E: login → create a credit sale → verify inventory decreased → collect a payment → verify customer balance → open the report → cancel the invoice → verify everything reversed.
+- [x] **P9-8** — Component tests for the highest-risk UI: `LineItemsTable` unit/price recalculation, `TotalsPanel` discount maths, `PermissionMatrix`.
 
 **Exit:** `npm test` passes; critical money and stock paths are covered; the reconciliation test holds under a randomised operation sequence.
 
