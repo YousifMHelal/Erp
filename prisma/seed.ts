@@ -51,8 +51,9 @@ async function main() {
 
   // -- Settings ---------------------------------------------------------
   await prisma.setting.createMany({
+    skipDuplicates: true,
     data: [
-      { key: "shop.name", value: "طيبة للتجارة" },
+      { key: "shop.name", value: "متجر للتجارة" },
       { key: "shop.phone", value: "01012345678" },
       { key: "shop.address", value: "شارع الجمهورية، المنصورة، الدقهلية" },
       { key: "shop.taxNote", value: "" },
@@ -89,7 +90,7 @@ async function main() {
   });
 
   // -- Users ----------------------------------------------------------------
-  const passwordHash = await bcrypt.hash("Passw0rd!", 10);
+  const passwordHash = await bcrypt.hash("admin", 10);
   const [adminUser, accountantUser, cashierUser1, cashierUser2] = await Promise.all([
     prisma.user.create({
       data: {
