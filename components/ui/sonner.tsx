@@ -37,8 +37,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
         } as React.CSSProperties
       }
       toastOptions={{
+        duration: 3000,
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast shadow-elevation-lg border-s-4 border-s-border",
+          success: "!border-s-success-fg [&_[data-icon]]:text-success-fg",
+          error: "!border-s-danger-fg [&_[data-icon]]:text-danger-fg",
+          warning: "!border-s-warning-fg [&_[data-icon]]:text-warning-fg",
+          info: "!border-s-info-fg [&_[data-icon]]:text-info-fg",
+          title: "text-body font-medium",
+          description: "text-body-sm text-muted-foreground",
+          actionButton: "!bg-accent !text-accent-foreground",
         },
       }}
       {...props}
