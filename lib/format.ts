@@ -129,3 +129,20 @@ export function toDateInputValue(date: Date | undefined): string | undefined {
   const day = String(date.getDate()).padStart(2, "0");
   return `${date.getFullYear()}-${month}-${day}`;
 }
+
+/**
+ * The shop's fixed UTC offset in hours. Egypt abolished DST in 2016 and stays at
+ * UTC+2 year-round, so a single constant (rather than a stored/detected timezone)
+ * is correct for this single-shop app.
+ */
+export const SHOP_UTC_OFFSET_HOURS = 2;
+
+/** Converts a `yyyy-MM-dd` date-only string into the UTC instant of that date's local midnight. */
+export function shopDayStart(dateOnly: string): Date {
+  return new Date(`${dateOnly}T00:00:00Z`.replace("Z", "") + `+${String(SHOP_UTC_OFFSET_HOURS).padStart(2, "0")}:00`);
+}
+
+/** The UTC instant just past the end of a `yyyy-MM-dd` local day — an exclusive upper bound for a `lt` filter. */
+export function shopDayEnd(dateOnly: string): Date {
+  return new Date(shopDayStart(dateOnly).getTime() + 86_400_000);
+}

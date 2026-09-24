@@ -11,7 +11,7 @@ export function decideMiddlewareAction(
   search: string,
   isAuthenticated: boolean,
 ): MiddlewareAction {
-  if (pathname.startsWith("/api/auth")) return { kind: "next" };
+  if (pathname.startsWith("/api/auth") || pathname === "/api/health") return { kind: "next" };
   if (pathname === "/login") {
     return isAuthenticated ? { kind: "redirect", to: "/" } : { kind: "next" };
   }

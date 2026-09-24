@@ -9,6 +9,8 @@ import {
 } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
+import { shopDayEnd, shopDayStart } from "@/lib/format";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
 import { postReturn, prepareReturn, ReturnDomainError } from "@/lib/returns-ledger";
@@ -67,7 +69,7 @@ function actionError<T>(error: unknown): ActionResult<T> {
     error.code === "P2034"
   )
     return fail(m.conflict);
-  console.error("Return action failed", error);
+  logError("Return action failed", error);
   return fail(m.failed);
 }
 
@@ -301,8 +303,8 @@ async function getReturns(
       issuedAt:
         f.from || f.to
           ? {
-              gte: f.from ? new Date(`${f.from}T00:00:00Z`) : undefined,
-              lt: f.to ? new Date(Date.parse(`${f.to}T00:00:00Z`) + 86_400_000) : undefined,
+              gte: f.from ? shopDayStart(f.from) : undefined,
+              lt: f.to ? shopDayEnd(f.to) : undefined,
             }
           : undefined,
       OR: f.q

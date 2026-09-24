@@ -6,12 +6,13 @@ import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
+import { logError } from "@/lib/logger";
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const t = useTranslations("errorBoundary");
 
   useEffect(() => {
-    console.error(error);
+    logError("Global error boundary", error);
   }, [error]);
 
   return (

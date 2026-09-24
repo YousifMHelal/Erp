@@ -9,6 +9,8 @@ import {
 } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
+import { shopDayEnd, shopDayStart } from "@/lib/format";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { suggestSellPrice } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
@@ -76,7 +78,7 @@ function actionError<T>(error: unknown): ActionResult<T> {
     error.code === "P2034"
   )
     return fail(m.conflict);
-  console.error("Sale action failed", error);
+  logError("Sale action failed", error);
   return fail(m.failed);
 }
 
@@ -105,7 +107,7 @@ export async function createSale(
           remainingAmount: sale.remainingAmount,
           notes: parsed.data.notes,
           issuedAt: parsed.data.issuedAt
-            ? new Date(`${parsed.data.issuedAt}T00:00:00Z`)
+            ? shopDayStart(parsed.data.issuedAt)
             : new Date(),
           createdById: user.id,
           lines: { createMany: { data: sale.lines } },
@@ -175,7 +177,7 @@ export async function updateSale(
           paymentStatus: sale.paymentStatus,
           notes: parsed.data.notes,
           issuedAt: parsed.data.issuedAt
-            ? new Date(`${parsed.data.issuedAt}T00:00:00Z`)
+            ? shopDayStart(parsed.data.issuedAt)
             : old.issuedAt,
         },
       });
@@ -298,10 +300,8 @@ export async function getSales(
       issuedAt:
         f.from || f.to
           ? {
-              gte: f.from ? new Date(`${f.from}T00:00:00Z`) : undefined,
-              lt: f.to
-                ? new Date(Date.parse(`${f.to}T00:00:00Z`) + 86_400_000)
-                : undefined,
+              gte: f.from ? shopDayStart(f.from) : undefined,
+              lt: f.to ? shopDayEnd(f.to) : undefined,
             }
           : undefined,
       OR: f.q

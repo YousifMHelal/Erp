@@ -1,15 +1,15 @@
 import { Prisma, type InvoiceType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { shopDayEnd, shopDayStart } from "@/lib/format";
 import type { ReportDataset, ReportFilters, ReportKey } from "@/types";
 
 const ZERO = new Prisma.Decimal(0);
-const DAY_IN_MS = 86_400_000;
 
 export function reportDateRange(filters: ReportFilters): Prisma.DateTimeFilter | undefined {
   if (!filters.from && !filters.to) return undefined;
   return {
-    gte: filters.from ? new Date(`${filters.from}T00:00:00Z`) : undefined,
-    lt: filters.to ? new Date(Date.parse(`${filters.to}T00:00:00Z`) + DAY_IN_MS) : undefined,
+    gte: filters.from ? shopDayStart(filters.from) : undefined,
+    lt: filters.to ? shopDayEnd(filters.to) : undefined,
   };
 }
 

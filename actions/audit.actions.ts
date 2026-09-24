@@ -1,6 +1,7 @@
 "use server";
 
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { reportDateRange } from "@/lib/report-queries";
@@ -11,7 +12,7 @@ import type { ActionResult, AuditLogPageData } from "@/types";
 function actionError(error: unknown): ActionResult<AuditLogPageData> {
   if (error instanceof AuthRequiredError) return fail(messages.reportAction.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(messages.reportAction.forbidden);
-  console.error("Audit log action failed", error);
+  logError("Audit log action failed", error);
   return fail(messages.auditLog.failed);
 }
 

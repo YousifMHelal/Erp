@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { productIdSchema, productSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
@@ -33,7 +34,7 @@ function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
   if (error instanceof InventoryDomainError) return fail(m[error.code]);
-  console.error("Inventory action failed", error);
+  logError("Inventory action failed", error);
   return fail(m.failed);
 }
 

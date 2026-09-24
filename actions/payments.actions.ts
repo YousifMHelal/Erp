@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
 import { syncNotifications } from "@/lib/notifications";
@@ -22,7 +23,7 @@ function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
   if (error instanceof PaymentDomainError) return fail(m[error.code]);
-  console.error("Payment action failed", error);
+  logError("Payment action failed", error);
   return fail(m.failed);
 }
 

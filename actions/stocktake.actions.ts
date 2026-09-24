@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
 import { syncNotifications } from "@/lib/notifications";
@@ -33,7 +34,7 @@ function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
   if (error instanceof StocktakeDomainError) return fail(m[error.code]);
-  console.error("Stocktake action failed", error);
+  logError("Stocktake action failed", error);
   return fail(m.failed);
 }
 

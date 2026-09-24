@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { writeAudit } from "@/lib/audit";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { formatMoney } from "@/lib/format";
@@ -15,7 +16,7 @@ const n = messages.notifications;
 function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(messages.reportAction.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(messages.reportAction.forbidden);
-  console.error("Notification action failed", error);
+  logError("Notification action failed", error);
   return fail(n.failed);
 }
 
@@ -48,7 +49,7 @@ export async function getUnreadNotificationCount(): Promise<number> {
     return await prisma.notification.count({ where: { isRead: false } });
   } catch (error) {
     if (error instanceof AuthRequiredError || error instanceof PermissionDeniedError) return 0;
-    console.error("Notification count failed", error);
+    logError("Notification count failed", error);
     return 0;
   }
 }

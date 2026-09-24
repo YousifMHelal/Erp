@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { syncNotifications } from "@/lib/notifications";
 import { buildPartyStatement } from "@/lib/party-statement";
@@ -17,7 +18,7 @@ const m = messages.partyAction;
 function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
-  console.error("Customer action failed", error);
+  logError("Customer action failed", error);
   return fail(m.failed);
 }
 

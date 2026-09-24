@@ -2,6 +2,7 @@
 
 import type { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import {
   AuthRequiredError,
   PermissionDeniedError,
@@ -58,7 +59,7 @@ const USER_FILTER_REPORTS = new Set<ReportKey>([
 function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
-  console.error("Report action failed", error);
+  logError("Report action failed", error);
   return fail(m.failed);
 }
 

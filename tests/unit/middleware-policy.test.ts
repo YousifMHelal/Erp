@@ -11,6 +11,11 @@ describe("decideMiddlewareAction", () => {
     });
   });
 
+  it("always passes through the health check endpoint, authenticated or not", () => {
+    expect(decideMiddlewareAction("/api/health", "", false)).toEqual({ kind: "next" });
+    expect(decideMiddlewareAction("/api/health", "", true)).toEqual({ kind: "next" });
+  });
+
   it("redirects an authenticated user away from /login", () => {
     expect(decideMiddlewareAction("/login", "", true)).toEqual({
       kind: "redirect",

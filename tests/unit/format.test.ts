@@ -4,6 +4,8 @@ import {
   formatMoneyInWords,
   formatNumber,
   numberToArabicWords,
+  shopDayEnd,
+  shopDayStart,
   toDateInputValue,
 } from "@/lib/format";
 
@@ -44,6 +46,29 @@ describe("toDateInputValue", () => {
   it("returns undefined for an undefined or invalid date", () => {
     expect(toDateInputValue(undefined)).toBeUndefined();
     expect(toDateInputValue(new Date("invalid"))).toBeUndefined();
+  });
+});
+
+describe("shopDayStart / shopDayEnd", () => {
+  it("treats midnight in Egypt (UTC+2) as 22:00 UTC the previous day", () => {
+    expect(shopDayStart("2026-09-24").toISOString()).toBe("2026-09-23T22:00:00.000Z");
+  });
+
+  it("ends a shop day exactly 24 hours after it starts", () => {
+    const start = shopDayStart("2026-09-24");
+    const end = shopDayEnd("2026-09-24");
+    expect(end.getTime() - start.getTime()).toBe(86_400_000);
+  });
+
+  it("a 'today' filter using shopDayStart/shopDayEnd covers a local-morning timestamp that UTC midnight would miss", () => {
+    // 01:00 Egypt time on the 24th is 23:00 UTC on the 23rd — exactly the case the
+    // old `${date}T00:00:00Z` boundary got wrong (it would exclude this timestamp
+    // from "today" until UTC also reached the 24th, hours later).
+    const localMorning = new Date("2026-09-23T23:00:00.000Z");
+    const start = shopDayStart("2026-09-24");
+    const end = shopDayEnd("2026-09-24");
+    expect(localMorning.getTime()).toBeGreaterThanOrEqual(start.getTime());
+    expect(localMorning.getTime()).toBeLessThan(end.getTime());
   });
 });
 

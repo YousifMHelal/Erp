@@ -3,6 +3,8 @@
 import { Prisma } from "@prisma/client";
 import { AuthRequiredError, requireAuth } from "@/lib/auth-guard";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
+import { shopDayEnd, shopDayStart, SHOP_UTC_OFFSET_HOURS } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import messages from "@/messages/ar.json";
 import type { ActionResult, DashboardOverview } from "@/types";
@@ -17,16 +19,15 @@ const RECENT_INVOICES_LIMIT = 5;
 
 function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
-  console.error("Dashboard action failed", error);
+  logError("Dashboard action failed", error);
   return fail(m.failed);
 }
 
+/** `daysAgo` counted in the shop's local calendar (UTC+2), not the server's own timezone. */
 function dayRange(daysAgo: number): { gte: Date; lt: Date } {
-  const now = new Date();
-  const startOfToday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  const gte = new Date(startOfToday - daysAgo * DAY_IN_MS);
-  const lt = new Date(gte.getTime() + DAY_IN_MS);
-  return { gte, lt };
+  const shopNowMs = Date.now() + SHOP_UTC_OFFSET_HOURS * 3_600_000;
+  const shopDateOnly = new Date(shopNowMs - daysAgo * DAY_IN_MS).toISOString().slice(0, 10);
+  return { gte: shopDayStart(shopDateOnly), lt: shopDayEnd(shopDateOnly) };
 }
 
 function sum(values: Prisma.Decimal[]): Prisma.Decimal {

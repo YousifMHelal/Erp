@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { writeAudit } from "@/lib/audit";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { ALL_PERMISSIONS } from "@/lib/permissions";
@@ -22,7 +23,7 @@ const m = messages.settingsAction;
 function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
-  console.error("Settings action failed", error);
+  logError("Settings action failed", error);
   return fail(m.failed);
 }
 

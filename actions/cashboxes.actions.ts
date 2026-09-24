@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { transferCashSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
@@ -21,7 +22,7 @@ function actionError<T>(error: unknown): ActionResult<T> {
   if (error instanceof AuthRequiredError) return fail(m.unauthorized);
   if (error instanceof PermissionDeniedError) return fail(m.forbidden);
   if (error instanceof CashboxDomainError) return fail(m[error.code]);
-  console.error("Cashbox action failed", error);
+  logError("Cashbox action failed", error);
   return fail(m.failed);
 }
 

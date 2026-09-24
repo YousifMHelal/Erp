@@ -603,3 +603,31 @@ Zustand is **not** a cache for server data. No `useEffect` + `fetch` for page da
 | §15 | No hard deletes on financial history | `status = CANCELLED` + compensating ledger rows |
 | §15 | Every movement traceable | `StockMovement`, `CashMovement`, `PartyTransaction` |
 | §15 | Consistent internal unit | Everything stored in sub-units |
+
+---
+
+## 10. Operations — backup, migrations, incident response
+
+### 10.1 Backup
+
+- **Neon (current dev/prod DB):** Neon takes continuous WAL-based backups automatically on all plans and exposes **point-in-time restore (PITR)** through the console/API — no separate backup job to run. Retention window depends on plan (check the current Neon plan's PITR window before relying on a specific number of days back).
+- **If self-hosting Postgres instead** (e.g. the LAN Docker setup in `docker-compose.yml`): there is currently **no automated backup job**. Before any real data lives only there, add a scheduled `pg_dump` (cron or a small script) to a location off the same machine, and periodically test that a dump actually restores — an untested backup is not a backup.
+- Application-level safety net: the schema's append-only ledgers (`StockMovement`, `CashMovement`, `PartyTransaction`, `AuditLog`) mean most operational mistakes are reconstructable from history even without restoring a snapshot — but this is not a substitute for real backups (it doesn't help against data loss at the storage layer).
+
+### 10.2 Migrations in production
+
+- Standard Prisma flow: `npx prisma migrate deploy` applies pending migrations from `prisma/migrations/` without generating new ones or prompting — this is the command to run in a deploy pipeline, never `migrate dev`.
+- **Before deploying a migration that touches a table with production data:** read the generated SQL in `prisma/migrations/<timestamp>_<name>/migration.sql` and confirm it's additive (new nullable column, new table) rather than destructive (dropped column, `NOT NULL` added to an existing column, renamed column) before it runs against real data. A destructive migration should ship as two deploys: one to backfill/dual-write, one to finish the change — not attempted as a single step against live data.
+- **Rollback:** Prisma has no automatic "undo migration" command. If a deployed migration needs reverting: restore from the pre-migration backup/PITR point, or hand-write a compensating migration that reverses the specific change (safer when the app has kept running and accumulated new rows since). Never edit an already-applied migration file in place — write a new one.
+- `npm run db:reset` (`prisma migrate reset --force`) drops the entire database and reseeds — **dev/local only**, never run against a database anyone depends on.
+
+### 10.3 Before pointing a real domain at this app
+
+- Set `experimental.serverActions.allowedOrigins` in `next.config.ts` to the real production origin(s) once one exists. Left unset today (correct for local/LAN use — Next.js falls back to request-derived defaults), but should be pinned explicitly once the prod domain is fixed, so a Server Action can't be invoked cross-origin from an unexpected host.
+- Generate a real `NEXTAUTH_SECRET` (`openssl rand -base64 32` or equivalent) — `.env.example`'s placeholder value must never reach a real deployment.
+
+### 10.4 Incident response quick reference
+
+- **Health check:** `GET /api/health` returns `{ status: "ok" }` (200) or `{ status: "error" }` (503) based on a live `SELECT 1` — point uptime monitoring here.
+- **A stuck/hung transaction holding row locks** (observed during test runs against Neon: a killed process can leave a Postgres backend `idle in transaction`, blocking every later transaction on the same rows): identify it with `SELECT pid, state, query FROM pg_stat_activity WHERE datname = current_database() AND state = 'idle in transaction'`, then `SELECT pg_terminate_backend(<pid>)` to clear it. This is a symptom of a crashed/killed app process, not something that happens under normal operation.
+- **Error visibility today is `lib/logger.ts`'s `logError()`** — structured JSON to stdout/stderr, no external sink wired up. On Vercel this lands in the platform's function logs (searchable there, but not alerting or retained long-term). Adding a real error-tracking service (Sentry or similar) is a known gap, tracked separately — until then, treat production error triage as "go read the platform's log viewer."
