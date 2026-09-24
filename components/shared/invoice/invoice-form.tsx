@@ -24,13 +24,13 @@ function draftFromProduct(product: SearchableProduct): InvoiceLineDraft {
     lineId: `line-${lineIdCounter}`,
     productId: product.id,
     productName: product.name,
-    unitType: "SUB",
+    unitType: "BASE",
     baseUnitName: product.baseUnitName,
     subUnitName: product.subUnitName,
     unitsPerBase: product.unitsPerBase,
     qty: 1,
-    unitPrice: Number(product.pricePerSub),
-    lineTotal: Number(product.pricePerSub),
+    unitPrice: Number(product.pricePerBase),
+    lineTotal: Number(product.pricePerBase),
   };
 }
 

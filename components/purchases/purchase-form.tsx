@@ -48,7 +48,7 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
   function addProduct(product: SaleProductOption) {
     setLines((prev) => {
       const existing = prev.find(
-        (line) => line.productId === product.id && line.unitType === "SUB",
+        (line) => line.productId === product.id && line.unitType === "BASE",
       );
       if (existing) {
         return prev.map((line) =>
@@ -63,12 +63,12 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
           lineId: `line-${lineIdCounter}`,
           productId: product.id,
           productName: product.name,
-          unitType: "SUB",
+          unitType: "BASE",
           baseUnitName: product.baseUnitName,
           subUnitName: product.subUnitName,
           unitsPerBase: Number(product.unitsPerBase),
           qty: 1,
-          unitPrice: Number(product.pricePerSub),
+          unitPrice: Number(product.pricePerBase),
           lineTotal: 0,
         }),
         ...prev,

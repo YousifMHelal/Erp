@@ -63,7 +63,7 @@ export function LineRow({ line, isActive, onUpdate, onRemove }: LineRowProps) {
           step="any"
           value={line.unitPrice}
           onChange={(e) => onUpdate({ unitPrice: Number(e.target.value) })}
-          className="w-20 text-end tabular-nums"
+          className="w-28 text-end tabular-nums"
           aria-label={t("priceLabel")}
         />
       </TableCell>
