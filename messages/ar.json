@@ -535,6 +535,19 @@
       "actionsColumn": "الصلاحيات",
       "saveMatrix": "حفظ الصلاحيات",
       "saveSuccess": "تم حفظ الصلاحيات",
+      "newRole": "دور جديد",
+      "form": {
+        "createTitle": "دور جديد",
+        "nameLabel": "اسم الدور",
+        "namePlaceholder": "مثال: مشرف مخزون",
+        "descriptionLabel": "الوصف",
+        "descriptionPlaceholder": "اختياري",
+        "errorRequired": "يرجى إدخال اسم الدور",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "saving": "جارٍ الحفظ...",
+        "createSuccess": "تم إنشاء الدور، حدد الصلاحيات ثم احفظ"
+      },
       "groups": {
         "sale": "المبيعات",
         "purchase": "المشتريات",

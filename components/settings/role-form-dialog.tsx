@@ -7,15 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CategoryFormDialogProps } from "@/types";
-import { saveCategory } from "@/actions/settings.actions";
+import { saveRole } from "@/actions/settings.actions";
+import type { RoleFormDialogProps } from "@/types";
 
-export function CategoryFormDialog({ open, onOpenChange, category, onSave }: CategoryFormDialogProps) {
-  const t = useTranslations("settings.categories.form");
-  const isEdit = !!category;
+export function RoleFormDialog({ open, onOpenChange, onSave }: RoleFormDialogProps) {
+  const t = useTranslations("settings.roles.form");
 
-  const [name, setName] = useState(category?.name ?? "");
-  const [description, setDescription] = useState(category?.description ?? "");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  function reset() {
+    setName("");
+    setDescription("");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,26 +28,35 @@ export function CategoryFormDialog({ open, onOpenChange, category, onSave }: Cat
       toast.error(t("errorRequired"));
       return;
     }
-    const saved = await saveCategory(category?.id, { name, description });
+    setIsSaving(true);
+    const saved = await saveRole(undefined, { name, description, permissions: [] });
+    setIsSaving(false);
     if (!saved.success) return toast.error(saved.error);
     onSave(saved.data);
-    toast.success(isEdit ? t("updateSuccess") : t("createSuccess"));
+    toast.success(t("createSuccess"));
+    reset();
     onOpenChange(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) reset();
+        onOpenChange(next);
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? t("editTitle") : t("createTitle")}</DialogTitle>
+          <DialogTitle>{t("createTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="category-name">
+            <Label htmlFor="role-name">
               {t("nameLabel")} <span className="text-accent">*</span>
             </Label>
             <Input
-              id="category-name"
+              id="role-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t("namePlaceholder")}
@@ -50,9 +64,9 @@ export function CategoryFormDialog({ open, onOpenChange, category, onSave }: Cat
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="category-description">{t("descriptionLabel")}</Label>
+            <Label htmlFor="role-description">{t("descriptionLabel")}</Label>
             <Input
-              id="category-description"
+              id="role-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t("descriptionPlaceholder")}
@@ -63,8 +77,8 @@ export function CategoryFormDialog({ open, onOpenChange, category, onSave }: Cat
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>
-            <Button type="submit" variant="accent">
-              {t("save")}
+            <Button type="submit" variant="accent" disabled={isSaving}>
+              {isSaving ? t("saving") : t("save")}
             </Button>
           </DialogFooter>
         </form>

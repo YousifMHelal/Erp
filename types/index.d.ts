@@ -1567,6 +1567,12 @@ export type RoleRow = {
   permissions: string[];
 };
 
+export type RoleFormDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (role: RoleRow) => void;
+};
+
 export type SettingsOverview = {
   profile: ShopProfile;
   printPreferences: PrintPreferences;

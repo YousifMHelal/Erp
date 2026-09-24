@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RolesTable } from "@/components/settings/roles-table";
+import { RoleFormDialog } from "@/components/settings/role-form-dialog";
 import { PermissionMatrix } from "@/components/settings/permission-matrix";
 import { PERMISSION_GROUPS } from "@/lib/permissions";
 import { saveRole } from "@/actions/settings.actions";
@@ -15,6 +17,7 @@ export function RolesView({ roles: initialRoles }: { roles: RoleRow[] }) {
   const tCommon = useTranslations("common");
   const [roles, setRoles] = useState(initialRoles);
   const [selectedId, setSelectedId] = useState(roles[0]?.id ?? "");
+  const [createOpen, setCreateOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const selectedRole = roles.find((r) => r.id === selectedId);
   const [draftPermissions, setDraftPermissions] = useState<Set<string>>(
@@ -59,6 +62,11 @@ export function RolesView({ roles: initialRoles }: { roles: RoleRow[] }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex justify-end">
+        <Button type="button" variant="primary" onClick={() => setCreateOpen(true)}>
+          <Plus /> {t("newRole")}
+        </Button>
+      </div>
       <RolesTable roles={roles} selectedId={selectedId} onSelect={selectRole} />
       {selectedRole && (
         <>
@@ -75,6 +83,14 @@ export function RolesView({ roles: initialRoles }: { roles: RoleRow[] }) {
           )}
         </>
       )}
+      <RoleFormDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSave={(role) => {
+          setRoles((prev) => [...prev, role]);
+          selectRole(role.id);
+        }}
+      />
     </div>
   );
 }
