@@ -8,7 +8,7 @@ export async function getPublicLoginOptions(): Promise<PublicLoginOptions> {
   const setting = await prisma.setting.findUnique({
     where: { key: "loginMode" },
   });
-  const mode = setting?.value === "tiles" ? "tiles" : "username";
+  const mode = setting?.value === "username" ? "username" : "tiles";
   if (mode === "username") return { mode, users: [] };
 
   const users = await prisma.user.findMany({
