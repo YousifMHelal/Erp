@@ -3,6 +3,7 @@ import type { JWT } from "next-auth/jwt";
 import type { Session, User } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { ensureDefaultAdmin } from "@/lib/bootstrap-admin";
+import { getLoginMode } from "@/lib/login-mode";
 import { loginSchema } from "@/lib/validations";
 
 export async function authorizeCredentials(credentials: unknown) {
@@ -12,10 +13,8 @@ export async function authorizeCredentials(credentials: unknown) {
   await ensureDefaultAdmin();
 
   if (parsed.data.userId) {
-    const mode = await prisma.setting.findUnique({
-      where: { key: "loginMode" },
-    });
-    if (mode?.value !== "tiles") return null;
+    const mode = await getLoginMode();
+    if (mode !== "tiles") return null;
   }
   const user = await prisma.user.findUnique({
     where: parsed.data.userId
