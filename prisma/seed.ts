@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { ALL_PERMISSIONS } from "../lib/permissions";
+import { wipeAllTables } from "../lib/backup";
 
 const prisma = new PrismaClient();
 
@@ -49,9 +50,15 @@ const ACCOUNTANT_PERMISSIONS = ALL_PERMISSIONS.filter(
 async function main() {
   console.log("Seeding ERP database...");
 
+  // Seed always starts from an empty database — running it against
+  // already-seeded data hits unique constraints (username, role name, sku,
+  // ...) since the sample data below is built with plain .create() calls
+  // whose ids/order matter (running balances, invoice numbers).
+  console.log("Wiping existing data...");
+  await prisma.$transaction((tx) => wipeAllTables(tx), { timeout: 20_000 });
+
   // -- Settings ---------------------------------------------------------
   await prisma.setting.createMany({
-    skipDuplicates: true,
     data: [
       { key: "shop.name", value: "متجر للتجارة" },
       { key: "shop.phone", value: "01012345678" },
