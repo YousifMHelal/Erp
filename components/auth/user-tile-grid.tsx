@@ -11,7 +11,7 @@ export function UserTileGrid({ users, onSelect }: UserTileGridProps) {
         <h1 className="text-h1">{t("chooseUserTitle")}</h1>
         <p className="text-body text-muted-foreground">{t("chooseUserSubtitle")}</p>
       </div>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+      <div className="flex flex-wrap justify-center gap-3">
         {users.map((user) => (
           <UserTile key={user.id} user={user} onSelect={() => onSelect(user)} />
         ))}

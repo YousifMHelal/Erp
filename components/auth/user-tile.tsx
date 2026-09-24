@@ -9,7 +9,7 @@ export function UserTile({ user, onSelect }: UserTileProps) {
     <button
       type="button"
       onClick={onSelect}
-      className="group flex min-h-11 flex-col items-center gap-2 rounded-md p-3 text-center transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="group flex min-h-11 w-24 flex-col items-center gap-2 rounded-md p-3 text-center transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <Avatar size="lg" className="size-16">
         <AvatarFallback
