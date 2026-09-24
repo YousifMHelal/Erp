@@ -29,6 +29,7 @@ export async function getMyProfile(): Promise<ActionResult<MyProfile>> {
       username: user.username,
       avatarUrl: user.avatarUrl ?? undefined,
       avatarColor: user.avatarColor,
+      roleName: user.role.name,
     });
   } catch (error) {
     return actionError(error);
@@ -69,6 +70,7 @@ export async function updateMyProfile(input: unknown): Promise<ActionResult<MyPr
       username: saved.username,
       avatarUrl: saved.avatarUrl ?? undefined,
       avatarColor: saved.avatarColor,
+      roleName: user.role.name,
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")

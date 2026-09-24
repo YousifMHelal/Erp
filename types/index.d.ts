@@ -1980,6 +1980,7 @@ export type MyProfile = {
   username: string;
   avatarUrl?: string;
   avatarColor: string;
+  roleName: string;
 };
 
 export type ProfileFormProps = {

@@ -15,12 +15,13 @@ export default async function ProfilePage() {
     username: user.username,
     avatarUrl: user.avatarUrl ?? undefined,
     avatarColor: user.avatarColor,
+    roleName: user.role.name,
   };
 
   return (
     <>
       <PageHeader title={t("title")} description={t("description")} breadcrumbs={breadcrumbs} />
-      <div className="flex flex-col gap-4 lg:max-w-2xl">
+      <div className="flex flex-col gap-6 lg:max-w-2xl">
         <ProfileForm profile={profile} />
         <ChangePasswordForm />
       </div>

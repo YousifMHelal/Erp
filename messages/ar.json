@@ -710,10 +710,12 @@
       "usernamePlaceholder": "مثال: ahmed",
       "errorRequired": "يرجى تعبئة الاسم واسم المستخدم",
       "save": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ...",
       "saved": "تم حفظ بياناتك الشخصية"
     },
     "passwordForm": {
       "title": "تغيير كلمة المرور",
+      "description": "استخدم كلمة مرور قوية لا تشاركها مع أحد",
       "currentPasswordLabel": "كلمة المرور الحالية",
       "newPasswordLabel": "كلمة المرور الجديدة",
       "confirmPasswordLabel": "تأكيد كلمة المرور الجديدة",
@@ -724,6 +726,7 @@
       "errorPasswordLength": "يجب أن تكون كلمة المرور الجديدة ٨ أحرف على الأقل",
       "errorPasswordMatch": "كلمتا المرور غير متطابقتين",
       "save": "تحديث كلمة المرور",
+      "saving": "جارٍ التحديث...",
       "saved": "تم تحديث كلمة المرور"
     }
   },

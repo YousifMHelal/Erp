@@ -2,11 +2,14 @@ import bcrypt from "bcryptjs";
 import type { JWT } from "next-auth/jwt";
 import type { Session, User } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { ensureDefaultAdmin } from "@/lib/bootstrap-admin";
 import { loginSchema } from "@/lib/validations";
 
 export async function authorizeCredentials(credentials: unknown) {
   const parsed = loginSchema.safeParse(credentials);
   if (!parsed.success) return null;
+
+  await ensureDefaultAdmin();
 
   if (parsed.data.userId) {
     const mode = await prisma.setting.findUnique({

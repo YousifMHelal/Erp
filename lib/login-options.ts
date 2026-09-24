@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { ensureDefaultAdmin } from "@/lib/bootstrap-admin";
 import type { PublicLoginOptions } from "@/types";
 
 export async function getPublicLoginOptions(): Promise<PublicLoginOptions> {
+  await ensureDefaultAdmin();
+
   const setting = await prisma.setting.findUnique({
     where: { key: "loginMode" },
   });
