@@ -202,6 +202,16 @@ Built last, as a dedicated pass, focused on logic that can silently corrupt mone
 
 ---
 
+## Phase 10 — Post-launch additions
+
+Features added after v1 shipped (all 106 Phase 0–9 tasks done). Same rigour, same rules — tracked here rather than retrofitted into the original phases.
+
+- [x] **P10-1** — Full-database backup & restore, `/settings/backup`. Export streams every table as one JSON file via `GET /api/backup/export` (a third route-handler exception alongside NextAuth and the invoice PDF — justified the same way: a binary/file download a Server Action can't stream). Restore is full wipe + reload inside one `$transaction`, gated by `settings.manage`, a re-entered password (bcrypt-compared against the acting user's hash), and a typed Arabic confirmation phrase — no partial/merge restore, since the 20 tables' FK graph makes a partial restore unsafe.
+
+**Exit:** typecheck/lint clean; export downloads a valid JSON file covering all 20 models; restore round-trip (export → wipe → restore the same file) leaves the database identical.
+
+---
+
 ## Build order summary
 
 **P0** scaffold → **P1** design system → **P2** all UI static → **P3** schema + seed → **P4** auth + sales slice end-to-end → **P5** purchases/inventory/returns → **P6** parties/cashboxes/money → **P7** reports/notifications/audit → **P8** polish → **P9** tests.

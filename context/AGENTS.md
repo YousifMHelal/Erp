@@ -41,7 +41,7 @@ Pulled forward from [ARCHITECTURE.md §8](./ARCHITECTURE.md). Violating one is a
 11. **All Zod schemas live in `lib/validations.ts`.** Never co-located, never inline.
 12. **Server Components by default.** `"use client"` only where interactivity demands it, pushed as far down the tree as possible.
 13. **No mega-files.** Past ~150 lines of JSX, decompose. Pages compose components; they don't contain markup.
-14. **Server Actions for all mutations.** The only route handlers are NextAuth and the invoice PDF stream.
+14. **Server Actions for all mutations.** Route handlers exist only for NextAuth, the invoice PDF stream, and the backup export stream — anything that must stream a raw `Response` a Server Action can't produce.
 
 ### UI
 15. **No hardcoded colours.** Tokens only — `bg-primary`, `text-muted-foreground`. No hex, no `bg-blue-500`.

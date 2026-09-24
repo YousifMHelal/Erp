@@ -439,4 +439,9 @@ export const roleSchema = z.object({
   permissions: z.array(z.string().trim().min(1).max(100)).max(100),
 });
 
+export const restoreBackupSchema = z.object({
+  password: z.string().min(1, v.required).max(72, v.long),
+  fileContent: z.string().min(1, v.required),
+});
+
 // Define every Zod schema here as each domain is implemented.

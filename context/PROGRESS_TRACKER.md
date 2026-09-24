@@ -22,8 +22,9 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | 7 | Reports, notifications & audit | DONE | All 9 reports, notifications, audit log, and settings incl. roles permission matrix wired against Prisma. |
 | 8 | Polish, motion & edge cases | DONE | Motion/skeletons/empty-error states/a11y/performance/responsive sweep complete; fixed a real dashboard mock-data violation, a `<Money>` color-merge bug, and an inventory table overflow along the way. |
 | 9 | Testing | DONE | 197 Vitest tests (unit/integration/component) + 1 Playwright E2E spec, all passing. Two real production bugs found and fixed along the way (missing `$transaction` timeout on collections/payments; both logged in MEMORY.md). |
+| 10 | Post-launch additions | DONE | P10-1 backup & restore shipped. |
 
-**Overall: 106 / 106 tasks done. All phases complete.**
+**Overall: 106 / 106 v1 tasks done, plus 1 post-launch addition (P10-1).**
 
 ---
 
@@ -183,11 +184,20 @@ Task IDs mirror [BUILD_PLAN.md](./BUILD_PLAN.md) exactly. When a task changes st
 | P9-7 | Playwright E2E | DONE | `@playwright/test` installed, `playwright.config.ts` (`webServer` reuses a running `npm run dev`, 20s action timeout for Neon latency). `tests/e2e/sale-lifecycle.spec.ts`: login (tile+password) → credit sale for a scratch product/customer/cashbox → verify stock and customer balance in the DB → collection → verify balance → `/reports/sales` renders → cancel (reverse-then-delete) → verify stock/balance/invoice-row all reversed. Passed twice consecutively. Found via real failures (not assumed): the sale-form product search needs `.pressSequentially()` not `.fill()` to trigger its debounced search, and URL-assertion regexes need a trailing `$` anchor or they false-match the form route itself — both logged in MEMORY.md. |
 | P9-8 | High-risk component tests | DONE | `@testing-library/react` + `jsdom` added, scoped per-file via `// @vitest-environment jsdom` (unit/integration tests stay on the faster `node` environment). `tests/component/{line-items-table,totals-panel,permission-matrix}.test.tsx` — 13 tests against the real components (not stand-ins): `LineItemsTable` (empty state, row rendering, subtotal sum, remove-line callback), `TotalsPanel` (money formatting, discount input two-way binding), `PermissionMatrix` (checkbox count/checked-state against the real `PERMISSION_GROUPS` catalogue, toggle callback, `readOnly` disables every checkbox). Needed a `TooltipProvider` wrapper (the remove-line button uses `AppTooltip`) and explicit `afterEach(cleanup)` in `tests/component/setup.ts` — without it RTL doesn't unmount between tests (no vitest `globals`), so a later test's `getAllByRole` matched stale buttons from an earlier render and asserted on the wrong callback. |
 
+## Phase 10 — Post-launch additions
+
+| ID | Task | Status | Notes |
+|----|------|--------|-------|
+| P10-1 | Backup & restore, `/settings/backup` | DONE | `lib/backup.ts` (model registry + wipe/read/write helpers, FK-safe order), `GET /api/backup/export` (streamed JSON download), `actions/backup.actions.ts#restoreBackup` (password re-check + full wipe/reload in one transaction). |
+
 ---
 
 ## Changelog
 
 *Newest first. One entry per meaningful change — task completions, decision reversals, blockers hit and cleared.*
+
+### 2026-09-24 (Phase 10 — Backup & restore)
+- **P10-1 complete.** New `/settings/backup` tab. Export (`GET /api/backup/export`, `settings.manage`-gated) streams a single JSON file with every one of the 20 Prisma models. Restore (`restoreBackup` Server Action) re-verifies the acting user's password via bcrypt, requires a typed Arabic confirmation phrase in the UI, then wipes every table and reloads the uploaded file's contents inside one `$transaction({ timeout: 60_000 })` — full wipe + reload, not a partial/merge restore, since the FK graph across invoices/ledgers/parties makes a merge unsafe. `lib/backup.ts` holds `BACKUP_MODELS` in FK-safe order (parents-before-children for restore, reversed for wipe) plus `readAllTables`/`wipeAllTables`/`writeAllTables`. This is the third route-handler exception to "Server Actions for everything" (alongside NextAuth and the invoice PDF stream) — justified the same way: a file download needs to stream a `Response` body, which a Server Action can't do. `typecheck`/`lint` clean.
 
 ### 2026-09-23 (Phase 9 complete — project done)
 - **Phase 9 complete (P9-1…P9-8).** All testing infrastructure built and run against the real Neon dev DB (no separate test DB — Docker unavailable, owner declined the Neon-branch alternative; decision + risk logged in MEMORY.md). 197 Vitest tests + 1 Playwright E2E spec, all passing.

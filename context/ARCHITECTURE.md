@@ -168,7 +168,8 @@ teba/
 │
 ├── app/api/
 │   ├── auth/[...nextauth]/route.ts
-│   └── invoices/[id]/pdf/route.ts    # the ONLY non-Server-Action endpoint: streams A4 PDF
+│   ├── invoices/[id]/pdf/route.ts    # streams A4 PDF
+│   └── backup/export/route.ts        # streams full-database JSON backup — see §10.1
 │
 ├── actions/                          # Server Actions — one file per domain
 │   ├── auth.actions.ts
@@ -448,7 +449,7 @@ Grouped keys, rendered as the role-builder matrix:
 - **Reads:** Server Components query Prisma directly, or call a `get*` function in `actions/`. No client-side fetching for initial page data.
 - **Writes:** Server Actions only. Every action: `requirePermission` → `schema.parse` → `$transaction` → `writeAudit` → `revalidatePath` → return `ActionResult`.
 - **`ActionResult<T>`** (`types/index.d.ts`): `{ success: true, data: T } | { success: false, error: string, fieldErrors?: Record<string,string[]> }`. Never throw across the action boundary; always return a shape the UI can render.
-- **Route handlers** exist for exactly two things: NextAuth, and the PDF stream. Everything else is a Server Action.
+- **Route handlers** exist for three things: NextAuth, the invoice PDF stream, and the backup export stream (§10.1). Everything else is a Server Action.
 
 ### 6.4 Filtering, search, pagination
 
@@ -610,6 +611,7 @@ Zustand is **not** a cache for server data. No `useEffect` + `fetch` for page da
 
 ### 10.1 Backup
 
+- **In-app export/restore (`/settings/backup`, `settings.manage`):** downloads a single JSON file of all 20 tables via `GET /api/backup/export`; restores via a full wipe + reload of the same shape, gated by a password re-check and a typed confirmation phrase. This is a user-triggered, ad-hoc snapshot/restore tool — not a replacement for Neon's own PITR below, which is the real continuous safety net.
 - **Neon (current dev/prod DB):** Neon takes continuous WAL-based backups automatically on all plans and exposes **point-in-time restore (PITR)** through the console/API — no separate backup job to run. Retention window depends on plan (check the current Neon plan's PITR window before relying on a specific number of days back).
 - **If self-hosting Postgres instead** (e.g. the LAN Docker setup in `docker-compose.yml`): there is currently **no automated backup job**. Before any real data lives only there, add a scheduled `pg_dump` (cron or a small script) to a location off the same machine, and periodically test that a dump actually restores — an untested backup is not a backup.
 - Application-level safety net: the schema's append-only ledgers (`StockMovement`, `CashMovement`, `PartyTransaction`, `AuditLog`) mean most operational mistakes are reconstructable from history even without restoring a snapshot — but this is not a substitute for real backups (it doesn't help against data loss at the storage layer).

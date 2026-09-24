@@ -1599,6 +1599,13 @@ export type SettingsCashboxRow = {
   sortOrder: number;
 };
 
+// --- Backup (Settings > Backup) ---
+
+export type RestoreBackupInput = {
+  password: string;
+  fileContent: string;
+};
+
 // --- Print templates (P2-21) ---
 
 export type PrintShopInfo = {
