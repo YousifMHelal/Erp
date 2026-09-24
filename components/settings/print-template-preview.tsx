@@ -28,6 +28,7 @@ export function PrintTemplatePreview({ template, size }: PrintTemplatePreviewPro
       address: template.shop.address,
       taxNote: template.shop.taxNote,
       invoiceFooter: template.shop.invoiceFooter,
+      logoDataUrl: template.shop.logoDataUrl,
     },
     documentTypeLabel: "فاتورة بيع",
     number: 1042,
