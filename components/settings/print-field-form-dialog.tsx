@@ -104,6 +104,7 @@ export function PrintFieldFormDialog({
                 value={systemFieldLabel}
                 onChange={(e) => setSystemFieldLabel(e.target.value)}
                 placeholder={t("customLabelPlaceholder")}
+                autoComplete="off"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -131,6 +132,7 @@ export function PrintFieldFormDialog({
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value)}
                 placeholder={t("customLabelPlaceholder")}
+                autoComplete="off"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -140,6 +142,7 @@ export function PrintFieldFormDialog({
                 value={customValue}
                 onChange={(e) => setCustomValue(e.target.value)}
                 placeholder={t("customValuePlaceholder")}
+                autoComplete="off"
               />
             </div>
           </div>

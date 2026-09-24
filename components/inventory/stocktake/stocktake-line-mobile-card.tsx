@@ -12,7 +12,7 @@ import type { StocktakeLineRowProps, UnitType } from "@/types";
 export function StocktakeLineMobileCard({ line, onUpdateCounted }: StocktakeLineRowProps) {
   const t = useTranslations("inventory.stocktake");
   const tForm = useTranslations("invoices.form");
-  const [unitType, setUnitType] = useState<UnitType>("SUB");
+  const [unitType, setUnitType] = useState<UnitType>("BASE");
   const difference = line.countedQty === null ? null : line.countedQty - line.systemQty;
 
   const toDisplay = (subQty: number) => (unitType === "BASE" ? subQty / line.unitsPerBase : subQty);

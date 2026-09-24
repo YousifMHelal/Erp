@@ -43,7 +43,13 @@ export function SettingsCashboxFormDialog({ open, onOpenChange, cashbox, onSave 
             <Label htmlFor="cashbox-name">
               {t("nameLabel")} <span className="text-accent">*</span>
             </Label>
-            <Input id="cashbox-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
+            <Input
+              id="cashbox-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t("namePlaceholder")}
+              autoComplete="off"
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cashbox-description">{t("descriptionLabel")}</Label>
@@ -52,6 +58,7 @@ export function SettingsCashboxFormDialog({ open, onOpenChange, cashbox, onSave 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t("descriptionPlaceholder")}
+              autoComplete="off"
             />
           </div>
           <div className="flex items-center justify-between gap-3">

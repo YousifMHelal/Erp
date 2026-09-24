@@ -128,7 +128,7 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
             <Label htmlFor="product-name">
               {t("nameLabel")} <span className="text-accent">*</span>
             </Label>
-            <Input id="product-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
+            <Input id="product-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} autoComplete="off" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
@@ -145,6 +145,7 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
                 placeholder="6221031xxxxxx"
                 className="text-end tabular-nums"
                 dir="ltr"
+                autoComplete="off"
               />
             </div>
           </div>
@@ -183,13 +184,13 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
               <Label htmlFor="base-unit">
                 {t("baseUnitLabel")} <span className="text-accent">*</span>
               </Label>
-              <Input id="base-unit" value={baseUnitName} onChange={(e) => setBaseUnitName(e.target.value)} placeholder="مثال: كرتونة" />
+              <Input id="base-unit" value={baseUnitName} onChange={(e) => setBaseUnitName(e.target.value)} placeholder="مثال: كرتونة" autoComplete="off" />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="sub-unit">
                 {t("subUnitLabel")} <span className="text-accent">*</span>
               </Label>
-              <Input id="sub-unit" value={subUnitName} onChange={(e) => setSubUnitName(e.target.value)} placeholder="مثال: قطعة" />
+              <Input id="sub-unit" value={subUnitName} onChange={(e) => setSubUnitName(e.target.value)} placeholder="مثال: قطعة" autoComplete="off" />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">

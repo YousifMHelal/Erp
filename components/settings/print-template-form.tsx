@@ -151,6 +151,7 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder={t("templateNamePlaceholder")}
+                autoComplete="off"
               />
             </div>
 
@@ -197,7 +198,7 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
               <span className="text-label font-medium text-foreground">{t("companyInfoTitle")}</span>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="template-shop-name">{t("nameLabel")}</Label>
-                <Input id="template-shop-name" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input id="template-shop-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
@@ -209,6 +210,7 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
                     placeholder="٠١٠xxxxxxxx"
                     dir="ltr"
                     className="text-end tabular-nums"
+                    autoComplete="off"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -220,12 +222,13 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
                     placeholder="٠١٠xxxxxxxx"
                     dir="ltr"
                     className="text-end tabular-nums"
+                    autoComplete="off"
                   />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="template-shop-address">{t("addressLabel")}</Label>
-                <Input id="template-shop-address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                <Input id="template-shop-address" value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="off" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="template-footer">{t("footerLabel")}</Label>

@@ -60,7 +60,7 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
         <Label htmlFor="party-name">
           {t("nameLabel")} <span className="text-accent">*</span>
         </Label>
-        <Input id="party-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
+        <Input id="party-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} autoComplete="off" />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="party-phone">{t("phoneLabel")}</Label>
@@ -72,11 +72,12 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
           placeholder="٠١٠xxxxxxxx"
           className="text-end tabular-nums"
           dir="ltr"
+          autoComplete="off"
         />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="party-address">{t("addressLabel")}</Label>
-        <Input id="party-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("addressPlaceholder")} />
+        <Input id="party-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("addressPlaceholder")} autoComplete="off" />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="party-opening-balance">{t("openingBalanceLabel")}</Label>

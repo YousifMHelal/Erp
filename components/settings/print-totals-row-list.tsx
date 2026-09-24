@@ -30,6 +30,7 @@ export function PrintTotalsRowList({ rows, onToggle, onMove, onUpdateLabel }: Pr
               placeholder={defaultLabel}
               className="flex-1"
               aria-label={defaultLabel}
+              autoComplete="off"
             />
             <div className="flex items-center gap-1">
               <AppTooltip content={t("moveUp")}>

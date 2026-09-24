@@ -136,6 +136,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder={t("namePlaceholder")}
+                autoComplete="off"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -149,6 +150,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 placeholder={t("usernamePlaceholder")}
                 dir="ltr"
                 className="text-end"
+                autoComplete="off"
               />
             </div>
           </div>
