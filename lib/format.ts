@@ -151,6 +151,11 @@ export function formatShopTime(value: Date | string): string {
   return `${twelveHour}:${minutes} ${hours < 12 ? "ص" : "م"}`;
 }
 
+/** The shop-local calendar date (`yyyy-MM-dd`) of an instant, whatever the device's timezone. */
+export function shopDateOnly(value: Date = new Date()): string {
+  return new Date(value.getTime() + SHOP_UTC_OFFSET_HOURS * 3_600_000).toISOString().slice(0, 10);
+}
+
 /** Converts a `yyyy-MM-dd` date-only string into the UTC instant of that date's local midnight. */
 export function shopDayStart(dateOnly: string): Date {
   return new Date(`${dateOnly}T00:00:00Z`.replace("Z", "") + `+${String(SHOP_UTC_OFFSET_HOURS).padStart(2, "0")}:00`);

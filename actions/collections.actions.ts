@@ -4,8 +4,9 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
-import { removeDocumentCash, restampDocumentCash } from "@/lib/cash-ledger";
-import { removeDocumentPartyEntries, restampDocumentPartyEntries } from "@/lib/party-ledger";
+import { rebuildCashboxRunningBalance, removeDocumentCash, restampDocumentCash } from "@/lib/cash-ledger";
+import { isClientRequestIdConflict } from "@/lib/idempotency";
+import { rebuildPartyRunningBalance, removeDocumentPartyEntries, restampDocumentPartyEntries } from "@/lib/party-ledger";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
 import { nextDocumentNumber } from "@/lib/numbering";
@@ -104,8 +105,12 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
     const user = await requirePermission("collection.create");
     const parsed = createCollectionSchema.safeParse(input);
     if (!parsed.success) return fail(m.invalid, parsed.error.flatten().fieldErrors);
-    const { customerId, cashboxId, note } = parsed.data;
+    const { customerId, cashboxId, note, clientRequestId } = parsed.data;
     const amount = new Prisma.Decimal(parsed.data.amount);
+    if (clientRequestId) {
+      const existing = await prisma.collection.findUnique({ where: { clientRequestId }, select: { id: true, number: true } });
+      if (existing) return ok(existing);
+    }
     const created = await prisma.$transaction(async (tx) => {
       const [customer, cashbox] = await Promise.all([
         tx.customer.findUnique({ where: { id: customerId } }),
@@ -120,9 +125,9 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
       const updatedCustomer = await tx.customer.findUniqueOrThrow({ where: { id: customerId } });
       const updatedCashbox = await tx.cashbox.update({ where: { id: cashboxId }, data: { balance: { increment: amount } } });
       const number = await nextDocumentNumber(tx, "COLLECTION");
-      const occurredAt = new Date();
+      const occurredAt = parsed.data.occurredAt ?? new Date();
       const collection = await tx.collection.create({
-        data: { number, customerId, cashboxId, amount, note, occurredAt, createdById: user.id },
+        data: { number, customerId, cashboxId, amount, note, occurredAt, clientRequestId, createdById: user.id },
       });
       await tx.cashMovement.create({ data: {
         cashboxId, type: "CUSTOMER_COLLECTION", amount, balanceAfter: updatedCashbox.balance,
@@ -133,6 +138,11 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
         balanceAfter: updatedCustomer.balance, refType: "COLLECTION", refId: collection.id,
         note, occurredAt, createdById: user.id,
       } });
+      if (parsed.data.occurredAt) {
+        // Back-dated (offline) entry: later rows' running balances shift.
+        await rebuildCashboxRunningBalance(tx, cashboxId);
+        await rebuildPartyRunningBalance(tx, { kind: "customer", id: customerId });
+      }
       await syncNotifications(tx, { customerIds: [customerId] });
       await writeAudit(tx, {
         userId: user.id, action: "collection.create", entityType: "Collection",
@@ -146,6 +156,13 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
     revalidatePath(`/customers/${customerId}`);
     return ok(created);
   } catch (error) {
+    if (isClientRequestIdConflict(error)) {
+      const raced = await prisma.collection.findFirst({
+        where: { clientRequestId: (input as { clientRequestId?: string }).clientRequestId },
+        select: { id: true, number: true },
+      });
+      if (raced) return ok(raced);
+    }
     return actionError(error);
   }
 }

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Providers } from "@/components/providers";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { auth } from "@/lib/auth";
 import type { RootLayoutProps } from "@/types";
 import "./globals.css";
@@ -18,9 +19,25 @@ const ibmPlexSansArabic = localFont({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#2A2F6B",
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("app");
-  return { title: t("name"), description: t("description") };
+  return {
+    title: t("name"),
+    description: t("description"),
+    applicationName: t("name"),
+    appleWebApp: { capable: true, title: t("name"), statusBarStyle: "default" },
+    icons: {
+      icon: [
+        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+      apple: "/apple-touch-icon.png",
+    },
+  };
 }
 
 export default async function RootLayout({ children }: RootLayoutProps) {
@@ -32,6 +49,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       <body>
         <NextIntlClientProvider locale="ar" messages={messages}>
           <Providers session={session}>{children}</Providers>
+          <ServiceWorkerRegister />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -16,5 +16,6 @@ export default auth((request) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|fonts/|.*\\.(?:svg|png|jpg|jpeg|webp|woff2)$).*)"],
+  // PWA files (manifest, service worker, offline page) must load without a session.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|fonts/|manifest.webmanifest|sw.js|offline.html|.*\\.(?:svg|png|jpg|jpeg|webp|woff2)$).*)"],
 };

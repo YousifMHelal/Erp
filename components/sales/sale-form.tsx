@@ -13,11 +13,15 @@ import { PrintPromptDialog } from "@/components/shared/invoice/print-prompt-dial
 import { Money } from "@/components/shared/money";
 import { SaleProductSearch } from "@/components/sales/sale-product-search";
 import { useHotkeys } from "@/hooks/use-hotkeys";
+import { useOfflineAwareSave } from "@/hooks/use-offline-aware-save";
+import { useOfflineFormSnapshot } from "@/hooks/use-offline-form-snapshot";
 import { createSale, getSalePriceSuggestion, updateSale } from "@/actions/sales.actions";
 import { toSubUnits } from "@/lib/units";
 import { decimal } from "@/lib/money";
 import type {
   InvoiceLineDraft,
+  OfflineSalePayload,
+  SaleFormOptions,
   SaleFormProps,
   SaleLineStock,
   SaleProductOption,
@@ -47,6 +51,19 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
   const [isPending, startTransition] = useTransition();
   const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null);
   const productSearchRef = useRef<HTMLInputElement>(null);
+  const saveDocument = useOfflineAwareSave();
+  const offlineSnapshot = useOfflineFormSnapshot();
+  // Offline, the device snapshot is fresher than the (possibly cached) server-rendered options.
+  const formOptions = useMemo<SaleFormOptions>(
+    () =>
+      offlineSnapshot
+        ? {
+            customers: offlineSnapshot.customers.map(({ id, name }) => ({ id, name })),
+            cashboxes: offlineSnapshot.cashboxes.map(({ id, name }) => ({ id, name })),
+          }
+        : options,
+    [offlineSnapshot, options],
+  );
 
   /**
    * Available sub-unit stock per product, captured when the product was added.
@@ -64,9 +81,11 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
   const total = Math.max(subtotal - discountAmount, 0);
 
   function applyPriceSuggestion(productId: string) {
+    // Offline there is no suggestion to fetch — the catalogue price stands.
+    if (!navigator.onLine) return;
     startTransition(async () => {
-      const result = await getSalePriceSuggestion({ productId, customerId });
-      if (!result.success) return;
+      const result = await getSalePriceSuggestion({ productId, customerId }).catch(() => null);
+      if (!result?.success) return;
       const pricePerSub = Number(result.data.pricePerSub);
       setLines((prev) =>
         prev.map((line) =>
@@ -80,7 +99,8 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
 
   function addProduct(product: SaleProductOption) {
     stockRef.current.set(product.id, {
-      stockQty: product.stockQty,
+      // Offline, the snapshot also counts sales saved on this device since the list was loaded.
+      stockQty: offlineSnapshot?.products.find((entry) => entry.id === product.id)?.stockQty ?? product.stockQty,
       productName: product.name,
       subUnitName: product.subUnitName,
     });
@@ -175,7 +195,7 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
       return;
     }
 
-    const payload = {
+    const payload: OfflineSalePayload = {
       customerId,
       cashboxId,
       discountAmount: discountAmount.toFixed(2),
@@ -196,7 +216,8 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
             // Sent back unchanged so the action can reject a concurrent edit.
             updatedAt: initialSale.updatedAt,
           })
-        : await createSale(payload);
+        : await createSaleOfflineAware(payload);
+      if (!result) return;
 
       if (!result.success) {
         // Field errors carry the precise reason (e.g. paid exceeds the new total);
@@ -216,6 +237,26 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
       }
       setSavedInvoiceId(result.data.id);
     });
+  }
+
+  /** Online: the server's answer, handled as before. Offline: queued on the device (null). */
+  async function createSaleOfflineAware(payload: OfflineSalePayload) {
+    const outcome = await saveDocument({
+      kind: "sale",
+      payload,
+      partyName: formOptions.customers.find((customer) => customer.id === customerId)?.name ?? null,
+      submit: createSale,
+    });
+    if (outcome.mode === "queued") resetForNextSale();
+    return outcome.mode === "online" ? outcome.result : null;
+  }
+
+  function resetForNextSale() {
+    setLines([]);
+    setDiscountAmount(0);
+    setPaidAmount(0);
+    setCustomerId(undefined);
+    productSearchRef.current?.focus();
   }
 
   function finishAfterSave(invoiceId: string) {
@@ -256,10 +297,10 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
           />
           <PaymentPanel
             documentType="SALE"
-            cashboxOptions={options.cashboxes.map((c) => ({ value: c.id, label: c.name }))}
+            cashboxOptions={formOptions.cashboxes.map((c) => ({ value: c.id, label: c.name }))}
             cashboxId={cashboxId}
             onCashboxChange={setCashboxId}
-            partyOptions={options.customers.map((c) => ({ value: c.id, label: c.name }))}
+            partyOptions={formOptions.customers.map((c) => ({ value: c.id, label: c.name }))}
             partyId={customerId}
             onPartyChange={setCustomerId}
             paidAmount={paidAmount}

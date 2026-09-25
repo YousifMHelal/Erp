@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -13,25 +13,55 @@ import { EntityCombobox } from "@/components/shared/entity-combobox";
 import { PartyBalancePreview } from "@/components/shared/money-document/party-balance-preview";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { formatMoney } from "@/lib/format";
+import { decimal } from "@/lib/money";
+import { useOfflineAwareSave } from "@/hooks/use-offline-aware-save";
+import { useOfflineFormSnapshot } from "@/hooks/use-offline-form-snapshot";
 import { createCollection, updateCollection } from "@/actions/collections.actions";
 import { createPayment, updatePayment } from "@/actions/payments.actions";
 import { createCollectionSchema, createPaymentSchema } from "@/lib/validations";
-import type { MoneyDocumentFormProps } from "@/types";
+import type { CashboxWithBalanceOption, MoneyDocumentFormProps, PartyWithBalanceOption } from "@/types";
 
-export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, editing }: MoneyDocumentFormProps) {
+export function MoneyDocumentForm({
+  documentType,
+  partyOptions: serverPartyOptions,
+  cashboxOptions: serverCashboxOptions,
+  editing,
+}: MoneyDocumentFormProps) {
   const t = useTranslations("moneyDocuments.form");
   const tList = useTranslations("moneyDocuments.list");
   const tInvoice = useTranslations("invoices.form");
   const router = useRouter();
   const isEdit = !!editing;
   const [partyId, setPartyId] = useState<string | undefined>(editing?.partyId);
-  const [cashboxId, setCashboxId] = useState<string | undefined>(editing?.cashboxId ?? cashboxOptions[0]?.value);
+  const [cashboxId, setCashboxId] = useState<string | undefined>(editing?.cashboxId ?? serverCashboxOptions[0]?.value);
   const [amount, setAmount] = useState(editing?.amount ?? "");
   const [note, setNote] = useState(editing?.note ?? "");
   const [saving, setSaving] = useState(false);
   const [negativeCashWarning, setNegativeCashWarning] = useState<{ cashboxName: string; balanceAfter: number } | null>(
     null,
   );
+
+  const saveDocument = useOfflineAwareSave();
+  const offlineSnapshot = useOfflineFormSnapshot();
+  // Offline, options come from the device snapshot, built the way the server builds them:
+  // only parties with an open balance (plus the one already picked), cashbox balances for payments.
+  const { partyOptions, cashboxOptions } = useMemo((): {
+    partyOptions: PartyWithBalanceOption[];
+    cashboxOptions: CashboxWithBalanceOption[];
+  } => {
+    if (!offlineSnapshot || editing) return { partyOptions: serverPartyOptions, cashboxOptions: serverCashboxOptions };
+    const parties = documentType === "COLLECTION" ? offlineSnapshot.customers : offlineSnapshot.suppliers;
+    return {
+      partyOptions: parties
+        .filter((party) => decimal(party.balance).gt(0) || party.id === partyId)
+        .map((party) => ({ value: party.id, label: party.name, balance: party.balance })),
+      cashboxOptions: offlineSnapshot.cashboxes.map((cashbox) => ({
+        value: cashbox.id,
+        label: cashbox.name,
+        ...(documentType === "PAYMENT" ? { balance: cashbox.balance } : {}),
+      })),
+    };
+  }, [offlineSnapshot, editing, serverPartyOptions, serverCashboxOptions, documentType, partyId]);
 
   const selectedParty = partyOptions.find((p) => p.value === partyId);
   const currentBalance = selectedParty?.balance ?? "0";
@@ -70,9 +100,8 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, 
         ? documentType === "COLLECTION"
           ? await updateCollection({ ...input, id: editing.id })
           : await updatePayment({ ...input, id: editing.id })
-        : documentType === "COLLECTION"
-          ? await createCollection(input)
-          : await createPayment(input);
+        : await createOfflineAware();
+      if (!result) return;
       if (!result.success) return toast.error(result.error);
     } finally {
       setSaving(false);
@@ -83,6 +112,32 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, 
         : documentType === "COLLECTION" ? t("collectionSaved") : t("paymentSaved"),
     );
     router.push(documentType === "COLLECTION" ? "/collections" : "/payments");
+  }
+
+  /** Online: the server's answer, handled as before. Offline: queued on the device (null). */
+  async function createOfflineAware() {
+    if (!partyId || !cashboxId) return null;
+    const partyName = selectedParty?.label ?? null;
+    const outcome =
+      documentType === "COLLECTION"
+        ? await saveDocument({
+            kind: "collection",
+            payload: { customerId: partyId, cashboxId, amount, note },
+            partyName,
+            submit: createCollection,
+          })
+        : await saveDocument({
+            kind: "payment",
+            payload: { supplierId: partyId, cashboxId, amount, note },
+            partyName,
+            submit: createPayment,
+          });
+    if (outcome.mode === "queued") {
+      setPartyId(undefined);
+      setAmount("");
+      setNote("");
+    }
+    return outcome.mode === "online" ? outcome.result : null;
   }
 
   const title = isEdit

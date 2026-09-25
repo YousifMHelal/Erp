@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Money } from "@/components/shared/money";
-import { searchSaleProducts } from "@/actions/sales.actions";
+import { searchSaleProductsOfflineAware } from "@/lib/offline/product-search";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { useMergedRef } from "@/hooks/use-merged-ref";
 import { formatNumber } from "@/lib/format";
@@ -39,7 +39,7 @@ export function SaleProductSearch({
   });
 
   function loadDefaultResults() {
-    void searchSaleProducts("").then((result) => {
+    void searchSaleProductsOfflineAware("").then((result) => {
       if (result.success) setResults(result.data);
     });
   }
@@ -54,7 +54,7 @@ export function SaleProductSearch({
 
   const runSearch = useDebouncedCallback((value: string) => {
     const requestId = ++requestIdRef.current;
-    void searchSaleProducts(value).then((result) => {
+    void searchSaleProductsOfflineAware(value).then((result) => {
       if (requestId !== requestIdRef.current) return;
       if (!result.success) {
         setResults([]);

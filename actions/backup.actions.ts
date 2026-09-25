@@ -8,8 +8,9 @@ import { logError } from "@/lib/logger";
 import { AuthRequiredError, PermissionDeniedError, requireAuth, requirePermission } from "@/lib/auth-guard";
 import { isBackupReminderDue } from "@/lib/backup-reminder";
 import { BACKUP_MODELS, getModelsForScope, validateScopedRestore, wipeAllTables, writeAllTables, type BackupFile } from "@/lib/backup";
+import { createDefaultAdmin } from "@/lib/bootstrap-admin";
 import { prisma } from "@/lib/prisma";
-import { backupReminderSchema, restoreBackupSchema } from "@/lib/validations";
+import { backupReminderSchema, resetAllDataSchema, restoreBackupSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
 import type { ActionResult, BackupReminderSettings } from "@/types";
 
@@ -116,6 +117,46 @@ export async function restoreBackup(input: unknown): Promise<ActionResult<null>>
     return ok(null);
   } catch (error) {
     return actionError(error);
+  }
+}
+
+/**
+ * Factory reset: wipes every table and recreates only the default admin (admin / 123456), in one
+ * transaction so a failure leaves the data untouched. Guarded by the backup permission, the acting
+ * user's password and a typed confirmation phrase. No audit row survives the wipe, so the event is
+ * logged structurally instead.
+ */
+export async function resetAllData(input: unknown): Promise<ActionResult<null>> {
+  try {
+    const user = await requirePermission("settings.backup");
+    const parsed = resetAllDataSchema.safeParse(input);
+    if (!parsed.success) return fail(m.invalid, parsed.error.flatten().fieldErrors);
+    if (!(await bcrypt.compare(parsed.data.password, user.passwordHash))) return fail(m.backupWrongPassword);
+
+    await prisma.$transaction(
+      async (tx) => {
+        await wipeAllTables(tx);
+        await createDefaultAdmin(tx);
+      },
+      { timeout: 60_000 },
+    );
+
+    console.log(
+      JSON.stringify({
+        level: "warn",
+        time: new Date().toISOString(),
+        context: "settings.data.reset",
+        userId: user.id,
+        displayName: user.displayName,
+      }),
+    );
+    revalidatePath("/", "layout");
+    return ok(null);
+  } catch (error) {
+    if (error instanceof AuthRequiredError) return fail(m.unauthorized);
+    if (error instanceof PermissionDeniedError) return fail(m.forbidden);
+    logError("Data reset failed", error);
+    return fail(m.resetDataFailed);
   }
 }
 

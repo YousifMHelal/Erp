@@ -110,17 +110,17 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  createdSales           Invoice[]        @relation("InvoiceCreatedBy")
-  cancelledSales          Invoice[]        @relation("InvoiceCancelledBy")
-  stockMovements          StockMovement[]
-  cashMovements           CashMovement[]
-  partyTransactions       PartyTransaction[]
-  collections             Collection[]     @relation("CollectionCreatedBy")
-  cancelledCollections     Collection[]     @relation("CollectionCancelledBy")
-  payments                Payment[]        @relation("PaymentCreatedBy")
-  cancelledPayments        Payment[]        @relation("PaymentCancelledBy")
-  stocktakes              Stocktake[]
-  auditLogs                AuditLog[]
+  createdSales         Invoice[]          @relation("InvoiceCreatedBy")
+  cancelledSales       Invoice[]          @relation("InvoiceCancelledBy")
+  stockMovements       StockMovement[]
+  cashMovements        CashMovement[]
+  partyTransactions    PartyTransaction[]
+  collections          Collection[]       @relation("CollectionCreatedBy")
+  cancelledCollections Collection[]       @relation("CollectionCancelledBy")
+  payments             Payment[]          @relation("PaymentCreatedBy")
+  cancelledPayments    Payment[]          @relation("PaymentCancelledBy")
+  stocktakes           Stocktake[]
+  auditLogs            AuditLog[]
 
   @@index([roleId])
 }
@@ -151,16 +151,16 @@ model Category {
 }
 
 model Product {
-  id          String    @id @default(cuid())
-  sku         String    @unique
-  barcode     String?   @unique
-  name        String
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  id         String    @id @default(cuid())
+  sku        String    @unique
+  barcode    String?   @unique
+  name       String
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  baseUnitName  String
-  subUnitName   String
-  unitsPerBase  Decimal @db.Decimal(18, 4)
+  baseUnitName String
+  subUnitName  String
+  unitsPerBase Decimal @db.Decimal(18, 4)
 
   purchasePricePerBase Decimal @db.Decimal(14, 2)
   sellPricePerBase     Decimal @db.Decimal(14, 2)
@@ -174,9 +174,9 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  invoiceLines    InvoiceLine[]
-  stockMovements  StockMovement[]
-  stocktakeLines  StocktakeLine[]
+  invoiceLines   InvoiceLine[]
+  stockMovements StockMovement[]
+  stocktakeLines StocktakeLine[]
 
   @@index([categoryId])
   @@index([name])
@@ -198,10 +198,10 @@ model Customer {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  invoices           Invoice[]
-  cashMovements       CashMovement[]
-  partyTransactions   PartyTransaction[]
-  collections         Collection[]
+  invoices          Invoice[]
+  cashMovements     CashMovement[]
+  partyTransactions PartyTransaction[]
+  collections       Collection[]
 
   @@index([name])
 }
@@ -218,10 +218,10 @@ model Supplier {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  invoices           Invoice[]
-  cashMovements       CashMovement[]
-  partyTransactions   PartyTransaction[]
-  payments            Payment[]
+  invoices          Invoice[]
+  cashMovements     CashMovement[]
+  partyTransactions PartyTransaction[]
+  payments          Payment[]
 
   @@index([name])
 }
@@ -240,7 +240,7 @@ model Cashbox {
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
 
-  invoices     Invoice[]
+  invoices      Invoice[]
   cashMovements CashMovement[]
   collections   Collection[]
   payments      Payment[]
@@ -251,10 +251,12 @@ model Cashbox {
 // ---------------------------------------------------------------------------
 
 model Invoice {
-  id     String        @id @default(cuid())
-  number Int
-  type   InvoiceType
-  status InvoiceStatus @default(CONFIRMED)
+  id              String        @id @default(cuid())
+  number          Int
+  /// Set by offline-created documents so a retried sync can't create a duplicate.
+  clientRequestId String?       @unique
+  type            InvoiceType
+  status          InvoiceStatus @default(CONFIRMED)
 
   paymentStatus PaymentStatus
 
@@ -323,7 +325,7 @@ model InvoiceLine {
 
   costPerSubAtSale Decimal @db.Decimal(14, 4)
 
-  sortOrder Int @default(0)
+  sortOrder Int     @default(0)
   isCurrent Boolean @default(true)
 
   @@index([invoiceId])
@@ -341,8 +343,8 @@ model StockMovement {
   product   Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
   type      StockMovementType
 
-  qtyInSub      Decimal @db.Decimal(18, 4)
-  balanceAfter  Decimal @db.Decimal(18, 4)
+  qtyInSub       Decimal @db.Decimal(18, 4)
+  balanceAfter   Decimal @db.Decimal(18, 4)
   unitCostPerSub Decimal @db.Decimal(14, 4)
 
   refType String
@@ -354,7 +356,7 @@ model StockMovement {
   note String?
 
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
   createdAt   DateTime @default(now())
 
   @@index([productId])
@@ -439,8 +441,10 @@ model PartyTransaction {
 // ---------------------------------------------------------------------------
 
 model Collection {
-  id     String         @id @default(cuid())
-  number Int            @unique
+  id              String  @id @default(cuid())
+  number          Int     @unique
+  /// Set by offline-created documents so a retried sync can't create a duplicate.
+  clientRequestId String? @unique
 
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
@@ -466,8 +470,10 @@ model Collection {
 }
 
 model Payment {
-  id     String @id @default(cuid())
-  number Int    @unique
+  id              String  @id @default(cuid())
+  number          Int     @unique
+  /// Set by offline-created documents so a retried sync can't create a duplicate.
+  clientRequestId String? @unique
 
   supplierId String
   supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
@@ -552,9 +558,9 @@ model AuditLog {
 }
 
 model Notification {
-  id        String               @id @default(cuid())
-  type      NotificationType
-  severity  NotificationSeverity
+  id       String               @id @default(cuid())
+  type     NotificationType
+  severity NotificationSeverity
 
   titleKey   String
   bodyParams Json

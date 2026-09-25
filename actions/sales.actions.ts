@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
 import { restampDocumentCash } from "@/lib/cash-ledger";
+import { isClientRequestIdConflict } from "@/lib/idempotency";
 import { restampDocumentPartyEntries } from "@/lib/party-ledger";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
@@ -92,12 +93,20 @@ export async function createSale(
     const parsed = createSaleSchema.safeParse(input);
     if (!parsed.success)
       return fail(m.invalid, parsed.error.flatten().fieldErrors);
+    if (parsed.data.clientRequestId) {
+      const existing = await prisma.invoice.findUnique({
+        where: { clientRequestId: parsed.data.clientRequestId },
+        select: { id: true, number: true },
+      });
+      if (existing) return ok(existing);
+    }
     const invoice = await saleTransaction(async (tx) => {
       const sale = await prepareSale(tx, parsed.data);
       const number = await nextDocumentNumber(tx, "SALE");
       const created = await tx.invoice.create({
         data: {
           number,
+          clientRequestId: parsed.data.clientRequestId,
           type: "SALE",
           paymentStatus: sale.paymentStatus,
           customerId: parsed.data.customerId,
@@ -142,6 +151,13 @@ export async function createSale(
     revalidatePath("/inventory");
     return ok(invoice);
   } catch (error) {
+    if (isClientRequestIdConflict(error)) {
+      const raced = await prisma.invoice.findFirst({
+        where: { clientRequestId: (input as { clientRequestId?: string }).clientRequestId },
+        select: { id: true, number: true },
+      });
+      if (raced) return ok(raced);
+    }
     return actionError(error);
   }
 }

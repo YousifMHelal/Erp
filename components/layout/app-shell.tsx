@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { OfflineBanner } from "@/components/pwa/offline-banner";
+import { OfflineProvider } from "@/components/pwa/offline-provider";
 import type { AppShellProps } from "@/types";
 
 export function AppShell({ children, unreadNotificationCount, currentUser }: AppShellProps) {
@@ -20,6 +22,7 @@ export function AppShell({ children, unreadNotificationCount, currentUser }: App
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar unreadNotificationCount={unreadNotificationCount} currentUser={currentUser} />
+        <OfflineBanner />
         <main
           id="main-content"
           tabIndex={-1}
@@ -28,6 +31,7 @@ export function AppShell({ children, unreadNotificationCount, currentUser }: App
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
+      <OfflineProvider userId={currentUser?.id} />
     </div>
   );
 }

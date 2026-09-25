@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { SettingsNav } from "@/components/settings/settings-nav";
 import { BackupPanel } from "@/components/settings/backup-panel";
+import { ResetDataCard } from "@/components/settings/reset-data-card";
 
 export default async function SettingsBackupPage() {
   const [t, reminder] = await Promise.all([getTranslations("settings"), getBackupReminder()]);
@@ -25,6 +26,7 @@ export default async function SettingsBackupPage() {
       <div className="flex flex-col gap-4">
         <SettingsNav />
         <BackupPanel reminder={reminder.data} />
+        <ResetDataCard />
       </div>
     </>
   );

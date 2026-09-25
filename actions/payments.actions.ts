@@ -4,8 +4,9 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
-import { removeDocumentCash, restampDocumentCash } from "@/lib/cash-ledger";
-import { removeDocumentPartyEntries, restampDocumentPartyEntries } from "@/lib/party-ledger";
+import { rebuildCashboxRunningBalance, removeDocumentCash, restampDocumentCash } from "@/lib/cash-ledger";
+import { isClientRequestIdConflict } from "@/lib/idempotency";
+import { rebuildPartyRunningBalance, removeDocumentPartyEntries, restampDocumentPartyEntries } from "@/lib/party-ledger";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
 import { nextDocumentNumber } from "@/lib/numbering";
@@ -104,8 +105,12 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
     const user = await requirePermission("payment.create");
     const parsed = createPaymentSchema.safeParse(input);
     if (!parsed.success) return fail(m.invalid, parsed.error.flatten().fieldErrors);
-    const { supplierId, cashboxId, note } = parsed.data;
+    const { supplierId, cashboxId, note, clientRequestId } = parsed.data;
     const amount = new Prisma.Decimal(parsed.data.amount);
+    if (clientRequestId) {
+      const existing = await prisma.payment.findUnique({ where: { clientRequestId }, select: { id: true, number: true } });
+      if (existing) return ok(existing);
+    }
     const created = await prisma.$transaction(async (tx) => {
       const [supplier, cashbox] = await Promise.all([
         tx.supplier.findUnique({ where: { id: supplierId } }),
@@ -121,9 +126,9 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
       // A cashbox may go negative — the form warns before submitting.
       const updatedCashbox = await tx.cashbox.update({ where: { id: cashboxId }, data: { balance: { decrement: amount } } });
       const number = await nextDocumentNumber(tx, "PAYMENT");
-      const occurredAt = new Date();
+      const occurredAt = parsed.data.occurredAt ?? new Date();
       const payment = await tx.payment.create({
-        data: { number, supplierId, cashboxId, amount, note, occurredAt, createdById: user.id },
+        data: { number, supplierId, cashboxId, amount, note, occurredAt, clientRequestId, createdById: user.id },
       });
       await tx.cashMovement.create({ data: {
         cashboxId, type: "SUPPLIER_PAYMENT", amount: amount.negated(), balanceAfter: updatedCashbox.balance,
@@ -134,6 +139,11 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
         balanceAfter: updatedSupplier.balance, refType: "PAYMENT", refId: payment.id,
         note, occurredAt, createdById: user.id,
       } });
+      if (parsed.data.occurredAt) {
+        // Back-dated (offline) entry: later rows' running balances shift.
+        await rebuildCashboxRunningBalance(tx, cashboxId);
+        await rebuildPartyRunningBalance(tx, { kind: "supplier", id: supplierId });
+      }
       await syncNotifications(tx, { supplierIds: [supplierId] });
       await writeAudit(tx, {
         userId: user.id, action: "payment.create", entityType: "Payment",
@@ -147,6 +157,13 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
     revalidatePath(`/suppliers/${supplierId}`);
     return ok(created);
   } catch (error) {
+    if (isClientRequestIdConflict(error)) {
+      const raced = await prisma.payment.findFirst({
+        where: { clientRequestId: (input as { clientRequestId?: string }).clientRequestId },
+        select: { id: true, number: true },
+      });
+      if (raced) return ok(raced);
+    }
     return actionError(error);
   }
 }

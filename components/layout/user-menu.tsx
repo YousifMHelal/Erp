@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/actions/auth.actions";
+import { clearOfflineSession } from "@/lib/offline/snapshot";
 import { avatarColorClass, cn } from "@/lib/utils";
 import type { UserMenuProps } from "@/types";
 
@@ -68,7 +69,11 @@ export function UserMenu({ className, currentUser }: UserMenuProps) {
           disabled={isPending}
           onSelect={(event) => {
             event.preventDefault();
-            startTransition(() => signOutAction());
+            // The device copy of this user's data goes; queued documents stay for their next sign-in.
+            startTransition(async () => {
+              await clearOfflineSession();
+              await signOutAction();
+            });
           }}
         >
           <LogOut />

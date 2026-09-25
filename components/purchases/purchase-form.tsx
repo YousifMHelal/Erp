@@ -15,8 +15,16 @@ import { formatMoney } from "@/lib/format";
 import { Money } from "@/components/shared/money";
 import { PurchaseProductSearch } from "@/components/purchases/purchase-product-search";
 import { useHotkeys } from "@/hooks/use-hotkeys";
+import { useOfflineAwareSave } from "@/hooks/use-offline-aware-save";
+import { useOfflineFormSnapshot } from "@/hooks/use-offline-form-snapshot";
 import { createPurchase, updatePurchase } from "@/actions/purchases.actions";
-import type { InvoiceLineDraft, PurchaseFormProps, SaleProductOption } from "@/types";
+import type {
+  InvoiceLineDraft,
+  OfflinePurchasePayload,
+  PurchaseFormOptions,
+  PurchaseFormProps,
+  SaleProductOption,
+} from "@/types";
 
 let lineIdCounter = 0;
 
@@ -45,6 +53,20 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
     null,
   );
   const productSearchRef = useRef<HTMLInputElement>(null);
+  const saveDocument = useOfflineAwareSave();
+  const offlineSnapshot = useOfflineFormSnapshot();
+  // Offline, the device snapshot (with this device's unsynced entries applied) replaces the
+  // possibly-cached server options — including the cashbox balances behind the negative-cash warning.
+  const formOptions = useMemo<PurchaseFormOptions>(
+    () =>
+      offlineSnapshot
+        ? {
+            suppliers: offlineSnapshot.suppliers.map(({ id, name }) => ({ id, name })),
+            cashboxes: offlineSnapshot.cashboxes,
+          }
+        : options,
+    [offlineSnapshot, options],
+  );
 
   const subtotal = useMemo(
     () => lines.reduce((sum, line) => sum + line.lineTotal, 0),
@@ -109,7 +131,7 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
       return;
     }
 
-    const cashbox = options.cashboxes.find((entry) => entry.id === cashboxId);
+    const cashbox = formOptions.cashboxes.find((entry) => entry.id === cashboxId);
     if (cashbox?.balance !== undefined) {
       // On edit, this invoice's old payment goes back into its cashbox before the new one comes out.
       const refunded =
@@ -125,7 +147,8 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
 
   function submitPurchase() {
     setNegativeCashWarning(null);
-    const payload = {
+    if (!cashboxId) return;
+    const payload: OfflinePurchasePayload = {
       supplierId,
       cashboxId,
       discountAmount: discountAmount.toFixed(2),
@@ -145,7 +168,8 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
             id: initialPurchase.id,
             updatedAt: initialPurchase.updatedAt,
           })
-        : await createPurchase(payload);
+        : await createPurchaseOfflineAware(payload);
+      if (!result) return;
 
       if (!result.success) {
         const fieldError = Object.values(result.fieldErrors ?? {})
@@ -163,6 +187,26 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
       }
       setSavedInvoiceId(result.data.id);
     });
+  }
+
+  /** Online: the server's answer, handled as before. Offline: queued on the device (null). */
+  async function createPurchaseOfflineAware(payload: OfflinePurchasePayload) {
+    const outcome = await saveDocument({
+      kind: "purchase",
+      payload,
+      partyName: formOptions.suppliers.find((supplier) => supplier.id === supplierId)?.name ?? null,
+      submit: createPurchase,
+    });
+    if (outcome.mode === "queued") resetForNextPurchase();
+    return outcome.mode === "online" ? outcome.result : null;
+  }
+
+  function resetForNextPurchase() {
+    setLines([]);
+    setDiscountAmount(0);
+    setPaidAmount(0);
+    setSupplierId(undefined);
+    productSearchRef.current?.focus();
   }
 
   function finishAfterSave(invoiceId: string) {
@@ -203,10 +247,10 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
           />
           <PaymentPanel
             documentType="PURCHASE"
-            cashboxOptions={options.cashboxes.map((c) => ({ value: c.id, label: c.name }))}
+            cashboxOptions={formOptions.cashboxes.map((c) => ({ value: c.id, label: c.name }))}
             cashboxId={cashboxId}
             onCashboxChange={setCashboxId}
-            partyOptions={options.suppliers.map((s) => ({ value: s.id, label: s.name }))}
+            partyOptions={formOptions.suppliers.map((s) => ({ value: s.id, label: s.name }))}
             partyId={supplierId}
             onPartyChange={setSupplierId}
             paidAmount={paidAmount}

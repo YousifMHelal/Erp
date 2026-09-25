@@ -133,7 +133,10 @@ function checkSaleAmounts(sale: z.infer<typeof saleFieldsSchema>, context: z.Ref
   }
 }
 
-export const createSaleSchema = saleFieldsSchema.superRefine(checkSaleAmounts);
+/** Set on documents created offline; a retried sync with the same id returns the original instead of duplicating it. */
+const clientRequestId = z.string().uuid().optional();
+
+export const createSaleSchema = saleFieldsSchema.extend({ clientRequestId }).superRefine(checkSaleAmounts);
 
 export const updateSaleSchema = saleFieldsSchema.extend({
   id: z.string().trim().min(1, v.required).max(80, v.long),
@@ -177,7 +180,7 @@ function checkPurchaseAmounts(
   }
 }
 
-export const createPurchaseSchema = purchaseFieldsSchema.superRefine(checkPurchaseAmounts);
+export const createPurchaseSchema = purchaseFieldsSchema.extend({ clientRequestId }).superRefine(checkPurchaseAmounts);
 
 export const updatePurchaseSchema = purchaseFieldsSchema.extend({
   id: z.string().trim().min(1, v.required).max(80, v.long),
@@ -329,25 +332,41 @@ export const transferCashSchema = z.object({
   path: ["toCashboxId"], message: messages.cashboxes.transferDialog.errorSameCashbox,
 });
 
-export const createCollectionSchema = z.object({
-  customerId: partyIdSchema,
+const moneyDocumentFields = {
   cashboxId: partyIdSchema,
   amount: positiveMoney,
   note: optionalNote,
+};
+
+/** Offline-created collections/payments carry their real time, so a later sync doesn't re-date them. */
+const offlineOccurredAt = z.coerce
+  .date()
+  .refine((date) => date.getTime() <= Date.now() + 5 * 60_000, v.invalid)
+  .optional();
+
+export const createCollectionSchema = z.object({
+  customerId: partyIdSchema,
+  ...moneyDocumentFields,
+  clientRequestId,
+  occurredAt: offlineOccurredAt,
 });
 
-export const updateCollectionSchema = createCollectionSchema.extend({
+export const updateCollectionSchema = z.object({
+  customerId: partyIdSchema,
+  ...moneyDocumentFields,
   id: partyIdSchema,
 });
 
 export const createPaymentSchema = z.object({
   supplierId: partyIdSchema,
-  cashboxId: partyIdSchema,
-  amount: positiveMoney,
-  note: optionalNote,
+  ...moneyDocumentFields,
+  clientRequestId,
+  occurredAt: offlineOccurredAt,
 });
 
-export const updatePaymentSchema = createPaymentSchema.extend({
+export const updatePaymentSchema = z.object({
+  supplierId: partyIdSchema,
+  ...moneyDocumentFields,
   id: partyIdSchema,
 });
 
@@ -483,6 +502,13 @@ export const printTemplateSchema = printTemplateLayoutSchema.extend({
     address: z.string().trim().max(300, v.long),
     invoiceFooter: z.string().trim().max(500, v.long).optional(),
   }),
+});
+
+export const RESET_DATA_CONFIRM_PHRASE = "حذف كل البيانات";
+
+export const resetAllDataSchema = z.object({
+  password: z.string().min(1, v.required).max(72, v.long),
+  confirmPhrase: z.literal(RESET_DATA_CONFIRM_PHRASE),
 });
 
 export const restoreBackupSchema = z.object({

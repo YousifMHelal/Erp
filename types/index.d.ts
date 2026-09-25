@@ -2088,3 +2088,97 @@ export type ProfileFormProps = {
 };
 
 export type ChangePasswordFormProps = Record<string, never>;
+
+// --- Offline mode ---
+
+export type OfflineProduct = {
+  id: string;
+  name: string;
+  sku: string;
+  barcode: string | null;
+  baseUnitName: string;
+  subUnitName: string;
+  unitsPerBase: string;
+  stockQty: string;
+  salePricePerBase: string;
+  salePricePerSub: string;
+  purchasePricePerBase: string;
+  purchasePricePerSub: string;
+};
+export type OfflineParty = { id: string; name: string; balance: string };
+/** Device-side copy of the data needed to create documents while offline. */
+export type OfflineSnapshot = {
+  generatedAt: string;
+  userId: string;
+  permissions: { sale: boolean; purchase: boolean; collection: boolean; payment: boolean };
+  products: OfflineProduct[];
+  customers: OfflineParty[];
+  suppliers: OfflineParty[];
+  cashboxes: OfflineParty[];
+};
+
+// --- Offline mode: device side ---
+
+export type OutboxKind = "sale" | "purchase" | "collection" | "payment";
+export type OutboxStatus = "pending" | "syncing" | "failed";
+
+export type OfflineInvoiceLinePayload = { productId: string; unitType: UnitType; qtyInUnit: string; unitPrice: string };
+type OfflineInvoicePayloadBase = {
+  cashboxId: string;
+  discountAmount: string;
+  paidAmount: string;
+  lines: OfflineInvoiceLinePayload[];
+  /** Shop-local `yyyy-MM-dd` — set when saved offline so a next-day sync keeps the real date. */
+  issuedAt?: string;
+  clientRequestId?: string;
+};
+export type OfflineSalePayload = OfflineInvoicePayloadBase & { customerId?: string };
+export type OfflinePurchasePayload = OfflineInvoicePayloadBase & { supplierId?: string };
+type OfflineMoneyPayloadBase = {
+  cashboxId: string;
+  amount: string;
+  note?: string;
+  /** ISO datetime of the offline creation. */
+  occurredAt?: string;
+  clientRequestId?: string;
+};
+export type OfflineCollectionPayload = OfflineMoneyPayloadBase & { customerId: string };
+export type OfflinePaymentPayload = OfflineMoneyPayloadBase & { supplierId: string };
+
+export type OutboxOperation =
+  | { kind: "sale"; payload: OfflineSalePayload }
+  | { kind: "purchase"; payload: OfflinePurchasePayload }
+  | { kind: "collection"; payload: OfflineCollectionPayload }
+  | { kind: "payment"; payload: OfflinePaymentPayload };
+
+/** A document saved on this device, waiting to be sent to the server. */
+export type OutboxItem = OutboxOperation & {
+  clientRequestId: string;
+  userId: string;
+  /** Display-only: party name at save time (null = walk-in / cash party). */
+  partyName: string | null;
+  /** Display-only: invoice total or money-document amount. */
+  amount: string;
+  createdAt: string;
+  status: OutboxStatus;
+  error?: string;
+  attempts: number;
+  serverNumber?: number;
+};
+
+export type OutboxSyncResult = { synced: number; failed: number; transientError: boolean; skipped: boolean };
+
+export type DocumentCreateResult = ActionResult<{ id: string; number: number }>;
+
+export type OfflineAwareSaveRequest<P extends OutboxOperation["payload"]> = {
+  kind: OutboxKind;
+  payload: P;
+  partyName: string | null;
+  submit: (payload: P & { clientRequestId: string }) => Promise<DocumentCreateResult>;
+};
+/** `online`: the server answered (success or business rejection). `queued`: kept in the outbox. `blocked`: neither — already toasted. */
+export type OfflineAwareSaveOutcome = { mode: "online"; result: DocumentCreateResult } | { mode: "queued" } | { mode: "blocked" };
+
+export type OfflineProviderProps = { userId?: string };
+export type OutboxSheetProps = { open: boolean; onOpenChange: (open: boolean) => void };
+export type OutboxItemCardProps = { item: OutboxItem; onRetry: (item: OutboxItem) => void; onDiscard: (item: OutboxItem) => void };

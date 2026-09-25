@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { GlobalSearch } from "@/components/layout/global-search";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { UserMenu } from "@/components/layout/user-menu";
+import { SyncStatusPill } from "@/components/pwa/sync-status-pill";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { cn } from "@/lib/utils";
 import { getBreadcrumbs } from "@/lib/breadcrumbs";
@@ -29,6 +30,7 @@ export function Topbar({ className, unreadNotificationCount, currentUser }: Topb
       <Breadcrumb items={items} />
       <div className="ms-auto flex items-center gap-1.5">
         <GlobalSearch />
+        <SyncStatusPill />
         <NotificationBell unreadCount={unreadNotificationCount} />
         <ThemeToggle />
         <UserMenu currentUser={currentUser} />
