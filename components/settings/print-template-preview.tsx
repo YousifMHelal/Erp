@@ -33,10 +33,13 @@ export function PrintTemplatePreview({ template, size }: PrintTemplatePreviewPro
     documentTypeLabel: "فاتورة بيع",
     number: 1042,
     issuedAt: "2026-09-21",
+    issuedTime: "3:45 م",
     cashierName: "أحمد سعيد",
     partyLabel: "العميل",
     partyName: "بقالة النور",
+    partyCompanyName: "شركة النور للتجارة",
     partyPhone: "01012345678",
+    partyAddress: "شارع الجمهورية - بنها",
     lines: SAMPLE_LINES,
     subtotal: "1450.00",
     discountAmount: "200.00",
@@ -56,9 +59,9 @@ export function PrintTemplatePreview({ template, size }: PrintTemplatePreviewPro
         <div className="flex justify-center overflow-auto p-4">
           <div style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}>
             {size === "A5" ? (
-              <PrintLayoutA5 data={sampleData} />
+              <PrintLayoutA5 data={sampleData} infoColumns={template.infoColumns} totalsRows={template.totalsRows} />
             ) : size === "80mm" ? (
-              <PrintLayout80mm data={sampleData} />
+              <PrintLayout80mm data={sampleData} totalsRows={template.totalsRows} />
             ) : (
               <PrintLayoutA4 data={sampleData} infoColumns={template.infoColumns} totalsRows={template.totalsRows} />
             )}

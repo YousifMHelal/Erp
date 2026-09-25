@@ -14,23 +14,25 @@ export function InvoiceLinesTable({ lines }: InvoiceLinesTableProps) {
         <Table>
           <TableHeader className="bg-muted">
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-14 pe-6 text-center text-label">#</TableHead>
               <TableHead className="text-label">{t("columnProduct")}</TableHead>
-              <TableHead className="text-label">{t("columnUnit")}</TableHead>
-              <TableHead className="text-label">{t("columnQty")}</TableHead>
-              <TableHead className="text-label">{t("columnPrice")}</TableHead>
-              <TableHead className="text-label text-end">{t("columnTotal")}</TableHead>
+              <TableHead className="text-center text-label">{t("columnUnit")}</TableHead>
+              <TableHead className="text-center text-label">{t("columnQty")}</TableHead>
+              <TableHead className="text-center text-label">{t("columnPrice")}</TableHead>
+              <TableHead className="text-center text-label">{t("columnTotal")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lines.map((line) => (
+            {lines.map((line, index) => (
               <TableRow key={line.id}>
+                <TableCell className="w-14 pe-6 text-center text-muted-foreground tabular-nums">{index + 1}</TableCell>
                 <TableCell className="font-medium">{line.productName}</TableCell>
-                <TableCell>{line.unitName}</TableCell>
-                <TableCell className="tabular-nums">{formatNumber(line.qty)}</TableCell>
-                <TableCell>
+                <TableCell className="text-center">{line.unitName}</TableCell>
+                <TableCell className="text-center tabular-nums">{formatNumber(line.qty)}</TableCell>
+                <TableCell className="text-center">
                   <Money value={line.unitPrice} />
                 </TableCell>
-                <TableCell className="text-end font-medium">
+                <TableCell className="text-center font-medium">
                   <Money value={line.lineTotal} />
                 </TableCell>
               </TableRow>

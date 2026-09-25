@@ -25,9 +25,9 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
   const expanded = useUiStore((s) => s.sidebarExpanded);
 
   return (
-    <nav className="flex flex-col gap-6 overflow-y-auto px-3 py-4">
+    <nav className="flex flex-col gap-6 overflow-y-auto px-3 py-4 lg:gap-4 lg:py-3">
       {NAV_GROUPS.map((group) => (
-        <div key={group.labelKey} className="flex flex-col gap-1">
+        <div key={group.labelKey} className="flex flex-col gap-1 lg:gap-0.5">
           <span className="px-3 text-caption font-medium text-sidebar-foreground/60 group-data-[expanded=false]/sidebar:sr-only">
             {t(group.labelKey)}
           </span>
@@ -41,7 +41,7 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
                 onClick={onNavigate}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "relative flex min-h-11 items-center gap-3 rounded-md px-3 text-body-sm font-medium text-sidebar-foreground transition-colors duration-200",
+                  "relative flex min-h-11 items-center gap-3 rounded-md px-3 text-body-sm font-medium lg:min-h-9 text-sidebar-foreground transition-colors duration-200",
                   "hover:bg-sidebar-accent/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                   isActive && "bg-sidebar-accent text-white",
                 )}

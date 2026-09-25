@@ -9,6 +9,7 @@ import { LineItemsTable } from "@/components/shared/invoice/line-items-table";
 import { TotalsPanel } from "@/components/shared/invoice/totals-panel";
 import { PaymentPanel } from "@/components/shared/invoice/payment-panel";
 import { HotkeyBar } from "@/components/shared/invoice/hotkey-bar";
+import { PrintPromptDialog } from "@/components/shared/invoice/print-prompt-dialog";
 import { Money } from "@/components/shared/money";
 import { SaleProductSearch } from "@/components/sales/sale-product-search";
 import { useHotkeys } from "@/hooks/use-hotkeys";
@@ -44,6 +45,7 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
     initialSale?.cashboxId ?? options.cashboxes[0]?.id,
   );
   const [isPending, startTransition] = useTransition();
+  const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null);
   const productSearchRef = useRef<HTMLInputElement>(null);
 
   /**
@@ -208,11 +210,17 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
 
       const number = String(result.data.number).padStart(6, "0");
       toast.success(tAction(isEditMode ? "updated" : "created", { number }));
-      if (!isEditMode) {
-        window.open(`/print/${result.data.id}?size=A4`, "_blank", "noopener,noreferrer");
+      if (isEditMode) {
+        router.push(`/sales/${result.data.id}`);
+        return;
       }
-      router.push(`/sales/${result.data.id}`);
+      setSavedInvoiceId(result.data.id);
     });
+  }
+
+  function finishAfterSave(invoiceId: string) {
+    setSavedInvoiceId(null);
+    router.push(`/sales/${invoiceId}`);
   }
 
   useHotkeys({
@@ -289,6 +297,8 @@ export function SaleForm({ options, initialSale }: SaleFormProps) {
           {saveLabel}
         </Button>
       </div>
+
+      <PrintPromptDialog invoiceId={savedInvoiceId} onFinish={finishAfterSave} />
     </div>
   );
 }

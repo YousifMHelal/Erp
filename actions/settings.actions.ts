@@ -9,12 +9,13 @@ import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/l
 import { ALL_PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import {
-  categorySchema, partyIdSchema, printPreferencesSchema, roleSchema,
+  categorySchema, partyIdSchema, printPreferencesSchema, printTemplateSchema, roleSchema,
   settingsCashboxSchema, settingsUserSchema, shopProfileSchema,
 } from "@/lib/validations";
+import { PRINT_TEMPLATE_SETTING_KEY, loadPrintTemplateLayout } from "@/lib/print-template";
 import messages from "@/messages/ar.json";
 import type {
-  ActionResult, CategoryRow, RoleRow, SettingsCashboxRow, SettingsOverview,
+  ActionResult, CategoryRow, PrintTemplateLayout, RoleRow, SettingsCashboxRow, SettingsOverview,
   SettingsUserRow, SettingsUsersData,
 } from "@/types";
 
@@ -54,6 +55,54 @@ export async function saveShopProfile(input: unknown): Promise<ActionResult<null
       await writeAudit(tx, { userId: user.id, action: "settings.profile.update", entityType: "Setting", entityId: "shop", entityLabel: parsed.data.name, after: parsed.data });
     });
     revalidatePath("/settings"); return ok(null);
+  } catch (error) { return actionError(error); }
+}
+
+export async function getPrintTemplate(): Promise<ActionResult<{ layout: PrintTemplateLayout | null; phone2?: string }>> {
+  try {
+    await requirePermission("settings.manage");
+    const [layout, phone2] = await Promise.all([
+      loadPrintTemplateLayout(),
+      prisma.setting.findUnique({ where: { key: "shop.phone2" } }),
+    ]);
+    return ok({ layout, phone2: typeof phone2?.value === "string" && phone2.value ? phone2.value : undefined });
+  } catch (error) { return actionError(error); }
+}
+
+export async function savePrintTemplate(input: unknown): Promise<ActionResult<null>> {
+  try {
+    const user = await requirePermission("settings.manage");
+    const parsed = printTemplateSchema.safeParse(input);
+    if (!parsed.success) return fail(m.invalid, parsed.error.flatten().fieldErrors);
+    const { shop, ...layout } = parsed.data;
+    const shopEntries: [string, string][] = [
+      ["shop.name", shop.name],
+      ["shop.phone", shop.phone],
+      ["shop.phone2", shop.phone2 ?? ""],
+      ["shop.address", shop.address],
+      ["shop.invoiceFooter", shop.invoiceFooter ?? ""],
+    ];
+    await prisma.$transaction(async (tx) => {
+      for (const [key, value] of shopEntries) {
+        await tx.setting.upsert({ where: { key }, create: { key, value }, update: { value } });
+      }
+      await tx.setting.upsert({
+        where: { key: PRINT_TEMPLATE_SETTING_KEY },
+        create: { key: PRINT_TEMPLATE_SETTING_KEY, value: layout },
+        update: { value: layout },
+      });
+      // Logo is omitted from the audit row — it's a large base64 blob with no audit value.
+      await writeAudit(tx, {
+        userId: user.id,
+        action: "settings.printTemplate.update",
+        entityType: "Setting",
+        entityId: PRINT_TEMPLATE_SETTING_KEY,
+        entityLabel: m.printTemplate,
+        after: { ...layout, logoDataUrl: layout.logoDataUrl ? "[image]" : undefined, shop },
+      });
+    });
+    revalidatePath("/settings/print-template");
+    return ok(null);
   } catch (error) { return actionError(error); }
 }
 
@@ -125,11 +174,17 @@ export async function saveSettingsCashbox(id: string | undefined, input: unknown
   try {
     const user = await requirePermission("settings.manage");
     const parsed = settingsCashboxSchema.safeParse(input); if (!parsed.success) return fail(m.invalid, parsed.error.flatten().fieldErrors);
+    const duplicate = await prisma.cashbox.findFirst({
+      where: { name: { equals: parsed.data.name, mode: "insensitive" }, ...(id ? { NOT: { id } } : {}) },
+      select: { id: true },
+    });
+    if (duplicate) return fail(m.cashboxNameTaken, { name: [m.cashboxNameTaken] });
     const row = await prisma.$transaction(async (tx) => {
       const cashbox = id ? await tx.cashbox.update({ where: { id }, data: parsed.data }) : await tx.cashbox.create({ data: { ...parsed.data, openingBalance: 0, balance: 0, sortOrder: await tx.cashbox.count() } });
       await writeAudit(tx, { userId: user.id, action: id ? "cashbox.update" : "cashbox.create", entityType: "Cashbox", entityId: cashbox.id, entityLabel: cashbox.name, after: parsed.data }); return cashbox;
     });
-    revalidatePath("/settings/cashboxes"); return ok({ ...row, description: row.description ?? undefined });
+    revalidatePath("/settings/cashboxes");
+    return ok({ id: row.id, name: row.name, description: row.description ?? undefined, isActive: row.isActive, sortOrder: row.sortOrder });
   } catch (error) { return actionError(error); }
 }
 

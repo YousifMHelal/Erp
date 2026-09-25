@@ -30,7 +30,9 @@ export function CustomerInvoicesTab({ partyType, invoices }: CustomerInvoicesTab
               <TableHead className="text-label">{t("columnDate")}</TableHead>
               <TableHead className="text-label">{t("columnNumber")}</TableHead>
               <TableHead className="text-label">{t("columnPaymentStatus")}</TableHead>
-              <TableHead className="text-label text-end">{t("columnTotal")}</TableHead>
+              <TableHead className="text-center text-label">{t("columnTotal")}</TableHead>
+              <TableHead className="text-center text-label">{t("columnPaid")}</TableHead>
+              <TableHead className="text-center text-label">{t("columnRemaining")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -51,8 +53,14 @@ export function CustomerInvoicesTab({ partyType, invoices }: CustomerInvoicesTab
                 <TableCell>
                   <StatusBadge tone={PAYMENT_STATUS_TONE[invoice.paymentStatus]} label={tStatus(invoice.paymentStatus)} />
                 </TableCell>
-                <TableCell className="text-end">
+                <TableCell className="text-center">
                   <Money value={invoice.total} />
+                </TableCell>
+                <TableCell className="text-center">
+                  <Money value={invoice.paidAmount} className="text-success-fg" />
+                </TableCell>
+                <TableCell className="text-center">
+                  <Money value={invoice.remainingAmount} className={Number(invoice.remainingAmount) > 0 ? "text-danger-fg" : undefined} />
                 </TableCell>
               </TableRow>
             ))}
@@ -74,6 +82,15 @@ export function CustomerInvoicesTab({ partyType, invoices }: CustomerInvoicesTab
                 <div className="flex items-center justify-between text-body-sm text-muted-foreground">
                   <span className="tabular-nums">{formatDate(invoice.issuedAt)}</span>
                   <Money value={invoice.total} className="font-medium text-foreground" />
+                </div>
+                <div className="flex items-center justify-between text-body-sm">
+                  <span className="text-muted-foreground">
+                    {t("columnPaid")}: <Money value={invoice.paidAmount} className="text-success-fg" />
+                  </span>
+                  <span className="text-muted-foreground">
+                    {t("columnRemaining")}:{" "}
+                    <Money value={invoice.remainingAmount} className={Number(invoice.remainingAmount) > 0 ? "text-danger-fg" : undefined} />
+                  </span>
                 </div>
               </CardContent>
             </Card>

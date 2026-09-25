@@ -22,6 +22,8 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
 
   const [cashboxes, setCashboxes] = useState(initialCashboxes);
   const [formOpen, setFormOpen] = useState(false);
+  // Bumped on every open so the form dialog remounts with fresh fields, even for back-to-back "new" entries.
+  const [formSession, setFormSession] = useState(0);
   const [editingCashbox, setEditingCashbox] = useState<SettingsCashboxRow | undefined>(undefined);
   const [deletingCashbox, setDeletingCashbox] = useState<SettingsCashboxRow | undefined>(undefined);
 
@@ -63,6 +65,7 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
               aria-label={t("editCashbox")}
               onClick={() => {
                 setEditingCashbox(row.original);
+                setFormSession((session) => session + 1);
                 setFormOpen(true);
               }}
             >
@@ -110,6 +113,7 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
                     className="max-md:min-h-11 max-md:min-w-11"
                     onClick={() => {
                       setEditingCashbox(row);
+                      setFormSession((session) => session + 1);
                       setFormOpen(true);
                     }}
                   >
@@ -140,6 +144,7 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
               variant="primary"
               onClick={() => {
                 setEditingCashbox(undefined);
+                setFormSession((session) => session + 1);
                 setFormOpen(true);
               }}
             >
@@ -149,7 +154,7 @@ export function SettingsCashboxesTable({ cashboxes: initialCashboxes }: { cashbo
         }
       />
 
-      <SettingsCashboxFormDialog key={editingCashbox?.id ?? "new"} open={formOpen} onOpenChange={setFormOpen} cashbox={editingCashbox} onSave={handleSave} />
+      <SettingsCashboxFormDialog key={`${editingCashbox?.id ?? "new"}-${formSession}`} open={formOpen} onOpenChange={setFormOpen} cashbox={editingCashbox} onSave={handleSave} />
 
       <ConfirmDialog
         open={!!deletingCashbox}

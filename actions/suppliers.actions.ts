@@ -56,7 +56,7 @@ export async function getSupplierDetail(id: string): Promise<ActionResult<PartyD
       prisma.invoice.findMany({ where: { supplierId, type: "PURCHASE" }, orderBy: { issuedAt: "desc" } }),
       prisma.payment.findMany({ where: { supplierId }, include: { cashbox: true }, orderBy: { occurredAt: "desc" } }),
       prisma.partyTransaction.findMany({
-        where: { supplierId }, include: { invoice: { select: { id: true, number: true } } },
+        where: { supplierId }, include: { invoice: { select: { id: true, number: true, total: true, paidAmount: true } } },
         orderBy: [{ occurredAt: "asc" }, { createdAt: "asc" }, { id: "asc" }],
       }),
     ]);
@@ -70,6 +70,8 @@ export async function getSupplierDetail(id: string): Promise<ActionResult<PartyD
       credit: transaction.credit.toString(),
       invoiceId: transaction.invoice?.id,
       invoiceNumber: transaction.invoice?.number,
+      invoiceTotal: transaction.invoice?.total.toString(),
+      invoicePaid: transaction.invoice?.paidAmount.toString(),
       referenceNumber: transaction.refType === "PAYMENT" ? paymentNumbers.get(transaction.refId) : undefined,
       referenceType: transaction.refType === "PAYMENT" ? "PAYMENT" : undefined,
     }));
@@ -85,6 +87,7 @@ export async function getSupplierDetail(id: string): Promise<ActionResult<PartyD
       },
       invoices: invoices.map((invoice) => ({
         id: invoice.id, number: invoice.number, total: invoice.total.toString(),
+        paidAmount: invoice.paidAmount.toString(), remainingAmount: invoice.remainingAmount.toString(),
         paymentStatus: invoice.paymentStatus, status: invoice.status,
         issuedAt: invoice.issuedAt.toISOString(),
       })),

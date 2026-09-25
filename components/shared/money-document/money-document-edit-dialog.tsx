@@ -11,12 +11,12 @@ import type { MoneyDocumentEditDialogProps } from "@/types";
 export function MoneyDocumentEditDialog({ documentType, open, onOpenChange, document, onSave }: MoneyDocumentEditDialogProps) {
   const t = useTranslations("moneyDocuments.list");
   const tCommon = useTranslations("common");
-  const [amount, setAmount] = useState(document?.amount ?? "0");
+  const [amount, setAmount] = useState(document?.amount ?? "");
   const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (open) {
-      setAmount(document?.amount ?? "0");
+      setAmount(document?.amount ?? "");
       setError(undefined);
     }
   }, [open, document]);

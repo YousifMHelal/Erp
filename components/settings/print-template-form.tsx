@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -11,40 +11,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { PrintLineColumnList } from "@/components/settings/print-line-column-list";
 import { PrintFieldEditorList } from "@/components/settings/print-field-editor-list";
 import { PrintTotalsRowList } from "@/components/settings/print-totals-row-list";
 import { PrintTemplatePreview } from "@/components/settings/print-template-preview";
 import { PRINT_SYSTEM_FIELD_OPTIONS, createFieldId, moveFieldItem, moveTotalsRow, updateInfoColumn } from "@/lib/print-fields";
+import { savePrintTemplate } from "@/actions/settings.actions";
 import type {
   PrintFieldItem,
   PrintInfoColumnKey,
-  PrintLineColumnKey,
   PrintSystemFieldKey,
   PrintTemplateFormProps,
   PrintTemplateSettings,
   PrintTotalsRowKey,
 } from "@/types";
 
-function moveColumn(
-  columns: PrintTemplateSettings["lineColumns"],
-  key: PrintLineColumnKey,
-  direction: "up" | "down",
-): PrintTemplateSettings["lineColumns"] {
-  const index = columns.findIndex((c) => c.key === key);
-  const swapWith = direction === "up" ? index - 1 : index + 1;
-  if (index < 0 || swapWith < 0 || swapWith >= columns.length) return columns;
-  const current = columns[index];
-  const target = columns[swapWith];
-  if (!current || !target) return columns;
-  const next = [...columns];
-  next[index] = target;
-  next[swapWith] = current;
-  return next;
-}
+const MAX_LOGO_BYTES = 1024 * 1024;
 
 export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
   const t = useTranslations("settings.printTemplate");
+  const tCommon = useTranslations("common");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [templateName, setTemplateName] = useState(template.templateName);
@@ -54,26 +39,24 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
   const [address, setAddress] = useState(template.shop.address);
   const [invoiceFooter, setInvoiceFooter] = useState(template.shop.invoiceFooter ?? "");
   const [logoDataUrl, setLogoDataUrl] = useState<string | undefined>(template.shop.logoDataUrl);
-  const [lineColumns, setLineColumns] = useState(template.lineColumns);
+  const lineColumns = template.lineColumns;
   const [infoColumns, setInfoColumns] = useState(template.infoColumns);
   const [totalsRows, setTotalsRows] = useState(template.totalsRows);
   const [previewSize, setPreviewSize] = useState<"A4" | "A5" | "80mm">("A4");
+  const [isSaving, setIsSaving] = useState(false);
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_LOGO_BYTES) {
+      toast.error(t("logoTooLarge"));
+      e.target.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => setLogoDataUrl(reader.result as string);
     reader.readAsDataURL(file);
     e.target.value = "";
-  }
-
-  function handleToggleColumn(key: PrintLineColumnKey) {
-    setLineColumns((prev) => prev.map((c) => (c.key === key ? { ...c, visible: !c.visible } : c)));
-  }
-
-  function handleMoveColumn(key: PrintLineColumnKey, direction: "up" | "down") {
-    setLineColumns((prev) => moveColumn(prev, key, direction));
   }
 
   function handleToggleTotalsRow(key: PrintTotalsRowKey) {
@@ -122,12 +105,6 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
     setInfoColumns((prev) => updateInfoColumn(prev, column, (items) => moveFieldItem(items, id, direction)));
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    toast.success(t("saved"));
-    // P7-9 wires this to settings.actions.ts.
-  }
-
   const currentTemplate: PrintTemplateSettings = {
     templateName,
     shop: { name, phone, phone2: phone2 || undefined, address, invoiceFooter, logoDataUrl },
@@ -135,6 +112,31 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
     infoColumns,
     totalsRows,
   };
+  const currentSnapshot = JSON.stringify(currentTemplate);
+  const [savedSnapshot, setSavedSnapshot] = useState(currentSnapshot);
+  const isDirty = currentSnapshot !== savedSnapshot;
+
+  // Nothing persists until Save — warn before a reload/close throws the edits away.
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSaving(true);
+    const result = await savePrintTemplate({ ...currentTemplate, logoDataUrl });
+    setIsSaving(false);
+    if (!result.success) {
+      const fieldError = Object.values(result.fieldErrors ?? {}).flat().find(Boolean);
+      toast.error(fieldError ?? result.error);
+      return;
+    }
+    setSavedSnapshot(currentSnapshot);
+    toast.success(t("saved"));
+  }
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
@@ -246,16 +248,6 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t("columnsTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <p className="text-body-sm text-muted-foreground">{t("columnsHint")}</p>
-            <PrintLineColumnList columns={lineColumns} onToggle={handleToggleColumn} onMove={handleMoveColumn} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle>{t("infoColumnsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
@@ -308,9 +300,14 @@ export function PrintTemplateForm({ template }: PrintTemplateFormProps) {
           </CardContent>
         </Card>
 
-        <Button type="submit" variant="accent" className="w-fit">
-          {t("save")}
-        </Button>
+        <div className="sticky bottom-0 z-10 -mx-1 flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3 shadow-md">
+          <span className={isDirty ? "text-body-sm font-medium text-warning-fg" : "text-body-sm text-muted-foreground"}>
+            {isDirty ? t("unsavedChanges") : t("allSaved")}
+          </span>
+          <Button type="submit" variant="accent" disabled={isSaving || !isDirty}>
+            {isSaving ? tCommon("saving") : t("save")}
+          </Button>
+        </div>
       </div>
 
       <div className="lg:sticky lg:top-4">

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 const ITEMS = [
   { href: "/settings", labelKey: "settings.nav.profile" },
+  { href: "/settings/profile", labelKey: "layout.profile" },
   { href: "/settings/users", labelKey: "settings.nav.users" },
   { href: "/settings/roles", labelKey: "settings.nav.roles" },
   { href: "/settings/categories", labelKey: "settings.nav.categories" },

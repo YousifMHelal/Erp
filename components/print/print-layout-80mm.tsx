@@ -1,20 +1,20 @@
 import { useTranslations } from "next-intl";
-import { formatDate, formatMoney, formatMoneyInWords, formatNumber } from "@/lib/format";
+import { formatDate, formatAmount, formatMoneyInWords, formatNumber } from "@/lib/format";
 import { DEFAULT_TOTALS_ROWS } from "@/lib/print-fields";
 import type { PrintLayoutProps, PrintTotalsRowKey } from "@/types";
 
 function resolveTotalsRowValue(key: PrintTotalsRowKey, data: PrintLayoutProps["data"]): string | undefined {
   switch (key) {
     case "total":
-      return formatMoney(data.total);
+      return formatAmount(data.total);
     case "discount":
-      return Number(data.discountAmount) > 0 ? `-${formatMoney(data.discountAmount)}` : undefined;
+      return Number(data.discountAmount) > 0 ? `-${formatAmount(data.discountAmount)}` : undefined;
     case "previousBalance":
-      return data.previousBalance !== undefined ? formatMoney(data.previousBalance) : undefined;
+      return data.previousBalance !== undefined ? formatAmount(data.previousBalance) : undefined;
     case "paid":
-      return formatMoney(data.paidAmount);
+      return formatAmount(data.paidAmount);
     case "remaining":
-      return formatMoney(data.currentBalance ?? data.remainingAmount);
+      return formatAmount(data.currentBalance ?? data.remainingAmount);
     default:
       return undefined;
   }
@@ -91,8 +91,8 @@ export function PrintLayout80mm({ data, totalsRows }: PrintLayoutProps) {
                 )}
                 <td className="border-[1px] border-[#8a8a8a] px-[1mm] text-right align-middle text-[10px] leading-tight">{line.productName}</td>
                 <td className="border-[1px] border-[#8a8a8a] px-[0.5mm] text-center align-middle text-[9.5px]" dir="ltr">{formatNumber(line.qty)}</td>
-                <td className="border-[1px] border-[#8a8a8a] px-[0.5mm] text-center align-middle text-[9.5px]" dir="ltr">{formatMoney(line.unitPrice)}</td>
-                <td className="border-[1px] border-[#8a8a8a] px-[0.5mm] text-center align-middle text-[9.5px]" dir="ltr">{formatMoney(line.lineTotal)}</td>
+                <td className="border-[1px] border-[#8a8a8a] px-[0.5mm] text-center align-middle text-[9.5px]" dir="ltr">{formatAmount(line.unitPrice)}</td>
+                <td className="border-[1px] border-[#8a8a8a] px-[0.5mm] text-center align-middle text-[9.5px]" dir="ltr">{formatAmount(line.lineTotal)}</td>
               </tr>
             ))}
           </tbody>

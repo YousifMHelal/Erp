@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Camera, IdCard, UserRound, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -20,6 +21,7 @@ const ACCEPTED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 export function ProfileForm({ profile }: ProfileFormProps) {
   const t = useTranslations("profile.form");
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState(profile.displayName);
@@ -58,6 +60,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     setUsername(saved.data.username);
     setAvatarUrl(saved.data.avatarUrl);
     toast.success(t("saved"));
+    router.refresh();
   }
 
   return (

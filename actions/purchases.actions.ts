@@ -8,9 +8,11 @@ import {
   requirePermission,
 } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
+import { restampDocumentCash } from "@/lib/cash-ledger";
+import { restampDocumentPartyEntries } from "@/lib/party-ledger";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
-import { shopDayEnd, shopDayStart } from "@/lib/format";
+import { formatShopTime, shopDayEnd, shopDayStart } from "@/lib/format";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
 import {
@@ -179,7 +181,7 @@ export async function updatePurchase(
         },
       });
       if (changed.count !== 1) throw new PurchaseDomainError("conflict");
-      await reversePurchase(tx, old, user.id, "purchase.edit");
+      const removed = await reversePurchase(tx, old, user.id, "purchase.edit");
       await tx.invoiceLine.updateMany({
         where: { invoiceId: old.id, isCurrent: true },
         data: { isCurrent: false },
@@ -194,6 +196,8 @@ export async function updatePurchase(
         purchase,
         userId: user.id,
       });
+      await restampDocumentCash(tx, { refType: "INVOICE", refId: old.id }, removed.removedCash.firstMovedAt);
+      await restampDocumentPartyEntries(tx, { refType: "INVOICE", refId: old.id }, removed.removedParty);
       await writeAudit(tx, {
         userId: user.id,
         action: "purchase.edit",
@@ -418,10 +422,13 @@ export async function getPurchaseFormOptions(): Promise<
       prisma.cashbox.findMany({
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
-        select: { id: true, name: true },
+        select: { id: true, name: true, balance: true },
       }),
     ]);
-    return ok({ suppliers, cashboxes });
+    return ok({
+      suppliers,
+      cashboxes: cashboxes.map((cashbox) => ({ ...cashbox, balance: cashbox.balance.toString() })),
+    });
   } catch (error) {
     return actionError(error);
   }
@@ -552,12 +559,15 @@ export async function getPurchaseForEdit(
       prisma.cashbox.findMany({
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
-        select: { id: true, name: true },
+        select: { id: true, name: true, balance: true },
       }),
     ]);
 
     return ok({
-      options: { suppliers, cashboxes },
+      options: {
+        suppliers,
+        cashboxes: cashboxes.map((cashbox) => ({ ...cashbox, balance: cashbox.balance.toString() })),
+      },
       purchase: {
         id: invoice.id,
         number: invoice.number,
@@ -644,6 +654,7 @@ export async function getPurchasePrintData(
       documentTypeLabel: messages.invoices.print.documentTypePurchase,
       number: invoice.number,
       issuedAt: invoice.issuedAt.toISOString(),
+      issuedTime: formatShopTime(invoice.issuedAt),
       cashierName: invoice.createdBy.displayName,
       partyLabel: messages.invoices.party.PURCHASE,
       partyName: invoice.supplier?.name ?? messages.invoices.list.walkInCustomer,

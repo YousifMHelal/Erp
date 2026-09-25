@@ -78,6 +78,7 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
     <div className="flex flex-col gap-4">
       <InvoiceActionsBar
         invoice={invoice}
+        printSize="A4"
         onPrint={handlePrintClick}
         onCancel={() => setCancelOpen(true)}
         onEdit={editBasePath ? handleEdit : undefined}

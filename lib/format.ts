@@ -7,10 +7,15 @@ function groupDigits(value: string): string {
 }
 
 export function formatMoney(value: Prisma.Decimal | string): string {
+  return `${formatAmount(value)} ج.م`;
+}
+
+/** Money without the currency suffix — used on printed documents. */
+export function formatAmount(value: Prisma.Decimal | string): string {
   const fixed = new Prisma.Decimal(value).toFixed(2);
   const negative = fixed.startsWith("-");
   const [integer = "0", fraction = "00"] = (negative ? fixed.slice(1) : fixed).split(".");
-  return `${negative ? "−" : ""}${groupDigits(integer)}.${fraction} ج.م`;
+  return `${negative ? "−" : ""}${groupDigits(integer)}.${fraction}`;
 }
 
 export function formatNumber(value: Prisma.Decimal | string | number, decimals = 3): string {
@@ -136,6 +141,15 @@ export function toDateInputValue(date: Date | undefined): string | undefined {
  * is correct for this single-shop app.
  */
 export const SHOP_UTC_OFFSET_HOURS = 2;
+
+/** Shop-local clock time ("3:05 م"), independent of the server's timezone (Vercel runs in UTC). */
+export function formatShopTime(value: Date | string): string {
+  const shifted = new Date(new Date(value).getTime() + SHOP_UTC_OFFSET_HOURS * 3_600_000);
+  const hours = shifted.getUTCHours();
+  const minutes = String(shifted.getUTCMinutes()).padStart(2, "0");
+  const twelveHour = hours % 12 === 0 ? 12 : hours % 12;
+  return `${twelveHour}:${minutes} ${hours < 12 ? "ص" : "م"}`;
+}
 
 /** Converts a `yyyy-MM-dd` date-only string into the UTC instant of that date's local midnight. */
 export function shopDayStart(dateOnly: string): Date {

@@ -3,14 +3,14 @@
 import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/shared/money";
 import { convertUnitPrice } from "@/lib/units";
 import type { LineRowProps, UnitType } from "@/types";
 
-export function LineItemMobileCard({ line, onUpdate, onRemove }: LineRowProps) {
+export function LineItemMobileCard({ line, rowNumber, onUpdate, onRemove }: LineRowProps) {
   const t = useTranslations("invoices.form");
 
   function handleUnitChange(unitType: UnitType) {
@@ -21,7 +21,10 @@ export function LineItemMobileCard({ line, onUpdate, onRemove }: LineRowProps) {
     <Card>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <span className="line-clamp-2 text-body-sm font-medium">{line.productName}</span>
+          <span className="line-clamp-2 text-body-sm font-medium">
+            {rowNumber !== undefined && <span className="me-1.5 text-muted-foreground tabular-nums">{rowNumber}.</span>}
+            {line.productName}
+          </span>
           <Button
             type="button"
             variant="ghost"
@@ -48,27 +51,21 @@ export function LineItemMobileCard({ line, onUpdate, onRemove }: LineRowProps) {
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption text-muted-foreground">{t("qtyLabel")}</span>
-            <Input
-              type="number"
-              inputMode="decimal"
+            <NumberInput
               min={0}
-              step="any"
               value={line.qty}
-              onChange={(e) => onUpdate({ qty: Number(e.target.value) })}
-              className="text-end tabular-nums"
+              onValueChange={(qty) => onUpdate({ qty })}
+              className="text-center tabular-nums"
               aria-label={t("qtyLabel")}
             />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption text-muted-foreground">{t("priceLabel")}</span>
-            <Input
-              type="number"
-              inputMode="decimal"
+            <NumberInput
               min={0}
-              step="any"
               value={line.unitPrice}
-              onChange={(e) => onUpdate({ unitPrice: Number(e.target.value) })}
-              className="text-end tabular-nums"
+              onValueChange={(unitPrice) => onUpdate({ unitPrice })}
+              className="text-center tabular-nums"
               aria-label={t("priceLabel")}
             />
           </div>

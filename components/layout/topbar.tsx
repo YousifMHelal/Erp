@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { getBreadcrumbs } from "@/lib/breadcrumbs";
 import type { TopbarProps } from "@/types";
 
-export function Topbar({ className, unreadNotificationCount }: TopbarProps) {
+export function Topbar({ className, unreadNotificationCount, currentUser }: TopbarProps) {
   const pathname = usePathname();
   const items = getBreadcrumbs(pathname);
   const scrolled = useScrolled();
@@ -31,7 +31,7 @@ export function Topbar({ className, unreadNotificationCount }: TopbarProps) {
         <GlobalSearch />
         <NotificationBell unreadCount={unreadNotificationCount} />
         <ThemeToggle />
-        <UserMenu />
+        <UserMenu currentUser={currentUser} />
       </div>
     </header>
   );

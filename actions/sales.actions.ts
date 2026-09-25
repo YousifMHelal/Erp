@@ -8,9 +8,11 @@ import {
   requirePermission,
 } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
+import { restampDocumentCash } from "@/lib/cash-ledger";
+import { restampDocumentPartyEntries } from "@/lib/party-ledger";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
-import { shopDayEnd, shopDayStart } from "@/lib/format";
+import { formatShopTime, shopDayEnd, shopDayStart } from "@/lib/format";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { suggestSellPrice } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
@@ -182,7 +184,7 @@ export async function updateSale(
         },
       });
       if (changed.count !== 1) throw new SaleDomainError("conflict");
-      await reverseSale(tx, old, user.id, "sale.edit");
+      const removed = await reverseSale(tx, old, user.id, "sale.edit");
       await tx.invoiceLine.updateMany({
         where: { invoiceId: old.id, isCurrent: true },
         data: { isCurrent: false },
@@ -197,6 +199,8 @@ export async function updateSale(
         sale,
         userId: user.id,
       });
+      await restampDocumentCash(tx, { refType: "INVOICE", refId: old.id }, removed.removedCash.firstMovedAt);
+      await restampDocumentPartyEntries(tx, { refType: "INVOICE", refId: old.id }, removed.removedParty);
       await writeAudit(tx, {
         userId: user.id,
         action: "sale.edit",
@@ -704,6 +708,7 @@ export async function getSalePrintData(
       documentTypeLabel: messages.invoices.print.documentTypeSale,
       number: invoice.number,
       issuedAt: invoice.issuedAt.toISOString(),
+      issuedTime: formatShopTime(invoice.issuedAt),
       cashierName: invoice.createdBy.displayName,
       partyLabel: messages.invoices.party.SALE,
       partyName: invoice.customer?.name ?? messages.invoices.list.walkInCustomer,

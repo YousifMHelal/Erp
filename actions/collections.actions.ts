@@ -4,6 +4,8 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
+import { removeDocumentCash, restampDocumentCash } from "@/lib/cash-ledger";
+import { removeDocumentPartyEntries, restampDocumentPartyEntries } from "@/lib/party-ledger";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
 import { nextDocumentNumber } from "@/lib/numbering";
@@ -156,29 +158,10 @@ export async function createCollection(input: unknown): Promise<ActionResult<{ i
 async function reverseCollectionEffect(
   tx: Prisma.TransactionClient,
   collection: { id: string; customerId: string; cashboxId: string; amount: Prisma.Decimal; number: number },
-  userId: string,
-  note: string | undefined,
 ) {
-  const occurredAt = new Date();
-  const cashboxUpdate = await tx.cashbox.updateMany({
-    where: { id: collection.cashboxId, balance: { gte: collection.amount } },
-    data: { balance: { decrement: collection.amount } },
-  });
-  if (cashboxUpdate.count !== 1) throw new CollectionDomainError("insufficientCash");
-  const updatedCashbox = await tx.cashbox.findUniqueOrThrow({ where: { id: collection.cashboxId } });
-  const updatedCustomer = await tx.customer.update({
-    where: { id: collection.customerId }, data: { balance: { increment: collection.amount } },
-  });
-  await tx.cashMovement.create({ data: {
-    cashboxId: collection.cashboxId, type: "CUSTOMER_COLLECTION", amount: collection.amount.negated(),
-    balanceAfter: updatedCashbox.balance, customerId: collection.customerId,
-    refType: "COLLECTION", refId: collection.id, note, createdById: userId, createdAt: occurredAt,
-  } });
-  await tx.partyTransaction.create({ data: {
-    partyType: "CUSTOMER", customerId: collection.customerId, type: "PAYMENT",
-    debit: collection.amount, credit: new Prisma.Decimal(0), balanceAfter: updatedCustomer.balance,
-    refType: "COLLECTION", refId: collection.id, note, occurredAt, createdById: userId,
-  } });
+  const removedCash = await removeDocumentCash(tx, { refType: "COLLECTION", refId: collection.id });
+  const removedParty = await removeDocumentPartyEntries(tx, { refType: "COLLECTION", refId: collection.id });
+  return { removedCash, removedParty };
 }
 
 export async function updateCollection(input: unknown): Promise<ActionResult<{ id: string; number: number }>> {
@@ -201,7 +184,7 @@ export async function updateCollection(input: unknown): Promise<ActionResult<{ i
       if (!customer || !cashbox) throw new CollectionDomainError("notFound");
       if (!customer.isActive || !cashbox.isActive) throw new CollectionDomainError("inactive");
 
-      await reverseCollectionEffect(tx, existing, user.id, "تعديل تحصيل");
+      const removed = await reverseCollectionEffect(tx, existing);
 
       const reappliedCustomerUpdate = await tx.customer.updateMany({
         where: { id: customerId, balance: { gte: amount } }, data: { balance: { decrement: amount } },
@@ -218,11 +201,14 @@ export async function updateCollection(input: unknown): Promise<ActionResult<{ i
         cashboxId, type: "CUSTOMER_COLLECTION", amount, balanceAfter: finalCashbox.balance,
         customerId, refType: "COLLECTION", refId: id, note, createdById: user.id, createdAt: occurredAt,
       } });
+
       await tx.partyTransaction.create({ data: {
         partyType: "CUSTOMER", customerId, type: "PAYMENT", debit: new Prisma.Decimal(0), credit: amount,
         balanceAfter: finalCustomer.balance, refType: "COLLECTION", refId: id,
         note, occurredAt, createdById: user.id,
       } });
+      await restampDocumentCash(tx, { refType: "COLLECTION", refId: id }, removed.removedCash.firstMovedAt);
+      await restampDocumentPartyEntries(tx, { refType: "COLLECTION", refId: id }, removed.removedParty);
 
       await syncNotifications(tx, { customerIds: [existing.customerId, customerId] });
       await writeAudit(tx, {
@@ -254,7 +240,7 @@ export async function deleteCollection(id: unknown): Promise<ActionResult<{ numb
       if (!collection) throw new CollectionDomainError("notFound");
       if (collection.status !== "CONFIRMED") throw new CollectionDomainError("cancelled");
 
-      await reverseCollectionEffect(tx, collection, user.id, "حذف تحصيل");
+      await reverseCollectionEffect(tx, collection);
 
       await writeAudit(tx, {
         userId: user.id, action: "collection.delete", entityType: "Collection",

@@ -9,6 +9,9 @@ import { LineItemsTable } from "@/components/shared/invoice/line-items-table";
 import { TotalsPanel } from "@/components/shared/invoice/totals-panel";
 import { PaymentPanel } from "@/components/shared/invoice/payment-panel";
 import { HotkeyBar } from "@/components/shared/invoice/hotkey-bar";
+import { PrintPromptDialog } from "@/components/shared/invoice/print-prompt-dialog";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { formatMoney } from "@/lib/format";
 import { Money } from "@/components/shared/money";
 import { PurchaseProductSearch } from "@/components/purchases/purchase-product-search";
 import { useHotkeys } from "@/hooks/use-hotkeys";
@@ -37,6 +40,10 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
     initialPurchase?.cashboxId ?? options.cashboxes[0]?.id,
   );
   const [isPending, startTransition] = useTransition();
+  const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null);
+  const [negativeCashWarning, setNegativeCashWarning] = useState<{ cashboxName: string; balanceAfter: number } | null>(
+    null,
+  );
   const productSearchRef = useRef<HTMLInputElement>(null);
 
   const subtotal = useMemo(
@@ -102,6 +109,22 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
       return;
     }
 
+    const cashbox = options.cashboxes.find((entry) => entry.id === cashboxId);
+    if (cashbox?.balance !== undefined) {
+      // On edit, this invoice's old payment goes back into its cashbox before the new one comes out.
+      const refunded =
+        initialPurchase && initialPurchase.cashboxId === cashboxId ? Number(initialPurchase.paidAmount) : 0;
+      const balanceAfter = Number(cashbox.balance) + refunded - paidAmount;
+      if (balanceAfter < 0 && paidAmount > 0) {
+        setNegativeCashWarning({ cashboxName: cashbox.name, balanceAfter });
+        return;
+      }
+    }
+    submitPurchase();
+  }
+
+  function submitPurchase() {
+    setNegativeCashWarning(null);
     const payload = {
       supplierId,
       cashboxId,
@@ -134,11 +157,17 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
 
       const number = String(result.data.number).padStart(6, "0");
       toast.success(tAction(isEditMode ? "updated" : "created", { number }));
-      if (!isEditMode) {
-        window.open(`/print/${result.data.id}?size=A4`, "_blank", "noopener,noreferrer");
+      if (isEditMode) {
+        router.push(`/purchases/${result.data.id}`);
+        return;
       }
-      router.push(`/purchases/${result.data.id}`);
+      setSavedInvoiceId(result.data.id);
     });
+  }
+
+  function finishAfterSave(invoiceId: string) {
+    setSavedInvoiceId(null);
+    router.push(`/purchases/${invoiceId}`);
   }
 
   useHotkeys({
@@ -215,6 +244,24 @@ export function PurchaseForm({ options, initialPurchase }: PurchaseFormProps) {
           {saveLabel}
         </Button>
       </div>
+
+      <PrintPromptDialog invoiceId={savedInvoiceId} onFinish={finishAfterSave} />
+      <ConfirmDialog
+        open={negativeCashWarning !== null}
+        onOpenChange={(open) => !open && setNegativeCashWarning(null)}
+        title={t("negativeCashTitle")}
+        description={
+          negativeCashWarning
+            ? t("negativeCashDescription", {
+                cashbox: negativeCashWarning.cashboxName,
+                balance: formatMoney(String(negativeCashWarning.balanceAfter)),
+              })
+            : ""
+        }
+        confirmLabel={t("negativeCashConfirm")}
+        isPending={isPending}
+        onConfirm={submitPurchase}
+      />
     </div>
   );
 }

@@ -21,7 +21,7 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
   const [name, setName] = useState(party?.name ?? "");
   const [phone, setPhone] = useState(party?.phone ?? "");
   const [address, setAddress] = useState(party?.address ?? "");
-  const [openingBalance, setOpeningBalance] = useState(party?.openingBalance ?? "0");
+  const [openingBalance, setOpeningBalance] = useState(party?.openingBalance ?? "");
   const [notes, setNotes] = useState(party?.notes ?? "");
   const [saving, setSaving] = useState(false);
 
@@ -30,7 +30,7 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
     setName(party?.name ?? "");
     setPhone(party?.phone ?? "");
     setAddress(party?.address ?? "");
-    setOpeningBalance(party?.openingBalance ?? "0");
+    setOpeningBalance(party?.openingBalance ?? "");
     setNotes(party?.notes ?? "");
   }, [open, party]);
 
@@ -38,7 +38,7 @@ export function PartyFormDialog({ partyType, open, onOpenChange, party, onSave }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const values = { name, phone, address, openingBalance, notes };
+    const values = { name, phone, address, openingBalance: openingBalance || "0", notes };
     const parsed = isEdit ? updatePartySchema.safeParse(values) : createPartySchema.safeParse(values);
     if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? t("errorRequired"));
     setSaving(true);

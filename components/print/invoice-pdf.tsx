@@ -7,7 +7,7 @@ import {
   View,
 } from "@react-pdf/renderer";
 import path from "node:path";
-import { formatDate, formatMoney, formatNumber } from "@/lib/format";
+import { formatDate, formatAmount, formatNumber } from "@/lib/format";
 import messages from "@/messages/ar.json";
 import type { InvoicePdfProps } from "@/types";
 
@@ -105,30 +105,30 @@ export function InvoicePdf({ data }: InvoicePdfProps) {
               <Text style={styles.number}>
                 {formatNumber(line.price, 4)} {label.currency}
               </Text>
-              <Text style={styles.total}>{formatMoney(line.total)}</Text>
+              <Text style={styles.total}>{formatAmount(line.total)}</Text>
             </View>
           ))}
         </View>
         <View style={styles.totals} wrap={false}>
           <View style={styles.totalRow}>
             <Text>{label.subtotal}</Text>
-            <Text>{formatMoney(data.subtotal)}</Text>
+            <Text>{formatAmount(data.subtotal)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text>{label.discount}</Text>
-            <Text>{formatMoney(data.discount)}</Text>
+            <Text>{formatAmount(data.discount)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text>{label.total}</Text>
-            <Text>{formatMoney(data.total)}</Text>
+            <Text>{formatAmount(data.total)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text>{label.paid}</Text>
-            <Text>{formatMoney(data.paid)}</Text>
+            <Text>{formatAmount(data.paid)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text>{label.remaining}</Text>
-            <Text>{formatMoney(data.remaining)}</Text>
+            <Text>{formatAmount(data.remaining)}</Text>
           </View>
         </View>
         {data.notes ? (

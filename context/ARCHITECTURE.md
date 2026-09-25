@@ -415,7 +415,7 @@ Modelled as full reversal + re-application inside one transaction, so the ledger
 | Inventory | `/inventory` | `DataTable`, `InventoryFilters`, `ProductFormDialog` (tabbed: عام / وحدات / أسعار), `UnitConversionPreview`, `StockStatusBadge`, `InventoryValueSummary` |
 | Product detail | `/inventory/[id]` | `ProductSummaryCard`, `StockMovementTable`, `ProductPriceHistory` |
 | Stocktake | `/inventory/stocktake/*` | `StocktakeSheet`, `StocktakeLineRow`, `StocktakeDiffSummary` |
-| Customers | `/customers`, `/customers/[id]` | `DataTable`, `CustomerFormDialog`, `BalanceBadge`, `CustomerInvoicesTab`, `CustomerPaymentsTab`, `AccountStatementTab`, `StatementPrintDialog` |
+| Customers | `/customers`, `/customers/[id]` | `DataTable`, `CustomerFormDialog`, `BalanceBadge`, `CustomerInvoicesTab`, `CustomerPaymentsTab`, `AccountStatementTab`, `StatementPrintLayout` |
 | Suppliers | `/suppliers/*` | Mirrors customers |
 | Cashboxes | `/cashboxes` | `CashboxSummaryStrip`, `CashboxFilter`, `CashMovementTable`, `CashboxBalanceCard` |
 | Collections / Payments | `/collections/*`, `/payments/*` | `CollectionForm`, `PaymentForm`, `PartyBalancePreview`, `DataTable` |

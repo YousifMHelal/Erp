@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { printInvoice } from "@/lib/print-invoice";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { InvoiceHeaderCard } from "@/components/shared/invoice/invoice-header-card";
@@ -56,7 +57,7 @@ export function PurchaseDetailView({ purchase, canEdit, canCancel, defaultPrintS
   };
 
   function handlePrint() {
-    window.open(`/print/${purchase.id}?size=${defaultPrintSize}`, "_blank", "noopener,noreferrer");
+    printInvoice(purchase.id, defaultPrintSize);
   }
 
   function handleCancelConfirm(reason: string) {
@@ -76,6 +77,7 @@ export function PurchaseDetailView({ purchase, canEdit, canCancel, defaultPrintS
     <div className="flex flex-col gap-4">
       <InvoiceActionsBar
         invoice={invoice}
+        printSize={defaultPrintSize}
         onPrint={handlePrint}
         onCancel={canCancel ? () => setCancelOpen(true) : undefined}
         onEdit={canEdit ? () => router.push(`/purchases/${purchase.id}/edit`) : undefined}

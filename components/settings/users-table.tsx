@@ -23,6 +23,8 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
 
   const [users, setUsers] = useState(initialUsers);
   const [formOpen, setFormOpen] = useState(false);
+  // Bumped on every open so the form dialog remounts with fresh fields, even for back-to-back "new" entries.
+  const [formSession, setFormSession] = useState(0);
   const [editingUser, setEditingUser] = useState<SettingsUserRow | undefined>(undefined);
   const [deactivatingUser, setDeactivatingUser] = useState<SettingsUserRow | undefined>(undefined);
   const [deletingUser, setDeletingUser] = useState<SettingsUserRow | undefined>(undefined);
@@ -85,6 +87,7 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
               aria-label={t("editUser")}
               onClick={() => {
                 setEditingUser(row.original);
+                setFormSession((session) => session + 1);
                 setFormOpen(true);
               }}
             >
@@ -150,6 +153,7 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
                     className="max-md:min-h-11 max-md:min-w-11"
                     onClick={() => {
                       setEditingUser(row);
+                      setFormSession((session) => session + 1);
                       setFormOpen(true);
                     }}
                   >
@@ -194,6 +198,7 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
               variant="primary"
               onClick={() => {
                 setEditingUser(undefined);
+                setFormSession((session) => session + 1);
                 setFormOpen(true);
               }}
             >
@@ -204,7 +209,7 @@ export function UsersTable({ users: initialUsers, roleOptions }: { users: Settin
       />
 
       <UserFormDialog
-        key={editingUser?.id ?? "new"}
+        key={`${editingUser?.id ?? "new"}-${formSession}`}
         open={formOpen}
         onOpenChange={setFormOpen}
         roleOptions={roleOptions}

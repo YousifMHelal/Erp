@@ -48,7 +48,7 @@ export function CancelInvoiceDialog({
           <Button
             type="button"
             variant="destructive"
-            disabled={!reason.trim() || isPending}
+            disabled={isPending}
             onClick={handleConfirm}
           >
             {isPending ? tCommon("saving") : t("cancelDialogConfirm")}

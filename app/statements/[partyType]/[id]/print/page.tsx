@@ -1,60 +1,60 @@
 import { notFound } from "next/navigation";
 import { getCustomerDetail } from "@/actions/customers.actions";
 import { getSupplierDetail } from "@/actions/suppliers.actions";
-import { StatementPrintButton } from "@/components/shared/party/statement-print-button";
-import { Money } from "@/components/shared/money";
-import { formatDate } from "@/lib/format";
+import { PrintToolbar } from "@/components/print/print-toolbar";
+import { StatementPrintLayout } from "@/components/print/statement-print-layout";
+import { prisma } from "@/lib/prisma";
+import { resolvePrintTemplateLayout } from "@/lib/print-template";
+import { applyStatementFilters, parseStatementFilters } from "@/lib/statement-filters";
 import messages from "@/messages/ar.json";
-import type { StatementPrintPageProps } from "@/types";
+import type { StatementPrintPageProps, StatementPrintShop } from "@/types";
+
+async function loadShopInfo(): Promise<StatementPrintShop> {
+  const settings = await prisma.setting.findMany({
+    where: { key: { in: ["shop.name", "shop.phone", "shop.phone2", "shop.address"] } },
+  });
+  const setting = (key: string): string | undefined => {
+    const value = settings.find((entry) => entry.key === key)?.value;
+    return typeof value === "string" && value ? value : undefined;
+  };
+  return {
+    name: setting("shop.name") ?? messages.app.name,
+    phone: setting("shop.phone"),
+    phone2: setting("shop.phone2"),
+    address: setting("shop.address"),
+  };
+}
 
 export default async function StatementPrintPage({ params, searchParams }: StatementPrintPageProps) {
-  const [{ partyType, id }, { size }] = await Promise.all([params, searchParams]);
+  const [{ partyType, id }, query] = await Promise.all([params, searchParams]);
   if (partyType !== "customer" && partyType !== "supplier") notFound();
-  const result = partyType === "customer" ? await getCustomerDetail(id) : await getSupplierDetail(id);
+  const [result, shop, template] = await Promise.all([
+    partyType === "customer" ? getCustomerDetail(id) : getSupplierDetail(id),
+    loadShopInfo(),
+    resolvePrintTemplateLayout(),
+  ]);
   if (!result.success) notFound();
   const { party, statement } = result.data;
-  const paperSize = size === "A5" ? "A5" : "A4";
-  const t = messages.parties.detail;
+  const paperSize = query.size === "A5" ? "A5" : "A4";
+  const filters = parseStatementFilters(query);
 
   return (
-    <main id="print-root" className="min-h-dvh bg-background p-4 text-foreground print:p-0">
-      <style>{`@media print { @page { size: ${paperSize} portrait; margin: 12mm; } }`}</style>
-      <div className={`mx-auto rounded-lg bg-card p-6 shadow-sm print:w-auto print:rounded-none print:p-0 print:shadow-none ${paperSize === "A5" ? "max-w-[148mm]" : "max-w-[210mm]"}`}>
-        <div className="mb-6 flex items-start justify-between gap-4 print:mb-4">
-          <div>
-            <h1 className="text-h1 font-bold">{t.tabStatement}</h1>
-            <p className="font-medium">{party.name}</p>
-            {party.phone && <p className="tabular-nums" dir="ltr">{party.phone}</p>}
-          </div>
-          <StatementPrintButton />
-        </div>
-        <div className="mb-4 flex justify-between border-b border-border pb-3">
-          <span>{t.currentBalance}</span>
-          <Money value={party.balance} className="font-semibold" />
-        </div>
-        <table className="w-full border-collapse text-body-sm">
-          <thead>
-            <tr className="border-b border-border text-start">
-              <th className="p-2 text-start">{t.columnDate}</th>
-              <th className="p-2 text-start">{t.columnDescription}</th>
-              <th className="p-2 text-end">{t.columnDebit}</th>
-              <th className="p-2 text-end">{t.columnCredit}</th>
-              <th className="p-2 text-end">{t.columnBalanceAfter}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {statement.map((line) => (
-              <tr key={line.id} className="border-b border-border">
-                <td className="p-2 tabular-nums">{formatDate(line.date)}</td>
-                <td className="p-2">{line.description}</td>
-                <td className="p-2 text-end"><Money value={line.debit} /></td>
-                <td className="p-2 text-end"><Money value={line.credit} /></td>
-                <td className="p-2 text-end font-medium"><Money value={line.balanceAfter} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div id="print-root" className="min-h-dvh bg-neutral-200 py-8 print:py-0">
+      <style>{`@media print { @page { size: ${paperSize} portrait; margin: 8mm 0; } }`}</style>
+      <PrintToolbar targetId="print-document" fileName={`statement-${partyType}-${party.id}.png`} />
+      <div id="print-document" className="mx-auto w-fit">
+        <StatementPrintLayout
+          size={paperSize}
+          title={messages.parties.detail.tabStatement}
+          partyLabel={partyType === "customer" ? messages.invoices.party.SALE : messages.invoices.party.PURCHASE}
+          party={party}
+          statement={applyStatementFilters(statement, filters)}
+          printedAt={new Date().toISOString()}
+          period={{ from: filters.from, to: filters.to }}
+          shop={{ ...shop, logoDataUrl: template.logoDataUrl }}
+          infoColumns={template.infoColumns}
+        />
       </div>
-    </main>
+    </div>
   );
 }

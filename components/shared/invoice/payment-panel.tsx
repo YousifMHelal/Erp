@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
 import { Money } from "@/components/shared/money";
@@ -56,14 +56,11 @@ export function PaymentPanel({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="paid-amount">{t("paidAmountLabel")}</Label>
-          <Input
+          <NumberInput
             id="paid-amount"
-            type="number"
-            inputMode="decimal"
             min={0}
-            step="any"
             value={paidAmount}
-            onChange={(e) => onPaidAmountChange(Number(e.target.value))}
+            onValueChange={onPaidAmountChange}
             placeholder="0.00"
             className="text-end tabular-nums"
           />

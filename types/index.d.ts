@@ -295,7 +295,8 @@ export type PurchaseDetail = PurchaseListRow & {
 };
 export type PurchaseFormOptions = {
   suppliers: { id: string; name: string }[];
-  cashboxes: { id: string; name: string }[];
+  /** `balance` is present on the create/edit form options, used to warn before a cashbox goes negative. */
+  cashboxes: { id: string; name: string; balance?: string }[];
 };
 export type PurchaseListFilterOptions = PurchaseFormOptions & {
   users: { id: string; name: string }[];
@@ -478,12 +479,14 @@ export type NavGroup = {
 
 export type SidebarProps = { className?: string };
 export type SidebarNavProps = { onNavigate?: () => void };
-export type TopbarProps = { className?: string; unreadNotificationCount: number };
-export type AppShellProps = { children: ReactNode; unreadNotificationCount: number };
+/** The signed-in user as shown in the app chrome — loaded fresh per request so profile edits show immediately. */
+export type ShellUser = { id: string; displayName: string; avatarUrl?: string };
+export type TopbarProps = { className?: string; unreadNotificationCount: number; currentUser?: ShellUser };
+export type AppShellProps = { children: ReactNode; unreadNotificationCount: number; currentUser?: ShellUser };
 
 export type PageTransitionProps = { children: ReactNode };
 export type NotificationBellProps = { unreadCount: number };
-export type UserMenuProps = { className?: string };
+export type UserMenuProps = { className?: string; currentUser?: ShellUser };
 export type BreadcrumbItem = { labelKey: string; href?: string };
 
 // --- Data table ---
@@ -756,6 +759,8 @@ export type LineItemsTableProps = {
 
 export type LineRowProps = {
   line: InvoiceLineDraft;
+  /** 1-based position shown in the "#" column. */
+  rowNumber?: number;
   isActive: boolean;
   onUpdate: (patch: Partial<InvoiceLineDraft>) => void;
   onRemove: () => void;
@@ -1124,13 +1129,15 @@ export type BalanceBadgeProps = {
   export type PartyDetailPageProps = { params: Promise<{ id: string }> };
   export type StatementPrintPageProps = {
     params: Promise<{ partyType: string; id: string }>;
-    searchParams: Promise<{ size?: string }>;
+    searchParams: Promise<{ size?: string; from?: string; to?: string; type?: string; sort?: string }>;
   };
 
 export type PartyInvoiceRow = {
   id: string;
   number: number;
   total: string;
+  paidAmount: string;
+  remainingAmount: string;
   paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
   status: "CONFIRMED" | "CANCELLED";
   issuedAt: string;
@@ -1144,27 +1151,46 @@ export type PartyPaymentRow = {
   occurredAt: string;
 };
 
-  export type StatementLine = {
+export type PartyStatementEntryType = "OPENING" | "INVOICE" | "PAYMENT" | "RETURN";
+
+export type StatementLine = {
   id: string;
   date: string;
+  type: PartyStatementEntryType;
   description: string;
   debit: string;
   credit: string;
-    balanceAfter: string;
-    invoiceId?: string;
-    isReturn?: boolean;
-  };
-  export type PartyStatementEntry = {
-    id: string;
-    date: string;
-    type: "OPENING" | "INVOICE" | "PAYMENT" | "RETURN";
-    debit: string;
-    credit: string;
-    invoiceId?: string;
-    invoiceNumber?: number;
-    referenceNumber?: number;
-    referenceType?: "COLLECTION" | "PAYMENT";
-  };
+  balanceAfter: string;
+  invoiceId?: string;
+  isReturn?: boolean;
+  /** Synthetic "balance carried forward" row prepended when the statement is filtered from a start date. */
+  isCarriedForward?: boolean;
+};
+export type PartyStatementEntry = {
+  id: string;
+  date: string;
+  type: PartyStatementEntryType;
+  debit: string;
+  credit: string;
+  invoiceId?: string;
+  invoiceNumber?: number;
+  invoiceTotal?: string;
+  invoicePaid?: string;
+  referenceNumber?: number;
+  referenceType?: "COLLECTION" | "PAYMENT";
+};
+
+export type StatementTypeFilter = "ALL" | PartyStatementEntryType;
+export type StatementSortOrder = "asc" | "desc";
+/** Account-statement view filters; `from`/`to` are shop-local `yyyy-MM-dd` days (inclusive). */
+export type StatementFilters = {
+  from?: string;
+  to?: string;
+  type: StatementTypeFilter;
+  sort: StatementSortOrder;
+};
+
+export type StatementPrintSize = "A4" | "A5";
 
 export type PartyDetailViewProps = {
   partyType: PartyType;
@@ -1172,6 +1198,8 @@ export type PartyDetailViewProps = {
   invoices: PartyInvoiceRow[];
   payments: PartyPaymentRow[];
   statement: StatementLine[];
+  /** Shop default print size, narrowed to the page sizes a statement supports. */
+  statementPrintSize: StatementPrintSize;
 };
 
   export type PartySummaryCardProps = {
@@ -1188,12 +1216,41 @@ export type CustomerPaymentsTabProps = { payments: PartyPaymentRow[] };
 export type AccountStatementTabProps = {
   partyType: PartyType;
   statement: StatementLine[];
+  filters: StatementFilters;
+  onFiltersChange: (filters: StatementFilters) => void;
   onPrint: () => void;
+  onCopyImage: () => void;
+  isCopyingImage: boolean;
 };
-export type StatementPrintDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSelect: (size: "A4" | "A5") => void;
+
+export type StatementPrintLayoutProps = {
+  size: StatementPrintSize;
+  title: string;
+  partyLabel: string;
+  party: Pick<PartyDetail, "name" | "phone" | "address" | "balance">;
+  statement: StatementLine[];
+  /** Print moment (ISO) — resolves the template's invoiceDate/invoiceTime fields. */
+  printedAt: string;
+  /** Active date filter, echoed in the header so a filtered print states its period. */
+  period?: Pick<StatementFilters, "from" | "to">;
+  shop: StatementPrintShop;
+  /** Saved print-template info columns (same fields the invoice layouts render). */
+  infoColumns: PrintInfoColumns;
+};
+
+export type StatementPrintShop = {
+  name: string;
+  phone?: string;
+  phone2?: string;
+  address?: string;
+  logoDataUrl?: string;
+};
+
+/** What a print-template system field resolves against on an account statement. */
+export type StatementPrintFieldData = {
+  printedAt: string;
+  party: { name: string; phone?: string; address?: string };
+  shop: StatementPrintShop;
 };
 
 // --- Cashboxes (P2-16) ---
@@ -1319,11 +1376,13 @@ export type PartyBalancePreviewProps = {
 };
 
 export type PartyWithBalanceOption = EntityComboboxOption & { balance: string };
+/** `balance` present for payments, where the form warns before a cashbox goes negative. */
+export type CashboxWithBalanceOption = EntityComboboxOption & { balance?: string };
 
 export type MoneyDocumentFormProps = {
   documentType: MoneyDocumentType;
   partyOptions: PartyWithBalanceOption[];
-  cashboxOptions: EntityComboboxOption[];
+  cashboxOptions: CashboxWithBalanceOption[];
   editing?: MoneyDocumentRow;
 };
 
@@ -1350,7 +1409,38 @@ export type ReportShellProps = {
   filters: ReportFilters;
   options: ReportFilterOptions;
   report: ReportDataset;
+  printShop: ReportPrintShop;
 };
+
+/** A resolved "label : value" line on the printed report header. An empty label prints the value alone. */
+export type ReportPrintField = { label: string; value: string };
+
+/** Shop identity for the printed report, loaded server-side from `shop.*` settings and the print template (plain strings only). */
+export type ReportPrintShop = {
+  name: string;
+  logoDataUrl?: string;
+  /** Shop-level print-template info fields (shop name/phones/address and custom text), resolved. */
+  fields: ReportPrintField[];
+};
+
+export type ReportPrintHeaderProps = {
+  title: string;
+  shop: ReportPrintShop;
+  period: string;
+  /** Print moment — refreshed right before the browser print dialog opens. */
+  printedAt?: Date;
+  activeFilters: ReportPrintField[];
+};
+
+export type ReportPrintColumn = { key: string; label: string; numeric: boolean };
+
+export type ReportPrintTableProps = {
+  columns: ReportPrintColumn[];
+  rows: Record<string, string>[];
+  footerRow?: Record<string, string>;
+};
+
+export type ReportPrintSummaryProps = { items: ReportPrintField[] };
 
 export type ReportFiltersBarProps = {
   dateRange: DateRange;
@@ -1679,7 +1769,7 @@ export type PrintInvoiceData = {
 
 export type PrintPreviewPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ size?: string }>;
+  searchParams: Promise<{ size?: string; action?: string }>;
 };
 
 export type PrintLayoutProps = {
@@ -1763,6 +1853,7 @@ export type InvoiceDetailViewProps = { invoice: InvoiceDetail };
 
 export type InvoiceActionsBarProps = {
   invoice: InvoiceDetail;
+  printSize: "A4" | "A5" | "80mm";
   onPrint: () => void;
   /** Omitted when the signed-in user lacks the cancel permission. */
   onCancel?: () => void;
@@ -1909,15 +2000,18 @@ export type PrintTemplateFormProps = {
   template: PrintTemplateSettings;
 };
 
+/** The layout half of a print template, stored as one JSON setting (`print.template`). Shop details live in `shop.*` settings. */
+export type PrintTemplateLayout = {
+  templateName: string;
+  logoDataUrl?: string;
+  lineColumns: PrintLineColumnConfig[];
+  infoColumns: PrintInfoColumns;
+  totalsRows: PrintTotalsRowConfig[];
+};
+
 export type PrintTemplatePreviewProps = {
   template: PrintTemplateSettings;
   size: "A4" | "A5" | "80mm";
-};
-
-export type PrintLineColumnListProps = {
-  columns: PrintLineColumnConfig[];
-  onToggle: (key: PrintLineColumnKey) => void;
-  onMove: (key: PrintLineColumnKey, direction: "up" | "down") => void;
 };
 
 export type PrintTotalsRowListProps = {

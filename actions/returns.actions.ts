@@ -10,7 +10,9 @@ import {
 import { writeAudit } from "@/lib/audit";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
-import { shopDayEnd, shopDayStart } from "@/lib/format";
+import { formatShopTime, shopDayEnd, shopDayStart } from "@/lib/format";
+import { removeDocumentCash } from "@/lib/cash-ledger";
+import { removeDocumentPartyEntries } from "@/lib/party-ledger";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { prisma } from "@/lib/prisma";
 import { postReturn, prepareReturn, ReturnDomainError } from "@/lib/returns-ledger";
@@ -237,28 +239,9 @@ export async function cancelReturn(
         void before;
       }
 
-      // A return is always settled in full at creation (`paymentStatus: PAID`), so
-      // reversing it always reverses the full total — split settlement is not modeled.
-      const cashSign = isSaleReturn ? 1 : -1;
-      const cashbox = await tx.cashbox.update({
-        where: { id: invoice.cashboxId },
-        data: { balance: { increment: invoice.total.mul(cashSign) } },
-      });
-      await tx.cashMovement.create({
-        data: {
-          cashboxId: invoice.cashboxId,
-          type: isSaleReturn ? "SALE_RETURN_REFUND" : "PURCHASE_RETURN_REFUND",
-          amount: invoice.total.mul(cashSign),
-          balanceAfter: cashbox.balance,
-          refType: "INVOICE",
-          refId: invoice.id,
-          invoiceId: invoice.id,
-          customerId: isSaleReturn ? invoice.customerId : undefined,
-          supplierId: !isSaleReturn ? invoice.supplierId : undefined,
-          createdById: user.id,
-          note: parsed.data.reason,
-        },
-      });
+      // A return settles either through the cashbox or against the party's account — remove whichever it used.
+      await removeDocumentCash(tx, { refType: "INVOICE", refId: invoice.id });
+      await removeDocumentPartyEntries(tx, { refType: "INVOICE", refId: invoice.id });
 
       await writeAudit(tx, {
         userId: user.id,
@@ -603,6 +586,7 @@ export async function getReturnPrintData(
         : messages.invoices.print.documentTypePurchaseReturn,
       number: invoice.number,
       issuedAt: invoice.issuedAt.toISOString(),
+      issuedTime: formatShopTime(invoice.issuedAt),
       cashierName: invoice.createdBy.displayName,
       partyLabel: isSaleReturn ? messages.invoices.party.SALE : messages.invoices.party.PURCHASE,
       partyName: party?.name ?? messages.invoices.list.walkInCustomer,

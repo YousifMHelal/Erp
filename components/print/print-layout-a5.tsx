@@ -1,26 +1,26 @@
 import { useTranslations } from "next-intl";
-import { formatDate, formatMoney, formatMoneyInWords, formatNumber } from "@/lib/format";
-import { DEFAULT_TOTALS_ROWS } from "@/lib/print-fields";
-import type { PrintLayoutProps, PrintTotalsRowKey } from "@/types";
+import { formatDate, formatAmount, formatMoneyInWords, formatNumber } from "@/lib/format";
+import { DEFAULT_TOTALS_ROWS, resolveSystemFieldValue } from "@/lib/print-fields";
+import type { PrintFieldItem, PrintInvoiceData, PrintLayoutProps, PrintTotalsRowKey } from "@/types";
 
 function resolveTotalsRowValue(key: PrintTotalsRowKey, data: PrintLayoutProps["data"]): string | undefined {
   switch (key) {
     case "total":
-      return formatMoney(data.total);
+      return formatAmount(data.total);
     case "discount":
-      return Number(data.discountAmount) > 0 ? `-${formatMoney(data.discountAmount)}` : undefined;
+      return Number(data.discountAmount) > 0 ? `-${formatAmount(data.discountAmount)}` : undefined;
     case "previousBalance":
-      return data.previousBalance !== undefined ? formatMoney(data.previousBalance) : undefined;
+      return data.previousBalance !== undefined ? formatAmount(data.previousBalance) : undefined;
     case "paid":
-      return formatMoney(data.paidAmount);
+      return formatAmount(data.paidAmount);
     case "remaining":
-      return formatMoney(data.currentBalance ?? data.remainingAmount);
+      return formatAmount(data.currentBalance ?? data.remainingAmount);
     default:
       return undefined;
   }
 }
 
-export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
+export function PrintLayoutA5({ data, infoColumns, totalsRows }: PrintLayoutProps) {
   const t = useTranslations("print");
 
   return (
@@ -41,35 +41,49 @@ export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
       </header>
 
       {/* LOGO + CUSTOMER + INVOICE INFO */}
-      <section className="flex h-[26mm] items-start justify-between px-[3.5mm] pt-[3.5mm]" dir="rtl">
+      <section className="flex items-start justify-between gap-[3mm] px-[3.5mm] pt-[2mm] pb-[1.5mm]" dir="rtl">
         <div className="w-[42mm] text-[11px] leading-[1.4]">
-          <InfoRow label={t("number")} value={String(data.number)} />
-          <InfoRow label={t("date")} value={formatDate(data.issuedAt)} />
-          <div className="mt-[1mm] space-y-[0.5mm]">
-            {data.staffContacts?.map((staff, index) => (
-              <div key={index} className="flex items-baseline justify-end text-[10.5px] whitespace-nowrap" dir="rtl">
-                <span className="font-bold">{t("staffPrefix")}{staff.name}</span>
-                <span className="mx-[1mm]">:</span>
-                <span dir="ltr" className="font-medium">{staff.phone}</span>
+          {infoColumns ? (
+            <ConfiguredFieldColumn items={infoColumns.col1} data={data} />
+          ) : (
+            <>
+              <InfoRow label={t("number")} value={String(data.number)} />
+              <InfoRow label={t("date")} value={formatDate(data.issuedAt)} />
+              <div className="mt-[1mm] space-y-[0.5mm]">
+                {data.staffContacts?.map((staff, index) => (
+                  <div key={index} className="flex items-baseline justify-end text-[10.5px] whitespace-nowrap" dir="rtl">
+                    <span className="font-bold">{t("staffPrefix")}{staff.name}</span>
+                    <span className="mx-[1mm]">:</span>
+                    <span dir="ltr" className="font-medium">{staff.phone}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
 
-        <div className="w-[42mm] text-[11px] leading-[1.45]">
+        <div className="w-[56mm] text-[11px] leading-[1.45]">
           <div className="mb-[1mm] text-right text-[12.5px] font-bold">{data.partyLabel}</div>
-          <div className="text-right">
-            {data.partyCompanyName && <div className="whitespace-nowrap">{t("staffPrefix")} {data.partyCompanyName}</div>}
-            <div className="whitespace-nowrap">{data.partyName}</div>
-            {data.partyPhone && <div className="whitespace-nowrap" dir="ltr">{data.partyPhone}</div>}
-            {data.partyAddress && <div className="whitespace-nowrap">{data.partyAddress}</div>}
-          </div>
-          <div className="mt-[1mm] text-right text-[10.5px] whitespace-nowrap">
-            <span className="font-bold">{t("shopAddress")} :</span> <span className="font-medium">{data.shop.address}</span>
-          </div>
+          {infoColumns ? (
+            <ConfiguredFieldColumn items={infoColumns.col2} data={data} />
+          ) : (
+            <>
+              <div className="text-right">
+                {data.partyCompanyName && <div>{t("staffPrefix")} {data.partyCompanyName}</div>}
+                <div>{data.partyName}</div>
+                {data.partyPhone && <div className="text-right" dir="ltr">{data.partyPhone}</div>}
+                {data.partyAddress && <div>{data.partyAddress}</div>}
+              </div>
+              {data.shop.address && (
+                <div className="mt-[1mm] text-right text-[10.5px]">
+                  <span className="font-bold">{t("shopAddress")} :</span> <span className="font-medium">{data.shop.address}</span>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
-        <div className="flex h-[20mm] w-[42mm] items-center justify-start" dir="ltr">
+        <div className="flex h-[17mm] w-[32mm] shrink-0 items-center justify-start" dir="ltr">
           {data.shop.logoDataUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={data.shop.logoDataUrl} alt={data.shop.name} className="max-h-full max-w-full object-contain object-left" />
@@ -110,8 +124,8 @@ export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
                 </td>
                 <td className="border-[1px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[11px]">{line.unitName}</td>
                 <td className="border-[1px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[11px]" dir="ltr">{formatNumber(line.qty)}</td>
-                <td className="border-[1px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[11px]" dir="ltr">{formatMoney(line.unitPrice)}</td>
-                <td className="border-[1px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[11px]" dir="ltr">{formatMoney(line.lineTotal)}</td>
+                <td className="border-[1px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[11px]" dir="ltr">{formatAmount(line.unitPrice)}</td>
+                <td className="border-[1px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[11px]" dir="ltr">{formatAmount(line.lineTotal)}</td>
               </tr>
             ))}
           </tbody>
@@ -119,8 +133,19 @@ export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
       </div>
 
       {/* BOTTOM AREA */}
-      <section className="relative mx-[1mm] h-[26mm] w-[146mm]">
-        <div className="absolute top-0 left-0 w-[44mm]" dir="ltr">
+      <section className="mx-[1mm] mt-[2mm] flex w-[146mm] items-start justify-between gap-[4mm] pb-[2mm]" dir="rtl">
+        <div className="flex min-w-0 flex-1 flex-col gap-[5mm] ps-[5mm] pt-[2mm]">
+          <div className="text-right text-[10px] leading-[1.6]">
+            <span className="font-medium">{t("amountInWords")} :</span>{" "}
+            <span className="font-bold underline decoration-[1px] underline-offset-[2px]">{formatMoneyInWords(data.total)}</span>
+          </div>
+          <div className="flex items-center gap-[1mm]">
+            <span className="text-[11px] font-medium whitespace-nowrap">{t("signatureBox")}:</span>
+            <div className="h-[6.5mm] w-[40mm] border-[1.5px] border-dashed border-black" />
+          </div>
+        </div>
+
+        <div className="w-[60mm] shrink-0" dir="ltr">
           {(() => {
             const rows = totalsRows ?? DEFAULT_TOTALS_ROWS;
             const visibleRows = rows
@@ -133,16 +158,6 @@ export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
               return <TotalsRow key={row.key} label={row.label.trim() || defaultLabel} value={row.value} first={index === 0} />;
             });
           })()}
-        </div>
-
-        <div className="absolute top-[6.5mm] right-[7mm] w-[72mm] text-right text-[10px] whitespace-nowrap" dir="rtl">
-          <span className="font-medium">{t("amountInWords")} :</span>{" "}
-          <span className="font-bold underline decoration-[1px] underline-offset-[2px]">{formatMoneyInWords(data.total)}</span>
-        </div>
-
-        <div className="absolute right-[11mm] bottom-[1mm] flex items-center gap-[1mm]" dir="rtl">
-          <span className="text-[11px] font-medium whitespace-nowrap">{t("signatureBox")}:</span>
-          <div className="h-[6.5mm] w-[40mm] border-[1.5px] border-dashed border-black" />
         </div>
       </section>
 
@@ -157,7 +172,7 @@ export function PrintLayoutA5({ data, totalsRows }: PrintLayoutProps) {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex h-[5mm] items-center justify-start gap-[1.5mm] whitespace-nowrap" dir="rtl">
+    <div className="flex h-[3.4mm] items-center justify-start gap-[1.5mm] whitespace-nowrap" dir="rtl">
       {label && <span className="font-bold">{label + " :"}</span>}
       <span className="font-medium" dir="ltr">{value}</span>
     </div>
@@ -172,20 +187,34 @@ function TableHeader({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ConfiguredFieldColumn({ items, data }: { items: PrintFieldItem[]; data: PrintInvoiceData }) {
+  return (
+    <div className="space-y-0">
+      {items.map((item) => {
+        const value = item.source.kind === "system" ? resolveSystemFieldValue(item.source.fieldKey, data) : item.source.value;
+        if (!value) return null;
+        return <InfoRow key={item.id} label={item.label} value={value} />;
+      })}
+    </div>
+  );
+}
+
 function TotalsRow({ label, value, first = false }: { label: string; value: string; first?: boolean }) {
   return (
-    <div className="grid h-[6mm] grid-cols-[22mm_22mm]" dir="ltr">
+    <div className="grid min-h-[6mm] grid-cols-[34mm_1fr]" dir="ltr">
       <div
         className={[
-          "flex items-center justify-center",
+          "flex items-center justify-center px-[1mm]",
           "border-x border-b border-[#8a8a8a]",
-          "text-[12px] font-bold",
+          "text-[11.5px] font-bold whitespace-nowrap",
           first ? "border-t" : "",
         ].join(" ")}
       >
         {value}
       </div>
-      <div className="flex items-center justify-start px-[1mm] text-[12px] font-bold whitespace-nowrap">{label}</div>
+      <div className="flex items-center justify-end px-[1.5mm] text-[11.5px] font-bold whitespace-nowrap" dir="rtl">
+        {label}
+      </div>
     </div>
   );
 }

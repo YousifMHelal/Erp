@@ -22,6 +22,8 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
 
   const [categories, setCategories] = useState(initialCategories);
   const [formOpen, setFormOpen] = useState(false);
+  // Bumped on every open so the form dialog remounts with fresh fields, even for back-to-back "new" entries.
+  const [formSession, setFormSession] = useState(0);
   const [editingCategory, setEditingCategory] = useState<CategoryRow | undefined>(undefined);
   const [deletingCategory, setDeletingCategory] = useState<CategoryRow | undefined>(undefined);
 
@@ -62,6 +64,7 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
               aria-label={t("editCategory")}
               onClick={() => {
                 setEditingCategory(row.original);
+                setFormSession((session) => session + 1);
                 setFormOpen(true);
               }}
             >
@@ -109,6 +112,7 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
                     className="max-md:min-h-11 max-md:min-w-11"
                     onClick={() => {
                       setEditingCategory(row);
+                      setFormSession((session) => session + 1);
                       setFormOpen(true);
                     }}
                   >
@@ -139,6 +143,7 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
               variant="primary"
               onClick={() => {
                 setEditingCategory(undefined);
+                setFormSession((session) => session + 1);
                 setFormOpen(true);
               }}
             >
@@ -148,7 +153,7 @@ export function CategoriesTable({ categories: initialCategories }: { categories:
         }
       />
 
-      <CategoryFormDialog key={editingCategory?.id ?? "new"} open={formOpen} onOpenChange={setFormOpen} category={editingCategory} onSave={handleSave} />
+      <CategoryFormDialog key={`${editingCategory?.id ?? "new"}-${formSession}`} open={formOpen} onOpenChange={setFormOpen} category={editingCategory} onSave={handleSave} />
 
       <ConfirmDialog
         open={!!deletingCategory}

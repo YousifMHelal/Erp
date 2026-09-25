@@ -25,18 +25,20 @@ export function LineItemsTable({ lines, onUpdateLine, onRemoveLine, activeLineId
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-muted">
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-14 pe-6 text-center text-label">#</TableHead>
               <TableHead className="w-full text-label">{t("columnProduct")}</TableHead>
-              <TableHead className="text-label whitespace-nowrap">{t("columnUnit")}</TableHead>
-              <TableHead className="text-label whitespace-nowrap">{t("columnQty")}</TableHead>
-              <TableHead className="text-label whitespace-nowrap">{t("columnPrice")}</TableHead>
-              <TableHead className="text-label text-end whitespace-nowrap">{t("columnTotal")}</TableHead>
-              <TableHead className="w-10 whitespace-nowrap" />
+              <TableHead className="text-center text-label whitespace-nowrap">{t("columnUnit")}</TableHead>
+              <TableHead className="text-center text-label whitespace-nowrap">{t("columnQty")}</TableHead>
+              <TableHead className="text-center text-label whitespace-nowrap">{t("columnPrice")}</TableHead>
+              <TableHead className="text-center text-label whitespace-nowrap">{t("columnTotal")}</TableHead>
+              <TableHead className="w-10 text-center text-label whitespace-nowrap">{t("columnActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lines.map((line) => (
+            {lines.map((line, index) => (
               <LineRow
                 key={line.lineId}
+                rowNumber={index + 1}
                 line={line}
                 isActive={line.lineId === activeLineId}
                 onUpdate={(patch) => onUpdateLine(line.lineId, patch)}
@@ -46,10 +48,10 @@ export function LineItemsTable({ lines, onUpdateLine, onRemoveLine, activeLineId
           </TableBody>
           <TableFooter className="sticky bottom-0">
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={4} className="font-medium">
+              <TableCell colSpan={5} className="font-medium">
                 {t("subtotalLabel")}
               </TableCell>
-              <TableCell className="text-end font-medium tabular-nums">{formatMoney(String(subtotal))}</TableCell>
+              <TableCell className="text-center font-medium tabular-nums">{formatMoney(String(subtotal))}</TableCell>
               <TableCell />
             </TableRow>
           </TableFooter>
@@ -57,9 +59,10 @@ export function LineItemsTable({ lines, onUpdateLine, onRemoveLine, activeLineId
       </div>
 
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-3 md:hidden">
-        {lines.map((line) => (
+        {lines.map((line, index) => (
           <LineItemMobileCard
             key={line.lineId}
+            rowNumber={index + 1}
             line={line}
             isActive={line.lineId === activeLineId}
             onUpdate={(patch) => onUpdateLine(line.lineId, patch)}

@@ -1,4 +1,4 @@
-import { formatDate } from "@/lib/format";
+import { formatDate, formatShopTime } from "@/lib/format";
 import type {
   PrintFieldItem,
   PrintInfoColumnKey,
@@ -7,6 +7,7 @@ import type {
   PrintSystemFieldKey,
   PrintSystemFieldOption,
   PrintTotalsRowConfig,
+  StatementPrintFieldData,
 } from "@/types";
 
 /** The totals-block rows, in their default order. `label` starts empty — the labelKey translation is used until the user customizes it. */
@@ -53,6 +54,36 @@ export function resolveSystemFieldValue(fieldKey: PrintSystemFieldKey, data: Pri
       return data.partyPhone;
     case "customerAddress":
       return data.partyAddress;
+    case "shopName":
+      return data.shop.name;
+    case "shopPhone":
+      return data.shop.phone;
+    case "shopPhone2":
+      return data.shop.phone2;
+    case "shopAddress":
+      return data.shop.address;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Resolves a system field on an account statement: date/time are the print moment (shop-local),
+ * customer* fields are the statement's party, shop* the shop. A statement has no invoice number or
+ * cashier, so those return undefined and the row is skipped.
+ */
+export function resolveStatementFieldValue(fieldKey: PrintSystemFieldKey, data: StatementPrintFieldData): string | undefined {
+  switch (fieldKey) {
+    case "invoiceDate":
+      return formatDate(data.printedAt);
+    case "invoiceTime":
+      return formatShopTime(data.printedAt);
+    case "customerName":
+      return data.party.name;
+    case "customerPhone":
+      return data.party.phone;
+    case "customerAddress":
+      return data.party.address;
     case "shopName":
       return data.shop.name;
     case "shopPhone":

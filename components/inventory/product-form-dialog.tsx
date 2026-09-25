@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -150,18 +153,25 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>{t("categoryLabel")}</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>{t("categoryLabel")}</Label>
+              <Link
+                href="/settings/categories"
+                className="inline-flex items-center gap-1 text-caption font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Plus className="size-3.5" aria-hidden="true" />
+                {t("createCategory")}
+              </Link>
+            </div>
             <EntityCombobox options={categoryOptions} value={categoryId} onChange={setCategoryId} placeholder={t("categoryPlaceholder")} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="product-min-stock">{t("minStockLabel")}</Label>
-            <Input
+            <NumberInput
               id="product-min-stock"
-              type="number"
-              inputMode="decimal"
               min={0}
               value={minStockQty}
-              onChange={(e) => setMinStockQty(Number(e.target.value))}
+              onValueChange={setMinStockQty}
               className="text-end tabular-nums"
               placeholder="مثال: 10"
             />
@@ -195,14 +205,11 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="units-per-base">{t("unitsPerBaseLabel")}</Label>
-            <Input
+            <NumberInput
               id="units-per-base"
-              type="number"
-              inputMode="decimal"
               min={1}
-              step="any"
               value={unitsPerBase}
-              onChange={(e) => setUnitsPerBase(Number(e.target.value))}
+              onValueChange={setUnitsPerBase}
               className="text-end tabular-nums"
               placeholder="مثال: 10"
             />
@@ -219,28 +226,22 @@ export function ProductFormDialog({ open, onOpenChange, categoryOptions, product
         <TabsContent value="prices" className="flex flex-col gap-4 pt-2">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="purchase-price">{t("purchasePriceLabel", { unit: baseUnitName || t("baseUnitLabel") })}</Label>
-            <Input
+            <NumberInput
               id="purchase-price"
-              type="number"
-              inputMode="decimal"
               min={0}
-              step="any"
               value={purchasePricePerBase}
-              onChange={(e) => setPurchasePricePerBase(Number(e.target.value))}
+              onValueChange={setPurchasePricePerBase}
               className="text-end tabular-nums"
               placeholder="0.00"
             />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="sell-price">{t("sellPriceLabel", { unit: baseUnitName || t("baseUnitLabel") })}</Label>
-            <Input
+            <NumberInput
               id="sell-price"
-              type="number"
-              inputMode="decimal"
               min={0}
-              step="any"
               value={sellPricePerBase}
-              onChange={(e) => setSellPricePerBase(Number(e.target.value))}
+              onValueChange={setSellPricePerBase}
               className="text-end tabular-nums"
               placeholder="0.00"
             />

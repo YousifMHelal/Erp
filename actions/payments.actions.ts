@@ -4,6 +4,8 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { AuthRequiredError, PermissionDeniedError, requirePermission } from "@/lib/auth-guard";
 import { writeAudit } from "@/lib/audit";
+import { removeDocumentCash, restampDocumentCash } from "@/lib/cash-ledger";
+import { removeDocumentPartyEntries, restampDocumentPartyEntries } from "@/lib/party-ledger";
 import { fail, ok } from "@/lib/action-result";
 import { logError } from "@/lib/logger";
 import { nextDocumentNumber } from "@/lib/numbering";
@@ -11,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { syncNotifications } from "@/lib/notifications";
 import { createPaymentSchema, partyIdSchema, updatePaymentSchema } from "@/lib/validations";
 import messages from "@/messages/ar.json";
-import type { ActionResult, EntityComboboxOption, MoneyDocumentRow, PartyWithBalanceOption } from "@/types";
+import type { ActionResult, CashboxWithBalanceOption, MoneyDocumentRow, PartyWithBalanceOption } from "@/types";
 
 const m = messages.moneyAction;
 
@@ -78,7 +80,7 @@ export async function getPaymentById(id: string): Promise<ActionResult<MoneyDocu
   }
 }
 
-export async function getPaymentFormOptions(includePartyId?: string): Promise<ActionResult<{ parties: PartyWithBalanceOption[]; cashboxes: EntityComboboxOption[] }>> {
+export async function getPaymentFormOptions(includePartyId?: string): Promise<ActionResult<{ parties: PartyWithBalanceOption[]; cashboxes: CashboxWithBalanceOption[] }>> {
   try {
     await requirePermission("payment.create");
     const [suppliers, cashboxes] = await Promise.all([
@@ -90,7 +92,7 @@ export async function getPaymentFormOptions(includePartyId?: string): Promise<Ac
     ]);
     return ok({
       parties: suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name, balance: supplier.balance.toString() })),
-      cashboxes: cashboxes.map((cashbox) => ({ value: cashbox.id, label: cashbox.name })),
+      cashboxes: cashboxes.map((cashbox) => ({ value: cashbox.id, label: cashbox.name, balance: cashbox.balance.toString() })),
     });
   } catch (error) {
     return actionError(error);
@@ -116,11 +118,8 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
       });
       if (supplierUpdate.count !== 1) throw new PaymentDomainError("exceedsBalance");
       const updatedSupplier = await tx.supplier.findUniqueOrThrow({ where: { id: supplierId } });
-      const cashboxUpdate = await tx.cashbox.updateMany({
-        where: { id: cashboxId, balance: { gte: amount } }, data: { balance: { decrement: amount } },
-      });
-      if (cashboxUpdate.count !== 1) throw new PaymentDomainError("insufficientCash");
-      const updatedCashbox = await tx.cashbox.findUniqueOrThrow({ where: { id: cashboxId } });
+      // A cashbox may go negative — the form warns before submitting.
+      const updatedCashbox = await tx.cashbox.update({ where: { id: cashboxId }, data: { balance: { decrement: amount } } });
       const number = await nextDocumentNumber(tx, "PAYMENT");
       const occurredAt = new Date();
       const payment = await tx.payment.create({
@@ -159,27 +158,11 @@ export async function createPayment(input: unknown): Promise<ActionResult<{ id: 
  */
 async function reversePaymentEffect(
   tx: Prisma.TransactionClient,
-  payment: { id: string; supplierId: string; cashboxId: string; amount: Prisma.Decimal; number: number },
-  userId: string,
-  note: string | undefined,
+  payment: { id: string },
 ) {
-  const occurredAt = new Date();
-  const updatedCashbox = await tx.cashbox.update({
-    where: { id: payment.cashboxId }, data: { balance: { increment: payment.amount } },
-  });
-  const updatedSupplier = await tx.supplier.update({
-    where: { id: payment.supplierId }, data: { balance: { increment: payment.amount } },
-  });
-  await tx.cashMovement.create({ data: {
-    cashboxId: payment.cashboxId, type: "SUPPLIER_PAYMENT", amount: payment.amount,
-    balanceAfter: updatedCashbox.balance, supplierId: payment.supplierId,
-    refType: "PAYMENT", refId: payment.id, note, createdById: userId, createdAt: occurredAt,
-  } });
-  await tx.partyTransaction.create({ data: {
-    partyType: "SUPPLIER", supplierId: payment.supplierId, type: "PAYMENT",
-    debit: payment.amount, credit: new Prisma.Decimal(0), balanceAfter: updatedSupplier.balance,
-    refType: "PAYMENT", refId: payment.id, note, occurredAt, createdById: userId,
-  } });
+  const removedCash = await removeDocumentCash(tx, { refType: "PAYMENT", refId: payment.id });
+  const removedParty = await removeDocumentPartyEntries(tx, { refType: "PAYMENT", refId: payment.id });
+  return { removedCash, removedParty };
 }
 
 export async function updatePayment(input: unknown): Promise<ActionResult<{ id: string; number: number }>> {
@@ -202,18 +185,14 @@ export async function updatePayment(input: unknown): Promise<ActionResult<{ id: 
       if (!supplier || !cashbox) throw new PaymentDomainError("notFound");
       if (!supplier.isActive || !cashbox.isActive) throw new PaymentDomainError("inactive");
 
-      await reversePaymentEffect(tx, existing, user.id, "تعديل دفعة");
+      const removed = await reversePaymentEffect(tx, existing);
 
       const reappliedSupplierUpdate = await tx.supplier.updateMany({
         where: { id: supplierId, balance: { gte: amount } }, data: { balance: { decrement: amount } },
       });
       if (reappliedSupplierUpdate.count !== 1) throw new PaymentDomainError("exceedsBalance");
       const finalSupplier = await tx.supplier.findUniqueOrThrow({ where: { id: supplierId } });
-      const reappliedCashboxUpdate = await tx.cashbox.updateMany({
-        where: { id: cashboxId, balance: { gte: amount } }, data: { balance: { decrement: amount } },
-      });
-      if (reappliedCashboxUpdate.count !== 1) throw new PaymentDomainError("insufficientCash");
-      const finalCashbox = await tx.cashbox.findUniqueOrThrow({ where: { id: cashboxId } });
+      const finalCashbox = await tx.cashbox.update({ where: { id: cashboxId }, data: { balance: { decrement: amount } } });
 
       const occurredAt = new Date();
       await tx.payment.update({
@@ -228,6 +207,8 @@ export async function updatePayment(input: unknown): Promise<ActionResult<{ id: 
         balanceAfter: finalSupplier.balance, refType: "PAYMENT", refId: id,
         note, occurredAt, createdById: user.id,
       } });
+      await restampDocumentCash(tx, { refType: "PAYMENT", refId: id }, removed.removedCash.firstMovedAt);
+      await restampDocumentPartyEntries(tx, { refType: "PAYMENT", refId: id }, removed.removedParty);
 
       await syncNotifications(tx, { supplierIds: [existing.supplierId, supplierId] });
       await writeAudit(tx, {
@@ -259,7 +240,7 @@ export async function deletePayment(id: unknown): Promise<ActionResult<{ number:
       if (!payment) throw new PaymentDomainError("notFound");
       if (payment.status !== "CONFIRMED") throw new PaymentDomainError("cancelled");
 
-      await reversePaymentEffect(tx, payment, user.id, "حذف دفعة");
+      await reversePaymentEffect(tx, payment);
 
       await writeAudit(tx, {
         userId: user.id, action: "payment.delete", entityType: "Payment",

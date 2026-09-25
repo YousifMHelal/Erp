@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { Money } from "@/components/shared/money";
 import type { TotalsPanelProps } from "@/types";
@@ -20,14 +20,11 @@ export function TotalsPanel({ subtotal, discountAmount, onDiscountChange, total 
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="discount-amount">{t("discountLabel")}</Label>
-          <Input
+          <NumberInput
             id="discount-amount"
-            type="number"
-            inputMode="decimal"
             min={0}
-            step="any"
             value={discountAmount}
-            onChange={(e) => onDiscountChange(Number(e.target.value))}
+            onValueChange={onDiscountChange}
             placeholder="0.00"
             className="text-end tabular-nums"
           />

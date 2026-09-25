@@ -5,7 +5,7 @@ import { LogOut, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,11 +19,13 @@ import { signOutAction } from "@/actions/auth.actions";
 import { avatarColorClass, cn } from "@/lib/utils";
 import type { UserMenuProps } from "@/types";
 
-export function UserMenu({ className }: UserMenuProps) {
+export function UserMenu({ className, currentUser }: UserMenuProps) {
   const t = useTranslations("layout");
   const { data: session } = useSession();
   const [isPending, startTransition] = useTransition();
-  const displayName = session?.user?.displayName;
+  // Prefer the fresh DB copy from the layout: the session token keeps the name from login time.
+  const displayName = currentUser?.displayName ?? session?.user?.displayName;
+  const userId = currentUser?.id ?? session?.user?.id;
   const initials = displayName?.trim().slice(0, 1);
 
   return (
@@ -37,10 +39,13 @@ export function UserMenu({ className }: UserMenuProps) {
           className={cn("min-h-11 min-w-11 rounded-full", className)}
         >
           <Avatar>
+            {currentUser?.avatarUrl && (
+              <AvatarImage src={currentUser.avatarUrl} alt={displayName ?? ""} className="object-cover" />
+            )}
             <AvatarFallback
               className={cn(
                 "text-primary-foreground",
-                session?.user?.id ? avatarColorClass(session.user.id) : "bg-primary",
+                userId ? avatarColorClass(userId) : "bg-primary",
               )}
             >
               {initials ?? <UserIcon className="size-4" aria-hidden="true" />}
@@ -52,7 +57,7 @@ export function UserMenu({ className }: UserMenuProps) {
         <DropdownMenuLabel>{displayName ?? t("userMenuLabel")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile">
+          <Link href="/settings/profile">
             <UserIcon />
             {t("profile")}
           </Link>

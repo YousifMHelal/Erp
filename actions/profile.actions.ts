@@ -63,7 +63,8 @@ export async function updateMyProfile(input: unknown): Promise<ActionResult<MyPr
       return updated;
     });
 
-    revalidatePath("/profile");
+    // Layout-level revalidation so the top-bar avatar/name update too, not just /profile.
+    revalidatePath("/", "layout");
     return ok({
       id: saved.id,
       displayName: saved.displayName,
@@ -101,7 +102,7 @@ export async function changeMyPassword(input: unknown): Promise<ActionResult<nul
       });
     });
 
-    revalidatePath("/profile");
+    revalidatePath("/settings/profile");
     return ok(null);
   } catch (error) {
     return actionError(error);

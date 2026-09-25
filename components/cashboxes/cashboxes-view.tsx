@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { ArrowLeftRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeftRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/shared/date-range-picker";
 import { CashboxSummaryStrip } from "@/components/cashboxes/cashbox-summary-strip";
@@ -66,9 +67,18 @@ export function CashboxesView({ cashboxes, movements }: CashboxesViewProps) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <DateRangePicker value={dateRange} onChange={setDateRange} className="sm:w-64" />
-        <Button type="button" variant="outline" onClick={() => setTransferOpen(true)}>
-          <ArrowLeftRight /> {t("transferAction")}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/settings/cashboxes"
+            className="inline-flex items-center gap-1 text-body-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            {t("createCashbox")}
+          </Link>
+          <Button type="button" variant="outline" onClick={() => setTransferOpen(true)}>
+            <ArrowLeftRight /> {t("transferAction")}
+          </Button>
+        </div>
       </div>
       <CashboxSummaryStrip cashboxes={cashboxes} selectedId={selectedId} onSelectCashbox={setSelectedId} />
       <CashMovementTable movements={filteredMovements} />

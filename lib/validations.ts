@@ -142,7 +142,7 @@ export const updateSaleSchema = saleFieldsSchema.extend({
 
 export const cancelSaleSchema = z.object({
   id: z.string().trim().min(1, v.required).max(80, v.long),
-  reason: z.string().trim().min(3, v.short).max(500, v.long),
+  reason: z.string().trim().max(500, v.long).optional().transform((value) => value || undefined),
 });
 
 export const saleIdSchema = z
@@ -186,7 +186,7 @@ export const updatePurchaseSchema = purchaseFieldsSchema.extend({
 
 export const cancelPurchaseSchema = z.object({
   id: z.string().trim().min(1, v.required).max(80, v.long),
-  reason: z.string().trim().min(3, v.short).max(500, v.long),
+  reason: z.string().trim().max(500, v.long).optional().transform((value) => value || undefined),
 });
 
 export const purchaseIdSchema = z
@@ -260,7 +260,7 @@ export const createReturnSchema = z.object({
 
 export const cancelReturnSchema = z.object({
   id: z.string().trim().min(1, v.required).max(80, v.long),
-  reason: z.string().trim().min(3, v.short).max(500, v.long),
+  reason: z.string().trim().max(500, v.long).optional().transform((value) => value || undefined),
 });
 
 export const returnIdSchema = z.string().trim().min(1, v.required).max(80, v.long);
@@ -353,7 +353,7 @@ export const updatePaymentSchema = createPaymentSchema.extend({
 
 export const cancelMoneyDocumentSchema = z.object({
   id: partyIdSchema,
-  reason: z.string().trim().min(3, v.short).max(500, v.long),
+  reason: z.string().trim().max(500, v.long).optional().transform((value) => value || undefined),
 });
 
 export const reportFiltersSchema = z
@@ -437,6 +437,52 @@ export const roleSchema = z.object({
   name: z.string().trim().min(2, v.short).max(120, v.long),
   description: z.string().trim().max(500, v.long).optional(),
   permissions: z.array(z.string().trim().min(1).max(100)).max(100),
+});
+
+const printFieldItemSchema = z.object({
+  id: z.string().min(1).max(100),
+  label: z.string().max(120, v.long),
+  source: z.discriminatedUnion("kind", [
+    z.object({
+      kind: z.literal("system"),
+      fieldKey: z.enum([
+        "invoiceNumber", "invoiceDate", "invoiceTime", "cashierName",
+        "customerName", "customerCompanyName", "customerPhone", "customerAddress",
+        "shopName", "shopPhone", "shopPhone2", "shopAddress",
+      ]),
+    }),
+    z.object({ kind: z.literal("custom"), value: z.string().max(300, v.long) }),
+  ]),
+});
+
+export const printTemplateLayoutSchema = z.object({
+  templateName: z.string().trim().max(120, v.long),
+  // Logo is stored inline as a data URL; ~1.5 MB of base64 covers a ~1 MB image.
+  logoDataUrl: z.string().startsWith("data:image/").max(1_500_000, v.long).optional(),
+  lineColumns: z
+    .array(z.object({ key: z.enum(["productCode", "unitName", "sku", "discount"]), labelKey: z.string().max(100), visible: z.boolean() }))
+    .max(10),
+  infoColumns: z.object({ col1: z.array(printFieldItemSchema).max(20), col2: z.array(printFieldItemSchema).max(20) }),
+  totalsRows: z
+    .array(
+      z.object({
+        key: z.enum(["total", "discount", "previousBalance", "paid", "remaining"]),
+        labelKey: z.string().max(100),
+        label: z.string().max(120, v.long),
+        visible: z.boolean(),
+      }),
+    )
+    .max(10),
+});
+
+export const printTemplateSchema = printTemplateLayoutSchema.extend({
+  shop: z.object({
+    name: z.string().trim().min(1, v.required).max(200, v.long),
+    phone: z.string().trim().max(40, v.long),
+    phone2: z.string().trim().max(40, v.long).optional(),
+    address: z.string().trim().max(300, v.long),
+    invoiceFooter: z.string().trim().max(500, v.long).optional(),
+  }),
 });
 
 export const restoreBackupSchema = z.object({

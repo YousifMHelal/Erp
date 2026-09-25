@@ -2,7 +2,7 @@
 
 import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { convertUnitPrice } from "@/lib/units";
 import { cn } from "@/lib/utils";
 import type { LineRowProps, UnitType } from "@/types";
 
-export function LineRow({ line, isActive, onUpdate, onRemove }: LineRowProps) {
+export function LineRow({ line, rowNumber, isActive, onUpdate, onRemove }: LineRowProps) {
   const t = useTranslations("invoices.form");
 
   function handleUnitChange(unitType: UnitType) {
@@ -21,6 +21,7 @@ export function LineRow({ line, isActive, onUpdate, onRemove }: LineRowProps) {
 
   return (
     <TableRow data-state={isActive ? "selected" : undefined} className={cn(isActive && "bg-indigo-50 dark:bg-indigo-900/25")}>
+      <TableCell className="w-14 pe-6 text-center text-muted-foreground tabular-nums">{rowNumber}</TableCell>
       <TableCell
         className="w-full max-w-0"
         style={{
@@ -34,7 +35,7 @@ export function LineRow({ line, isActive, onUpdate, onRemove }: LineRowProps) {
       </TableCell>
       <TableCell className="whitespace-nowrap">
         <Select value={line.unitType} onValueChange={(v) => handleUnitChange(v as UnitType)}>
-          <SelectTrigger size="sm" className="w-20" aria-label={t("unitLabel")}>
+          <SelectTrigger size="sm" className="mx-auto w-20" aria-label={t("unitLabel")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -44,30 +45,24 @@ export function LineRow({ line, isActive, onUpdate, onRemove }: LineRowProps) {
         </Select>
       </TableCell>
       <TableCell className="whitespace-nowrap">
-        <Input
-          type="number"
-          inputMode="decimal"
+        <NumberInput
           min={0}
-          step="any"
           value={line.qty}
-          onChange={(e) => onUpdate({ qty: Number(e.target.value) })}
-          className="w-16 text-end tabular-nums"
+          onValueChange={(qty) => onUpdate({ qty })}
+          className="mx-auto w-16 text-center tabular-nums"
           aria-label={t("qtyLabel")}
         />
       </TableCell>
       <TableCell className="whitespace-nowrap">
-        <Input
-          type="number"
-          inputMode="decimal"
+        <NumberInput
           min={0}
-          step="any"
           value={line.unitPrice}
-          onChange={(e) => onUpdate({ unitPrice: Number(e.target.value) })}
-          className="w-28 text-end tabular-nums"
+          onValueChange={(unitPrice) => onUpdate({ unitPrice })}
+          className="mx-auto w-28 text-center tabular-nums"
           aria-label={t("priceLabel")}
         />
       </TableCell>
-      <TableCell className="whitespace-nowrap text-end font-medium tabular-nums">
+      <TableCell className="whitespace-nowrap text-center font-medium tabular-nums">
         {formatMoney(String(line.lineTotal))}
       </TableCell>
       <TableCell className="whitespace-nowrap">

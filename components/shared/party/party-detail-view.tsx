@@ -11,20 +11,40 @@ import { PartyFormDialog } from "@/components/shared/party/party-form-dialog";
 import { CustomerInvoicesTab } from "@/components/shared/party/customer-invoices-tab";
 import { CustomerPaymentsTab } from "@/components/shared/party/customer-payments-tab";
 import { AccountStatementTab } from "@/components/shared/party/account-statement-tab";
-import { StatementPrintDialog } from "@/components/shared/party/statement-print-dialog";
 import { updateCustomer } from "@/actions/customers.actions";
 import { updateSupplier } from "@/actions/suppliers.actions";
-import type { PartyDetailViewProps, PartyFormValues } from "@/types";
+import { captureUrlPng, copyUrlImage, downloadBlob, printUrl } from "@/lib/print-invoice";
+import { DEFAULT_STATEMENT_FILTERS, statementFilterParams } from "@/lib/statement-filters";
+import type { PartyDetailViewProps, PartyFormValues, StatementFilters } from "@/types";
 
-export function PartyDetailView({ partyType, party, invoices, payments, statement }: PartyDetailViewProps) {
+export function PartyDetailView({ partyType, party, invoices, payments, statement, statementPrintSize }: PartyDetailViewProps) {
   const t = useTranslations("parties.detail");
   const router = useRouter();
-  const [printOpen, setPrintOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [isCopyingImage, setIsCopyingImage] = useState(false);
+  const [statementFilters, setStatementFilters] = useState<StatementFilters>(DEFAULT_STATEMENT_FILTERS);
+  // The print page re-applies the same filters, so print/copy match the on-screen statement.
+  const printParams = statementFilterParams(statementFilters);
+  printParams.set("size", statementPrintSize);
+  const statementPrintUrl = `/statements/${partyType.toLowerCase()}/${party.id}/print?${printParams.toString()}`;
 
-  function handlePrintSelect(size: "A4" | "A5") {
-    setPrintOpen(false);
-    window.open(`/statements/${partyType.toLowerCase()}/${party.id}/print?size=${size}`, "_blank", "noopener,noreferrer");
+  async function handleCopyImage() {
+    setIsCopyingImage(true);
+    try {
+      await copyUrlImage(statementPrintUrl);
+      toast.success(t("statementImageCopied"));
+    } catch (cause) {
+      console.error("Statement image copy failed", cause);
+      try {
+        downloadBlob(await captureUrlPng(statementPrintUrl), `statement-${partyType.toLowerCase()}-${party.id}.png`);
+        toast.info(t("statementImageDownloadedInstead"));
+      } catch (error) {
+        console.error("Statement image render failed", error);
+        toast.error(t("statementImageFailed"));
+      }
+    } finally {
+      setIsCopyingImage(false);
+    }
   }
 
   async function handleSave(values: PartyFormValues): Promise<boolean> {
@@ -55,7 +75,15 @@ export function PartyDetailView({ partyType, party, invoices, payments, statemen
               <TabsTrigger value="payments">{t("tabPayments")}</TabsTrigger>
             </TabsList>
             <TabsContent value="statement" className="pt-4">
-              <AccountStatementTab partyType={partyType} statement={statement} onPrint={() => setPrintOpen(true)} />
+              <AccountStatementTab
+                partyType={partyType}
+                statement={statement}
+                filters={statementFilters}
+                onFiltersChange={setStatementFilters}
+                onPrint={() => void printUrl(statementPrintUrl)}
+                onCopyImage={handleCopyImage}
+                isCopyingImage={isCopyingImage}
+              />
             </TabsContent>
             <TabsContent value="invoices" className="pt-4">
               <CustomerInvoicesTab partyType={partyType} invoices={invoices} />
@@ -66,7 +94,6 @@ export function PartyDetailView({ partyType, party, invoices, payments, statemen
           </Tabs>
         </CardContent>
       </Card>
-      <StatementPrintDialog open={printOpen} onOpenChange={setPrintOpen} onSelect={handlePrintSelect} />
       <PartyFormDialog
         partyType={partyType}
         open={editOpen}

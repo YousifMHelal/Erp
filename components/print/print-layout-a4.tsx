@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import {
   formatDate,
-  formatMoney,
+  formatAmount,
   formatMoneyInWords,
   formatNumber,
 } from "@/lib/format";
@@ -15,15 +15,15 @@ function resolveFieldValue(item: PrintFieldItem, data: PrintInvoiceData): string
 function resolveTotalsRowValue(key: PrintTotalsRowKey, data: PrintInvoiceData): string | undefined {
   switch (key) {
     case "total":
-      return formatMoney(data.total);
+      return formatAmount(data.total);
     case "discount":
-      return Number(data.discountAmount) > 0 ? `-${formatMoney(data.discountAmount)}` : undefined;
+      return Number(data.discountAmount) > 0 ? `-${formatAmount(data.discountAmount)}` : undefined;
     case "previousBalance":
-      return data.previousBalance !== undefined ? formatMoney(data.previousBalance) : undefined;
+      return data.previousBalance !== undefined ? formatAmount(data.previousBalance) : undefined;
     case "paid":
-      return formatMoney(data.paidAmount);
+      return formatAmount(data.paidAmount);
     case "remaining":
-      return formatMoney(data.currentBalance ?? data.remainingAmount);
+      return formatAmount(data.currentBalance ?? data.remainingAmount);
     default:
       return undefined;
   }
@@ -61,7 +61,7 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
           col 1 (right) invoice meta, col 2 (middle) customer, col 3 (left) logo
       ========================================================== */}
       <section
-        className="flex h-[36mm] items-start justify-between px-[5mm] pt-[5.5mm]"
+        className="flex items-start justify-between gap-[4mm] px-[5mm] pt-[3mm] pb-[2mm]"
         dir="rtl"
       >
         {/* Col 1: invoice meta + staff phones, or the configured field list */}
@@ -96,7 +96,7 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
         </div>
 
         {/* Col 2: customer name, phone, address, company name, shop address, or the configured field list */}
-        <div className="w-[55mm] text-[16px] leading-[1.5]">
+        <div className="w-[72mm] text-[16px] leading-[1.5]">
           {infoColumns ? (
             <>
               <div className="mb-[1mm] text-right text-[18px] font-bold">
@@ -112,35 +112,35 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
 
               <div className="text-right">
                 {data.partyCompanyName && (
-                  <div className="whitespace-nowrap">
+                  <div>
                     {t("staffPrefix")} {data.partyCompanyName}
                   </div>
                 )}
 
-                <div className="whitespace-nowrap">{data.partyName}</div>
+                <div>{data.partyName}</div>
 
                 {data.partyPhone && (
-                  <div className="whitespace-nowrap" dir="ltr">
+                  <div className="text-right" dir="ltr">
                     {data.partyPhone}
                   </div>
                 )}
 
-                {data.partyAddress && (
-                  <div className="whitespace-nowrap">{data.partyAddress}</div>
-                )}
+                {data.partyAddress && <div>{data.partyAddress}</div>}
               </div>
 
-              <div className="mt-[1mm] text-right text-[15.5px] whitespace-nowrap">
-                <span className="font-bold">{t("shopAddress")} :</span>{" "}
-                <span className="font-medium">{data.shop.address}</span>
-              </div>
+              {data.shop.address && (
+                <div className="mt-[1mm] text-right text-[15.5px]">
+                  <span className="font-bold">{t("shopAddress")} :</span>{" "}
+                  <span className="font-medium">{data.shop.address}</span>
+                </div>
+              )}
             </>
           )}
         </div>
 
         {/* Col 3: logo only */}
         <div
-          className="flex h-[29mm] w-[64mm] items-center justify-start"
+          className="flex h-[24mm] w-[50mm] shrink-0 items-center justify-start"
           dir="ltr"
         >
           {data.shop.logoDataUrl && (
@@ -238,7 +238,7 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
                   className="border-[1.2px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[16.5px]"
                   dir="ltr"
                 >
-                  {formatMoney(line.unitPrice)}
+                  {formatAmount(line.unitPrice)}
                 </td>
 
                 {/* Total */}
@@ -246,7 +246,7 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
                   className="border-[1.2px] border-[#8a8a8a] px-[1mm] text-center align-middle text-[16.5px]"
                   dir="ltr"
                 >
-                  {formatMoney(line.lineTotal)}
+                  {formatAmount(line.lineTotal)}
                 </td>
               </tr>
             ))}
@@ -257,9 +257,29 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
       {/* =========================================================
           BOTTOM AREA
       ========================================================== */}
-      <section className="relative mx-[1.5mm] h-[36mm] w-[207mm]">
-        {/* LEFT TOTALS */}
-        <div className="absolute top-0 left-0 w-[61mm]" dir="ltr">
+      <section
+        className="mx-[1.5mm] mt-[3mm] flex w-[207mm] items-start justify-between gap-[6mm] pb-[3mm]"
+        dir="rtl"
+      >
+        {/* RIGHT: amount in words + signature box */}
+        <div className="flex min-w-0 flex-1 flex-col gap-[8mm] ps-[8mm] pt-[3mm]">
+          <div className="text-right text-[15px] leading-[1.6]">
+            <span className="font-medium">{t("amountInWords")} :</span>{" "}
+            <span className="font-bold underline decoration-[1px] underline-offset-[3px]">
+              {formatMoneyInWords(data.total)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-[2mm]">
+            <span className="text-[16px] font-medium whitespace-nowrap">
+              {t("signatureBox")}:
+            </span>
+            <div className="h-[9mm] w-[58mm] border-[2px] border-dashed border-black" />
+          </div>
+        </div>
+
+        {/* LEFT: totals */}
+        <div className="w-[88mm] shrink-0" dir="ltr">
           {(() => {
             const rows = totalsRows ?? DEFAULT_TOTALS_ROWS;
             const visibleRows = rows
@@ -279,29 +299,6 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
               );
             });
           })()}
-        </div>
-
-        {/* AMOUNT IN WORDS */}
-        <div
-          className="absolute top-[9.5mm] right-[10mm] w-[101mm] text-right text-[15px] whitespace-nowrap"
-          dir="rtl"
-        >
-          <span className="font-medium">{t("amountInWords")} :</span>{" "}
-          <span className="font-bold font-medium underline decoration-[1px] underline-offset-[2px]">
-            {formatMoneyInWords(data.total)}
-          </span>
-        </div>
-
-        {/* SIGNATURE / EMPTY BOX */}
-        <div
-          className="absolute right-[15.5mm] bottom-[1mm] flex items-center gap-[1.5mm]"
-          dir="rtl"
-        >
-          <span className="text-[16px] font-medium whitespace-nowrap">
-            {t("signatureBox")}:
-          </span>
-
-          <div className="h-[9mm] w-[58mm] border-[2px] border-dashed border-black" />
         </div>
       </section>
 
@@ -323,7 +320,7 @@ export function PrintLayoutA4({ data, infoColumns, totalsRows }: PrintLayoutProp
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="flex h-[7mm] items-center justify-start gap-[2mm] whitespace-nowrap"
+      className="flex h-[4.5mm] items-center justify-start gap-[2mm] whitespace-nowrap"
       dir="rtl"
     >
       {label && <span className="font-bold">{label + " :"}</span>}
@@ -338,7 +335,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 /** Renders a settings-configured field list, skipping any row whose resolved value is empty. */
 function ConfiguredFieldColumn({ items, data }: { items: PrintFieldItem[]; data: PrintInvoiceData }) {
   return (
-    <div className="space-y-[0.5mm]">
+    <div className="space-y-0">
       {items.map((item) => {
         const value = resolveFieldValue(item, data);
         if (!value) return null;
@@ -366,19 +363,22 @@ function TotalsRow({
   first?: boolean;
 }) {
   return (
-    <div className="grid h-[9mm] grid-cols-[31mm_30mm]" dir="ltr">
+    <div className="grid min-h-[9mm] grid-cols-[50mm_1fr]" dir="ltr">
       <div
         className={[
-          "flex items-center justify-center",
+          "flex items-center justify-center px-[1.5mm]",
           "border-x border-b border-[#8a8a8a]",
-          "text-[18px] font-bold",
+          "text-[16px] font-bold whitespace-nowrap",
           first ? "border-t" : "",
         ].join(" ")}
       >
         {value}
       </div>
 
-      <div className="flex items-center justify-start px-[1.5mm] text-[18px] font-bold whitespace-nowrap">
+      <div
+        className="flex items-center justify-end px-[2mm] text-[16px] font-bold whitespace-nowrap"
+        dir="rtl"
+      >
         {label}
       </div>
     </div>

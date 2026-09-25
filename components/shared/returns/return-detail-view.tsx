@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { printInvoice } from "@/lib/print-invoice";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { InvoiceHeaderCard } from "@/components/shared/invoice/invoice-header-card";
@@ -31,7 +32,7 @@ export function ReturnDetailView({
   const invoiceNumber = String(invoice.number).padStart(6, "0");
 
   function handlePrint() {
-    window.open(`/print/${invoice.id}?size=${defaultPrintSize}`, "_blank", "noopener,noreferrer");
+    printInvoice(invoice.id, defaultPrintSize);
   }
 
   function handleCancelConfirm(reason: string) {
@@ -51,6 +52,7 @@ export function ReturnDetailView({
     <div className="flex flex-col gap-4">
       <InvoiceActionsBar
         invoice={invoice}
+        printSize={defaultPrintSize}
         onPrint={handlePrint}
         onCancel={canCancel ? () => setCancelOpen(true) : undefined}
       />

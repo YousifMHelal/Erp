@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EntityCombobox } from "@/components/shared/entity-combobox";
 import { PartyBalancePreview } from "@/components/shared/money-document/party-balance-preview";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { formatMoney } from "@/lib/format";
 import { createCollection, updateCollection } from "@/actions/collections.actions";
 import { createPayment, updatePayment } from "@/actions/payments.actions";
 import { createCollectionSchema, createPaymentSchema } from "@/lib/validations";
@@ -19,6 +21,7 @@ import type { MoneyDocumentFormProps } from "@/types";
 export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, editing }: MoneyDocumentFormProps) {
   const t = useTranslations("moneyDocuments.form");
   const tList = useTranslations("moneyDocuments.list");
+  const tInvoice = useTranslations("invoices.form");
   const router = useRouter();
   const isEdit = !!editing;
   const [partyId, setPartyId] = useState<string | undefined>(editing?.partyId);
@@ -26,6 +29,9 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, 
   const [amount, setAmount] = useState(editing?.amount ?? "");
   const [note, setNote] = useState(editing?.note ?? "");
   const [saving, setSaving] = useState(false);
+  const [negativeCashWarning, setNegativeCashWarning] = useState<{ cashboxName: string; balanceAfter: number } | null>(
+    null,
+  );
 
   const selectedParty = partyOptions.find((p) => p.value === partyId);
   const currentBalance = selectedParty?.balance ?? "0";
@@ -39,6 +45,25 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, 
       ? createCollectionSchema.safeParse(input)
       : createPaymentSchema.safeParse(input);
     if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? t("errorRequired"));
+
+    const cashbox = cashboxOptions.find((option) => option.value === cashboxId);
+    if (documentType === "PAYMENT" && cashbox?.balance !== undefined) {
+      // On edit, this payment's old amount goes back into its cashbox before the new one comes out.
+      const refunded = isEdit && editing.cashboxId === cashboxId ? Number(editing.amount) : 0;
+      const balanceAfter = Number(cashbox.balance) + refunded - Number(amount);
+      if (balanceAfter < 0) {
+        setNegativeCashWarning({ cashboxName: cashbox.label, balanceAfter });
+        return;
+      }
+    }
+    await submit();
+  }
+
+  async function submit() {
+    setNegativeCashWarning(null);
+    const input = documentType === "COLLECTION"
+      ? { customerId: partyId, cashboxId, amount, note }
+      : { supplierId: partyId, cashboxId, amount, note };
     setSaving(true);
     try {
       const result = isEdit
@@ -120,6 +145,22 @@ export function MoneyDocumentForm({ documentType, partyOptions, cashboxOptions, 
           {submitLabel}
         </Button>
       </div>
+      <ConfirmDialog
+        open={negativeCashWarning !== null}
+        onOpenChange={(open) => !open && setNegativeCashWarning(null)}
+        title={tInvoice("negativeCashTitle")}
+        description={
+          negativeCashWarning
+            ? tInvoice("negativeCashDescription", {
+                cashbox: negativeCashWarning.cashboxName,
+                balance: formatMoney(String(negativeCashWarning.balanceAfter)),
+              })
+            : ""
+        }
+        confirmLabel={tInvoice("negativeCashConfirm")}
+        isPending={saving}
+        onConfirm={() => void submit()}
+      />
     </form>
   );
 }

@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import { lineAmount, paymentStatus, decimal } from "@/lib/money";
 import { toSubUnits } from "@/lib/units";
 import { syncNotifications } from "@/lib/notifications";
+import { removeDocumentCash } from "@/lib/cash-ledger";
+import { removeDocumentPartyEntries } from "@/lib/party-ledger";
 import type {
   PreparedSale,
   SaleErrorCode,
@@ -233,7 +235,7 @@ export async function reverseSale(
   tx: Prisma.TransactionClient,
   invoice: SaleWithLines,
   userId: string,
-  reason: string,
+  reason: string | undefined,
 ) {
   for (const line of invoice.lines.filter((entry) => entry.isCurrent)) {
     await moveStock(tx, {
@@ -245,22 +247,10 @@ export async function reverseSale(
       note: reason,
     });
   }
-  await moveCash(tx, {
-    cashboxId: invoice.cashboxId,
-    amount: invoice.paidAmount.negated(),
-    invoiceId: invoice.id,
-    customerId: invoice.customerId,
-    userId,
-    note: reason,
-  });
-  await moveCustomerBalance(tx, {
-    customerId: invoice.customerId,
-    amount: invoice.remainingAmount.negated(),
-    invoiceId: invoice.id,
-    userId,
-    note: reason,
-  });
+  const removedCash = await removeDocumentCash(tx, { refType: "INVOICE", refId: invoice.id });
+  const removedParty = await removeDocumentPartyEntries(tx, { refType: "INVOICE", refId: invoice.id });
   await syncNotifications(tx, {
     productIds: invoice.lines.filter((entry) => entry.isCurrent).map((entry) => entry.productId),
   });
+  return { removedCash, removedParty };
 }

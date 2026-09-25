@@ -3,6 +3,8 @@ import { lineAmount, paymentStatus, decimal } from "@/lib/money";
 import { toSubUnits } from "@/lib/units";
 import { weightedAverageCost } from "@/lib/costing";
 import { syncNotifications } from "@/lib/notifications";
+import { removeDocumentCash } from "@/lib/cash-ledger";
+import { removeDocumentPartyEntries } from "@/lib/party-ledger";
 import type {
   PreparedPurchase,
   PurchaseErrorCode,
@@ -262,7 +264,7 @@ export async function reversePurchase(
   tx: Prisma.TransactionClient,
   invoice: PurchaseWithLines,
   userId: string,
-  reason: string,
+  reason: string | undefined,
 ) {
   for (const line of invoice.lines.filter((entry) => entry.isCurrent)) {
     await moveStock(tx, {
@@ -275,22 +277,10 @@ export async function reversePurchase(
       note: reason,
     });
   }
-  await moveCash(tx, {
-    cashboxId: invoice.cashboxId,
-    amount: invoice.paidAmount,
-    invoiceId: invoice.id,
-    supplierId: invoice.supplierId,
-    userId,
-    note: reason,
-  });
-  await moveSupplierBalance(tx, {
-    supplierId: invoice.supplierId,
-    amount: invoice.remainingAmount.negated(),
-    invoiceId: invoice.id,
-    userId,
-    note: reason,
-  });
+  const removedCash = await removeDocumentCash(tx, { refType: "INVOICE", refId: invoice.id });
+  const removedParty = await removeDocumentPartyEntries(tx, { refType: "INVOICE", refId: invoice.id });
   await syncNotifications(tx, {
     productIds: invoice.lines.filter((entry) => entry.isCurrent).map((entry) => entry.productId),
   });
+  return { removedCash, removedParty };
 }

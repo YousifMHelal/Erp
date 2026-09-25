@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/shared/money";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -42,15 +42,12 @@ export function ReturnLinesTable({ lines, onUpdateQty }: ReturnLinesTableProps) 
               <TableCell className="tabular-nums">{formatNumber(line.maxReturnableQty)}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <Input
-                    type="number"
-                    inputMode="decimal"
+                  <NumberInput
                     min={0}
                     max={line.maxReturnableQty}
-                    step="any"
                     value={line.qty}
-                    onChange={(e) => {
-                      const value = Math.min(Math.max(Number(e.target.value), 0), line.maxReturnableQty);
+                    onValueChange={(qty) => {
+                      const value = Math.min(Math.max(qty, 0), line.maxReturnableQty);
                       onUpdateQty(line.lineId, value);
                     }}
                     className="w-20 text-end tabular-nums"
